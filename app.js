@@ -198,7 +198,7 @@ views.admin=()=>`<div class="bc"><a href="#" data-v="home">หน้าหลั
 document.addEventListener('click',e=>{if(!e.target.closest('[data-adm]'))return;e.preventDefault();if(isAdm())tpToast('ຍັງບໍ່ເປີດໃຊ້ງານ')}); // ADMIN: ยังไม่มีหน้าปลายทาง
 // ===== ระบบสมาชิก (Supabase) =====
 // ใส่ค่าจากโปรเจกต์ Supabase ใหม่: Project Settings > API (ใช้ anon / publishable key เท่านั้น ห้ามใส่ service_role)
-const SB_URL='YOUR-SUPABASE-URL',SB_KEY='YOUR-ANON-OR-PUBLISHABLE-KEY';
+const SB_URL='https://gojiyswscudhqmovfcwj.supabase.co',SB_KEY='sb_publishable_-4G10n0CQXgxiwoAWAOx7g_saAY3VR3';
 const MAIL='@gxroz.app'; // ล็อกอินด้วยชื่อผู้ใช้อย่างเดียว: ระบบแปลงเป็นอีเมลภายในให้อัตโนมัติ (ไม่มีการส่งอีเมลจริง)
 // หน้าที่ต้องเป็นสมาชิกเท่านั้น (ผู้เยี่ยมชมดูหน้าอื่นได้ปกติ)
 const NEED=new Set(['order','topup','hist','hist-topup','hist-order','hist-log','hist-fav']);
