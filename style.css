@@ -316,3 +316,37 @@ a.cat{display:block;color:inherit;text-decoration:none;transition:transform .15s
 a.cat:active{transform:scale(.98)}
 a.cat:hover{border-color:var(--pri)}
 a.cat[hidden],.sr-none[hidden]{display:none}
+
+/* ===== บัญชีสมาชิกในเมนู ===== */
+.acc{margin:4px 14px 8px;padding:12px 14px;border:1px solid var(--border);border-radius:14px;display:flex;flex-direction:column;gap:2px}
+.acc b{font-size:15px;font-weight:500;color:var(--text);word-break:break-all}.acc small{font-size:13px;color:var(--sub)}
+.dr #lo svg{fill:#e5484d}
+
+/* ===== ไอคอนโปรไฟล์บนแถบหัว ===== */
+.av{margin-left:12px;width:36px;height:36px;border-radius:50%;position:relative;display:grid;place-items:center;flex:none;transition:transform .2s}
+.av:active{transform:scale(.92)}
+.av:not(.in){border:1.5px dashed var(--muted);background:var(--btn)}
+.hd .av svg{width:22px;height:22px;fill:none;stroke:var(--sub);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.avp{position:absolute;right:-4px;bottom:-4px;width:16px;height:16px;border-radius:50%;background:var(--pri);color:#fff;font:600 13px/16px sans-serif;text-align:center;box-shadow:0 0 0 2px var(--surface)}
+.av.mem{background:linear-gradient(135deg,#0053FF,#5ea7ff);box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--pri)}
+.avl{color:#fff;font-weight:600;font-size:17px;line-height:1}
+.avd{position:absolute;right:-2px;bottom:-2px;width:11px;height:11px;border-radius:50%;background:#12a05c;box-shadow:0 0 0 2px var(--surface)}
+.apop{width:220px}
+.apn{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.apa{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0053FF,#5ea7ff);color:#fff;display:grid;place-items:center;font-weight:600;font-size:18px;flex:none}
+.apn b{display:block;font-size:15px;font-weight:500;color:var(--text);word-break:break-all}
+.apn small{margin:0}
+.apb{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:10px;background:var(--btn);font-size:13px;color:var(--sub);margin-bottom:8px}
+.apb b{color:var(--text);font-weight:600}
+.apl{width:100%;height:38px;border-radius:10px;font-size:14px;color:var(--text);border:1px solid var(--border);margin-top:6px}
+.apx{color:#e5484d;border-color:rgba(229,72,77,.4)}
+#adm .bt svg{width:34%}
+#adm .bt .t2{padding:0 9px 0 5px;margin-right:-9px}
+/* ห้องแอดมิน: การ์ดแบบยาว 1 ใบต่อแถว */
+#adm.btns{grid-template-columns:1fr;gap:14px}
+#adm .bt{aspect-ratio:3.3}
+#adm .bt svg{width:auto;height:70%;left:5%;bottom:15%}
+#adm .bt .t{top:15%;right:6%}
+#adm .bt .t1{font-size:19px}
+#adm .bt .t2{font-size:40px!important}
+@media(min-width:700px){#adm.btns{grid-template-columns:1fr 1fr}}
