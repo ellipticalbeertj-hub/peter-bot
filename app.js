@@ -218,7 +218,7 @@ if(m.includes('invalid login'))return'ชื่อผู้ใช้หรือ
 if(m.includes('already'))return'ชื่อผู้ใช้นี้ถูกใช้แล้ว';
 if(m.includes('database error'))return'สมัครไม่สำเร็จ ลองชื่อผู้ใช้อื่น';
 if(m.includes('fetch')||m.includes('network'))return'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง';
-return'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'};
+return'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'+(e&&e.message?' ['+e.message+']':'')};
 async function loadProf(){PROF=null;BAL=0;if(!sb||!USER)return;
 try{const{data}=await sb.from('profiles').select('username,role,balance').eq('id',USER.id).maybeSingle();PROF=data;if(data&&data.balance!=null)BAL=Number(data.balance)}catch(_){}}
 // เมนูข้างซ้าย: ผู้เยี่ยมชม = ปุ่มเข้าสู่ระบบ/สมัคร, สมาชิก = ชื่อ + ยอดเงิน + ออกจากระบบ
