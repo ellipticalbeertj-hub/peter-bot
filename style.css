@@ -340,13 +340,13 @@ a.cat[hidden],.sr-none[hidden]{display:none}
 .apb b{color:var(--text);font-weight:600}
 .apl{width:100%;height:38px;border-radius:10px;font-size:14px;color:var(--text);border:1px solid var(--border);margin-top:6px}
 .apx{color:#e5484d;border-color:rgba(229,72,77,.4)}
-#adm .bt svg{width:34%}
-#adm .bt .t2{padding:0 9px 0 5px;margin-right:-9px}
+#adm .bt svg,#admp .bt svg{width:34%}
+#adm .bt .t2,#admp .bt .t2{padding:0 9px 0 5px;margin-right:-9px}
 /* ห้องแอดมิน: การ์ดแบบยาว 1 ใบต่อแถว */
-#adm.btns{grid-template-columns:1fr;gap:14px}
-#adm .bt{aspect-ratio:3.3}
-#adm .bt svg{width:auto;height:70%;left:5%;bottom:15%}
-#adm .bt .t{top:15%;right:6%}
-#adm .bt .t1{font-size:19px}
-#adm .bt .t2{font-size:40px!important}
-@media(min-width:700px){#adm.btns{grid-template-columns:1fr 1fr}}
+#adm.btns,#admp.btns{grid-template-columns:1fr;gap:14px}
+#adm .bt,#admp .bt{aspect-ratio:3.3}
+#adm .bt svg,#admp .bt svg{width:auto;height:70%;left:5%;bottom:15%}
+#adm .bt .t,#admp .bt .t{top:15%;right:6%}
+#adm .bt .t1,#admp .bt .t1{font-size:19px}
+#adm .bt .t2,#admp .bt .t2{font-size:40px!important}
+@media(min-width:700px){#adm.btns,#admp.btns{grid-template-columns:1fr 1fr}}

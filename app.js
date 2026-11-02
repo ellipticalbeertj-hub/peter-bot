@@ -74,7 +74,7 @@ let raf;function mq(){cancelAnimationFrame(raf);const r=document.querySelector('
 ['touchstart','pointerdown','mouseenter'].forEach(e=>r.addEventListener(e,stop,{passive:true}));['touchend','pointerup','touchcancel','mouseleave'].forEach(e=>r.addEventListener(e,go));
 (function t(){if(hold){if(r.scrollLeft>=half())r.scrollLeft-=half()}else{pos+=.6;if(pos>=half())pos-=half();r.scrollLeft=pos}raf=requestAnimationFrame(t)})()}
 const $=s=>document.querySelector(s),app=$('#app');
-function show(v,m){if(NEED.has(v)&&!USER){PEND=[v,m];v='auth';m='login';tpToast('กรุณาเข้าสู่ระบบก่อน')}else if(v==='auth'&&USER){v='home';m=undefined}else if((v==='admin'||v==='admin-prod')&&!isAdm()){v='home';m=undefined}if(v!=='auth')PEND=null;CUR=v;document.querySelectorAll('.pop').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.tp-ov,.tp-sh').forEach(x=>x.remove());document.body.style.overflow='';app.innerHTML=views[v](m);tr(app);app.querySelectorAll('[placeholder]').forEach(i=>{i.placeholder=trs(i.placeholder)});document.querySelectorAll('.dr a[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v&&(!a.dataset.m||a.dataset.m===m)));document.body.classList.remove('open');scrollTo(0,0)}
+function show(v,m){if(NEED.has(v)&&!USER){PEND=[v,m];v='auth';m='login';tpToast('กรุณาเข้าสู่ระบบก่อน')}else if(v==='auth'&&USER){v='home';m=undefined}else if((v==='admin'||v==='admin-prod'||v==='admin-topup')&&!isAdm()){v='home';m=undefined}if(v!=='auth')PEND=null;CUR=v;document.querySelectorAll('.pop').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.tp-ov,.tp-sh').forEach(x=>x.remove());document.body.style.overflow='';app.innerHTML=views[v](m);tr(app);app.querySelectorAll('[placeholder]').forEach(i=>{i.placeholder=trs(i.placeholder)});document.querySelectorAll('.dr a[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v&&(!a.dataset.m||a.dataset.m===m)));document.body.classList.remove('open');scrollTo(0,0)}
 document.addEventListener('click',e=>{const t=e.target.closest('[data-v]');if(t){e.preventDefault();show(t.dataset.v,t.dataset.m)}});
 
 $('#mn').onclick=()=>document.body.classList.add('open');$('#ov').onclick=$('#cl').onclick=()=>document.body.classList.remove('open');
@@ -198,9 +198,14 @@ views.admin=()=>`<div class="bc"><a href="#" data-v="home">หน้าหลั
 // ADMIN: หน้า "จัดการสินค้า" — ดีไซน์การ์ดเดียวกับห้องแอดมิน มี 2 เมนู (เพิ่มสินค้า / แก้ไขสินค้า) หน้าปลายทางยังว่าง
 const ADMP=[
 ['ເພີ່ມ','ສິນຄ້າ',36,'<path d="M6 18l22-10 22 10v22L28 50 6 40z"/><path d="M6 18l22 10 22-10M28 28v22"/><circle cx="46" cy="46" r="9" fill="#2d231b"/><path d="M41 46h10M46 41v10"/>'],
-['ແກ້ໄຂ','ສິນຄ້າ',34,'<path d="M6 18l22-10 22 10v22L28 50 6 40z"/><path d="M6 18l22 10 22-10M28 28v22"/><circle cx="46" cy="46" r="9" fill="#2d231b"/><path d="M42 50l1-4 6-6 3 3-6 6z"/>']];
+['ແກ້ໄຂ','ສິນຄ້າ',34,'<path d="M6 18l22-10 22 10v22L28 50 6 40z"/><path d="M6 18l22 10 22-10M28 28v22"/><circle cx="46" cy="46" r="9" fill="#2d231b"/><path d="M42 50l1-4 6-6 3 3-6 6z"/>'],
+['ເຕີມ','ສະຕັອກ',36,'<path d="M6 18l22-10 22 10v22L28 50 6 40z"/><path d="M6 18l22 10 22-10M28 28v22"/><circle cx="46" cy="46" r="9" fill="#2d231b"/><path d="M46 51V41M41 46l5-5 5 5"/>']];
 views['admin-prod']=()=>`<div class="bc"><a href="#" data-v="home">หน้าหลัก</a> &nbsp;/&nbsp; <a href="#" data-v="admin">ห้องแอดมิน</a> &nbsp;/&nbsp; จัดการสินค้า</div><h1 class="tp-h">จัดการสินค้า</h1><div class="btns" id="admp">${ADMP.map((c,i)=>`<a href="#" class="bt" data-adm="p${i}"><svg viewBox="0 0 60 60">${c[3]}</svg><span class="t"><span class="t1">${c[0]}</span><span class="t2" style="font-size:${c[2]}px">${c[1]}</span></span></a>`).join('')}</div>`; // ADMIN
-document.addEventListener('click',e=>{const el=e.target.closest('[data-adm]');if(!el)return;e.preventDefault();if(!isAdm())return;if(el.dataset.adm==='0')show('admin-prod');else tpToast('ຍັງບໍ່ເປີດໃຊ້ງານ')}); // ADMIN: ยังไม่มีหน้าปลายทางของเพิ่ม/แก้ไขสินค้า
+// ADMIN: หน้า "จัดการเติมเงิน" — การ์ดแบบเดียวกัน มี 1 เมนู (คำขอเติมเงิน) หน้าปลายทางยังว่าง
+const ADMT=[
+['ຄຳຂໍ','ເຕີມເງິນ',36,'<ellipse cx="26" cy="14" rx="18" ry="7"/><path d="M8 14v11c0 4 8 7 18 7s18-3 18-7V14M8 25v11c0 4 8 7 18 7s18-3 18-7V25"/><circle cx="46" cy="44" r="9" fill="#2d231b"/><path d="M46 39v5l3.500 2"/>']];
+views['admin-topup']=()=>`<div class="bc"><a href="#" data-v="home">หน้าหลัก</a> &nbsp;/&nbsp; <a href="#" data-v="admin">ห้องแอดมิน</a> &nbsp;/&nbsp; จัดการเติมเงิน</div><h1 class="tp-h">จัดการเติมเงิน</h1><div class="btns" id="admp">${ADMT.map((c,i)=>`<a href="#" class="bt" data-adm="t${i}"><svg viewBox="0 0 60 60">${c[3]}</svg><span class="t"><span class="t1">${c[0]}</span><span class="t2" style="font-size:${c[2]}px">${c[1]}</span></span></a>`).join('')}</div>`; // ADMIN
+document.addEventListener('click',e=>{const el=e.target.closest('[data-adm]');if(!el)return;e.preventDefault();if(!isAdm())return;if(el.dataset.adm==='0')show('admin-prod');else if(el.dataset.adm==='1')show('admin-topup');else tpToast('ຍັງບໍ່ເປີດໃຊ້ງານ') /* p0=เพิ่มสินค้า p1=แก้ไขสินค้า p2=เติมสต็อก: หน้าปลายทางยังว่าง */}); // ADMIN: ยังไม่มีหน้าปลายทางของเพิ่ม/แก้ไขสินค้า
 // ===== ระบบสมาชิก (Supabase) =====
 // ใส่ค่าจากโปรเจกต์ Supabase ใหม่: Project Settings > API (ใช้ anon / publishable key เท่านั้น ห้ามใส่ service_role)
 const SB_URL='https://gojiyswscudhqmovfcwj.supabase.co',SB_KEY='sb_publishable_-4G10n0CQXgxiwoAWAOx7g_saAY3VR3';
@@ -234,7 +239,7 @@ n.innerHTML=`<div class="dt">บัญชีของฉัน</div><div class="
 n.querySelector('.acc b').textContent=nm}else n.innerHTML=GN;
 tr(n);avr()}
 if(sb)sb.auth.onAuthStateChange((ev,s)=>{USER=s?s.user:null;if(ev==='TOKEN_REFRESHED')return;
-setTimeout(async()=>{await loadProf();anav();if((!USER&&NEED.has(CUR))||((CUR==='admin'||CUR==='admin-prod')&&!isAdm()))show('home')},0)});
+setTimeout(async()=>{await loadProf();anav();if((!USER&&NEED.has(CUR))||((CUR==='admin'||CUR==='admin-prod'||CUR==='admin-topup')&&!isAdm()))show('home')},0)});
 document.addEventListener('submit',async e=>{const f=e.target;if(f.id!=='af')return;e.preventDefault();
 const er=$('#er'),rg=f.dataset.m==='register',btn=f.querySelector('.sb'),el=f.elements,say=(m,ok)=>{er.className=ok?'er ok':'er';er.textContent=m;tr(er)};
 const u=el.u.value.trim(),p=el.p.value,c=rg?el.c.value:'';let m='';
