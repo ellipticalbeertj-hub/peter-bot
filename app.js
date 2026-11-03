@@ -2,7 +2,7 @@ const I={};
 let P=[]; // [id,name,price,stock,sold,image,desc,options] — โหลดจากตาราง products ใน Supabase PXPSHOP
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pm=r=>[r.id,r.name,Number(r.price)||0,r.stock|0,r.sold|0,r.image_url||'',r.description||'',Array.isArray(r.options)?r.options:[],r.option_stock||{}];
-async function loadProds(){if(!sb)return;try{const{data}=await sb.from('products').select('*').eq('is_active',true).order('created_at',{ascending:false});P=(data||[]).map(pm)}catch(_){}if(CUR==='home')show('home')}
+async function loadProds(){if(!sb)return;try{const{data}=await sb.from('products').select('*').eq('is_active',true).order('created_at',{ascending:false});P=(data||[]).map(pm)}catch(_){}try{const r=await sb.rpc('recent_orders',{p_limit:10});if(!r.error)ROR=r.data||[]}catch(_){}if(CUR==='home')show('home')}
 const optLbl=o=>o.d&&o.h?{n:o.d,u:'วัน '+o.h+' ชม.'}:o.d?{n:o.d,u:'วัน'}:{n:o.h,u:'ชม.'};
 const optsOf=p=>p[7].length?p[7].map(o=>({...o,...optLbl(o)})):[{n:1,u:'ชิ้น',p:p[2],_:1}];
 const bsl=()=>P.filter(x=>x[4]>0).sort((a,b)=>b[4]-a[4]).slice(0,2);
@@ -14,7 +14,7 @@ const card=p=>`<div class="card pc"><div class="pi"><div class="ph">${p[5]?`<img
 const cats=[["c1","Android",'',''],["c2","IPhone",'',''],["c3","MODSKIN",'',''],["c4","Setting FF","",""]];
 const CATP={c1:[],c2:[],c3:[],c4:[]}; // รหัสสินค้าในแต่ละหมวด — แก้ให้ตรงของร้านจริง
 const cat=(c,i)=>`<a href="#" class="card cat" data-v="cat" data-m="${c[0]}" data-n="${c[1].toLowerCase()}" data-i="${i}"><div class="ph">${PH}</div><div class="ct"><h3>${c[1]}</h3><span class="cn">${c[2]}</span><span class="pr2">${c[3]}</span></div></a>`;
-const orders=[];
+let ROR=[]; // รายการสั่งซื้อล่าสุดจริงจาก Supabase (ฟังก์ชัน recent_orders: ชื่อผู้ซื้อถูกปิดบางส่วน เช่น be****tj)
 const bag='<svg viewBox="0 0 24 24"><path d="M6 8h12l1 12H5zM9 8a3 3 0 016 0" fill="none" stroke="#fff" stroke-width="0"/></svg>';
 const BI=[
 '<path d="M3 8h7l6 26h28l5-19H13"/><path d="M16 18h34M18 26h30M24 15l2 19M33 15l1 19M42 15l-1 19"/><circle cx="22" cy="44" r="4"/><circle cx="42" cy="44" r="4"/>',
@@ -34,8 +34,8 @@ const views={
 home:()=>`<div class="ph hero" role="img" aria-label="GXROZSHOP">${PH}</div>
 <div class="stats"><div class="sc"><span class="fr"><span class="in"><span class="lb">ผู้ใช้งาน</span><span class="nm">0<i>คน</i></span><span class="tr"></span><span class="bd"><span><svg viewBox="0 0 60 60"><circle cx="30" cy="19" r="10"/><path d="M9 53c0-13 8-19 21-19s21 6 21 19"/></svg></span></span></span></span></div><div class="sc"><span class="fr"><span class="in"><span class="lb">สต็อก</span><span class="nm">0<i>ชิ้น</i></span><span class="tr"></span><span class="bd"><span><svg viewBox="0 0 60 60"><path d="M6 17L30 6l24 11v26L30 54 6 43z"/><path d="M6 17l24 11 24-11M30 28v26"/></svg></span></span></span></span></div><div class="sc w"><span class="fr"><span class="in"><span class="lb">ยอดขาย</span><span class="nm">0<i>ครั้ง</i></span><span class="tr"></span><span class="bd"><span><svg viewBox="0 0 60 60"><path d="M10 21h40l3 32H7z"/><path d="M20 21v-4a10 10 0 0120 0v4"/><path d="M20 36l7 7 14-12"/></svg></span></span></span></span></div></div>
 <div class="btns">${btns()}</div>
-${orders.length?`<div class="sec"><h2>รายการสั่งซื้อล่าสุด</h2><p>รายการสินค้าที่เพิ่งถูกสั่งซื้อ</p></div>
-<div class="row"><div class="trk">${[...orders,...orders].map(o=>`<div class="card od"><div class="ph">${PH}</div><div><b>${o[0]}</b><span>ไฟล์ดูดหัว 50% แอนดรอยด์</span><em>${o[1]}</em></div></div>`).join('')}</div></div>`:''}
+${ROR.length?`<div class="sec"><h2>รายการสั่งซื้อล่าสุด</h2><p>รายการสินค้าที่เพิ่งถูกสั่งซื้อ</p></div>
+<div class="row"><div class="trk">${(h=>[...h,...h])(Array.from({length:Math.max(4,ROR.length)},(_,i)=>ROR[i%ROR.length])).map(o=>`<div class="card od"><div class="ph">${o.image_url?`<img src="${esc(o.image_url)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:PH}</div><div><b>${esc(o.buyer)}</b><span>${esc(o.product_name)}</span><em>${fdt(o.created_at)}</em></div></div>`).join('')}</div></div>`:''}
 ${bsl().length?`<div class="sh"><svg viewBox="0 0 24 24"><path d="M4 5h16v16H4zM7 2h2v4H7zM15 2h2v4h-2z"/></svg><div><h2>ขายดีประจำสัปดาห์</h2><p>สินค้าขายดีที่ลูกค้าเลือกมากที่สุด</p></div><button class="pill" data-v="list">ดูทั้งหมด</button></div>
 <div class="grid">${bsl().map(card).join('')}</div>`:''}
 <div class="sh"><svg viewBox="0 0 24 24"><path d="M3 10h18l-2 11H5zM8 9l3-6M16 9l-3-6" stroke="#2f5be0" stroke-width="2"/></svg><div><h2>รายการสินค้า</h2><p>สินค้าแนะนำสำหรับคุณ</p></div></div>
