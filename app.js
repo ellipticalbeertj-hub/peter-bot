@@ -519,7 +519,7 @@ document.addEventListener('input',e=>{if(e.target.id==='slq'&&isAdm()){clearTime
 let SET={shop_name:'PXPSHOP',logo_url:null,maintenance:false,maint_title:'',maint_msg:'',announce_on:false,announce_text:'',topup_min:10000,topup_max:5000000,topup_qr_url:null};
 const maint=()=>!!(SET.maintenance&&!isAdm());
 async function loadSettings(){try{if(sb){const r=await sb.rpc('public_settings');if(r.data)SET={...SET,...r.data}}}catch(_){}
-TPMIN=SET.topup_min;TPMAX=SET.topup_max;TPQR=SET.topup_qr_url||'';brand(document)}
+ctsSync();TPMIN=SET.topup_min;TPMAX=SET.topup_max;TPQR=SET.topup_qr_url||'';brand(document)}
 function brand(r){const n=SET.shop_name||'PXPSHOP';document.title=n;const w=document.createTreeWalker(r===document?document.body:r,NodeFilter.SHOW_TEXT);let x;while(x=w.nextNode())if(x.nodeValue.includes('PXPSHOP'))x.nodeValue=x.nodeValue.split('PXPSHOP').join(n);
 if(SET.logo_url){document.querySelectorAll('.dh .ph,.alg').forEach(e=>{if(!e.querySelector('img'))e.innerHTML='<img alt="" src="'+esc(SET.logo_url)+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">'});let l=document.querySelector('link[rel=icon]');if(!l){l=document.createElement('link');l.rel='icon';document.head.appendChild(l)}l.href=SET.logo_url}
 let a=$('#ann');if(!a){a=document.createElement('div');a.id='ann';a.className='ann';app.parentNode.insertBefore(a,app)}a.textContent=SET.announce_text||'';a.hidden=!(SET.announce_on&&SET.announce_text&&!maint())}
@@ -530,7 +530,7 @@ const r=await sb.rpc('submit_topup',{p_amount:tpA,p_slip:su,p_hash:h});if(r.erro
 // --- หน้าแอดมิน: ตั้งค่าร้าน (ข้อความหน้านี้เป็นภาษาไทย ไม่แปลเป็นลาว: ใช้ data-nt)
 let SS={f:null,q:null,wh:'',ok:false};
 const stT=t=>{let p=$('.tp-toast');if(!p){p=document.createElement('div');p.className='tp-toast';document.body.appendChild(p)}p.textContent=trs(t);p.classList.add('on');setTimeout(()=>p.classList.remove('on'),2400)};
-views['admin-set']=()=>{SS={f:null,q:null,wh:'',ok:false};const S=SET,sw=(id,on)=>`<button type="button" class="ad-sw${on?' on':''}" id="${id}" role="switch" aria-checked="${!!on}"><i></i></button>`;
+views['admin-set']=()=>{SS={f:null,q:null,wh:'',ok:false,ci:[]};const S=SET,sw=(id,on)=>`<button type="button" class="ad-sw${on?' on':''}" id="${id}" role="switch" aria-checked="${!!on}"><i></i></button>`;
 return `<div><div class="bc"><a href="#" data-v="home">หน้าหลัก</a> &nbsp;/&nbsp; <a href="#" data-v="admin">ห้องแอดมิน</a> &nbsp;/&nbsp; ตั้งค่าร้าน</div><h1 class="tp-h">ตั้งค่าร้าน</h1>
 <div class="tp-card"><div class="ad-sr"><div><h2>เปิดเว็บให้ลูกค้า</h2><small id="stms">${S.maintenance?'ตอนนี้ปิดปรับปรุง: เฉพาะแอดมินเข้าได้':'ตอนนี้เว็บเปิดปกติ'}</small></div>${sw('stmt',!S.maintenance)}</div></div>
 <div class="tp-card"><h2>ข้อความหน้าปิดปรับปรุง (ภาษาลาว)</h2><input class="ad-in" id="stmti" maxlength="60" style="padding-right:14px" value="${esc(S.maint_title)}"><textarea class="ad-ta" id="stmm" maxlength="300" style="margin-top:10px">${esc(S.maint_msg)}</textarea></div>
@@ -539,6 +539,7 @@ return `<div><div class="bc"><a href="#" data-v="home">หน้าหลัก<
 <div class="tp-card"><h2>ชื่อร้าน</h2><input class="ad-in" id="stn" maxlength="40" style="padding-right:14px" value="${esc(S.shop_name)}"></div>
 <div class="tp-card"><h2>ลิงก์เว็บฮุก Discord (แจ้งเตือนเวลามีคนเติมเงิน)</h2><input class="ad-in" id="stwh" style="padding-right:14px" autocomplete="off" placeholder="https://discord.com/api/webhooks/..."><small style="display:block;margin-top:8px;opacity:.7">ลิงก์นี้เห็นเฉพาะแอดมิน</small><button class="aa-btn full" type="button" id="stwt" style="margin-top:10px">ส่งข้อความทดสอบ</button></div>
 <div class="tp-card"><h2>ลิงก์เว็บไซต์ของร้าน (ทำให้มีลิงก์ ✅ ยืนยัน / ❌ ปฏิเสธ ใน Discord)</h2><input class="ad-in" id="stsite" autocomplete="off" inputmode="url" style="padding-right:14px" placeholder="https://your-site.com/"><small style="display:block;margin-top:8px;opacity:.7">ใส่ลิงก์หน้าเว็บจริง เช่น https://pxpshop.com/ — กดลิงก์ใน Discord แล้วจะเปิดหน้าตรวจสลิปทันที</small></div>
+${ctForm()}
 <div class="tp-card"><div class="ad-sr"><div><h2>แถบประกาศหน้าเว็บ</h2><small>แสดงข้อความด้านบนให้ลูกค้าเห็น</small></div>${sw('stan',S.announce_on)}</div><input class="ad-in" id="stat" maxlength="150" style="padding-right:14px;margin-top:12px" value="${esc(S.announce_text)}"></div>
 <div class="tp-card"><h2>ยอดเติมเงิน (กีบ)</h2><div class="ad-pw"><input class="ad-in" id="stmin" inputmode="numeric" style="padding-right:70px" value="${S.topup_min}"><span>ขั้นต่ำ</span></div><div class="ad-pw" style="margin-top:10px"><input class="ad-in" id="stmax" inputmode="numeric" style="padding-right:70px" value="${S.topup_max}"><span>สูงสุด</span></div></div>
 <button class="tp-cta" id="stgo">บันทึกการตั้งค่า</button>${(setTimeout(stWh),'')}</div>`};
@@ -546,14 +547,14 @@ async function stWh(){try{const r=await sb.from('shop_secrets').select('webhook_
 function stLogo(f){const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const k=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);if(!b)return stT('ไฟล์รูปไม่ถูกต้อง');SS.f=b;$('.ad-up .tp-pv').src=URL.createObjectURL(b);$('.ad-up').classList.add('has')},'image/png')};im.onerror=()=>stT('ไฟล์รูปไม่ถูกต้อง');im.src=u}
 function stQr(f){const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const k=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);if(!b)return stT('ไฟล์รูปไม่ถูกต้อง');SS.q=b;const l=$('.sq');l.querySelector('.tp-pv').src=URL.createObjectURL(b);l.classList.add('has')},'image/png')};im.onerror=()=>stT('ไฟล์รูปไม่ถูกต้อง');im.src=u}
 async function stSave(extra){const g=$('#stgo');if(!sb||!isAdm())return;const wh=$('#stwh').value.trim();if(wh&&!/^https:\/\/(discord(app)?\.com)\/api\/webhooks\/\d+\/[\w-]+/.test(wh))return stT('ลิงก์เว็บฮุกไม่ถูกต้อง');
-const nm=$('#stn').value.trim();if(!nm)return stT('กรุณาใส่ชื่อร้าน');const mn=parseInt($('#stmin').value)||0,mx=parseInt($('#stmax').value)||0;if(mn<1||mx<mn)return stT('ยอดเติมเงินไม่ถูกต้อง');
+const nm=$('#stn').value.trim();if(!nm)return stT('กรุณาใส่ชื่อร้าน');const mn=parseInt($('#stmin').value)||0,mx=parseInt($('#stmax').value)||0;if(mn<1||mx<mn)return stT('ยอดเติมเงินไม่ถูกต้อง');const cts=ctCollect();if(cts===null)return stT('ลิงก์ช่องทางติดต่อไม่ถูกต้อง');
 g.disabled=true;g.textContent='กำลังบันทึก...';
 try{let lg=SET.logo_url;if(SS.f){const pth='logo_'+Date.now()+'.png',u=await sb.storage.from('product-images').upload(pth,SS.f,{contentType:'image/png'});if(u.error)throw u.error;lg=sb.storage.from('product-images').getPublicUrl(pth).data.publicUrl}
 let qr=SET.topup_qr_url;if(SS.q){const pth='qr_'+Date.now()+'.png',u=await sb.storage.from('product-images').upload(pth,SS.q,{contentType:'image/png'});if(u.error)throw u.error;qr=sb.storage.from('product-images').getPublicUrl(pth).data.publicUrl}
-const row={shop_name:nm,logo_url:lg,topup_qr_url:qr,maint_title:$('#stmti').value.trim()||'ປິດປັບປຸງຊົ່ວຄາວ',maint_msg:$('#stmm').value.trim(),announce_on:$('#stan').classList.contains('on'),announce_text:$('#stat').value.trim(),topup_min:mn,topup_max:mx,maintenance:SET.maintenance,updated_at:new Date().toISOString()};
+const ctsv=await ctUpload(cts);const row={contacts:ctsv,shop_name:nm,logo_url:lg,topup_qr_url:qr,maint_title:$('#stmti').value.trim()||'ປິດປັບປຸງຊົ່ວຄາວ',maint_msg:$('#stmm').value.trim(),announce_on:$('#stan').classList.contains('on'),announce_text:$('#stat').value.trim(),topup_min:mn,topup_max:mx,maintenance:SET.maintenance,updated_at:new Date().toISOString()};
 const r=await sb.from('shop_settings').update(row).eq('id',1).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');
 if(SS.ok){const w=await sb.from('shop_secrets').update({webhook_url:wh||null,site_url:(($('#stsite')||{}).value||'').trim()||null}).eq('id',1).select('id');if(w.error||!w.data||!w.data.length)throw w.error||new Error('no_permission')}
-Object.assign(SET,row);TPMIN=mn;TPMAX=mx;TPQR=qr||'';SS.f=null;SS.q=null;brand(document);g.disabled=false;g.textContent='บันทึกการตั้งค่า';stT('บันทึกสำเร็จ')}
+Object.assign(SET,row);ctsSync();SS.ci=[];TPMIN=mn;TPMAX=mx;TPQR=qr||'';SS.f=null;SS.q=null;brand(document);g.disabled=false;g.textContent='บันทึกการตั้งค่า';stT('บันทึกสำเร็จ')}
 catch(x){g.disabled=false;g.textContent='บันทึกการตั้งค่า';stT('บันทึกไม่สำเร็จ'+(x&&x.message?' ['+x.message+']':''))}}
 async function stMaint(on){if(!sb||!isAdm())return;if(on&&!confirm('ปิดเว็บเพื่อปรับปรุง? ลูกค้าจะเข้าเว็บไม่ได้ (แอดมินยังใช้ได้ปกติ)'))return;const b=$('#stmt');b.disabled=true;
 try{const r=await sb.from('shop_settings').update({maintenance:on,updated_at:new Date().toISOString()}).eq('id',1).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');SET.maintenance=on;b.classList.toggle('on',!on);b.setAttribute('aria-checked',String(!on));$('#stms').textContent=on?'ตอนนี้ปิดปรับปรุง: เฉพาะแอดมินเข้าได้':'ตอนนี้เว็บเปิดปกติ';brand(document);stT(on?'ปิดเว็บแล้ว':'เปิดเว็บแล้ว')}
@@ -631,6 +632,42 @@ else{b.className='av';b.innerHTML=AVG;b.setAttribute('aria-label','เข้า�
 document.addEventListener('click',e=>{const a=e.target.closest('#av');
 if(a){if(!USER){show('auth','login');return}$('#pop').classList.remove('on');$('#apop').classList.toggle('on');return}
 if(!e.target.closest('#apop'))$('#apop').classList.remove('on')});
+// ============================================================
+// ===== ช่องทางติดต่อแอดมิน (ตั้งค่าร้าน › ช่องทางติดต่อ 4 ช่อง → โชว์ในหน้า ติดต่อแอดมิน เฉพาะช่องที่ใส่ลิงก์) =====
+// เก็บใน shop_settings.contacts (jsonb) ส่งมากับ public_settings อัตโนมัติ · ช่องที่ไม่ใส่ลิงก์จะไม่แสดง
+// ============================================================
+const CTT={
+facebook:['Facebook','#1877F2','<path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z"/>'],
+whatsapp:['WhatsApp','#25D366','<path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>'],
+telegram:['Telegram','#29A9EB','<path d="M21 4L3 11l6 2 2 6 3-4 5 4z"/><path d="M9 13l12-9"/>'],
+discord:['Discord','#5865F2','<path d="M7 7c3-1.500 7-1.500 10 0l2 9c-2 1.500-4 2-7 2s-5-.500-7-2z"/><circle cx="9.500" cy="12.500" r="1.200"/><circle cx="14.500" cy="12.500" r="1.200"/>'],
+line:['LINE','#06C755','<path d="M12 4c5 0 9 3 9 7 0 4-4 6-6.500 7.500L12 20v-2c-5 0-9-3-9-7s4-7 9-7z"/>'],
+instagram:['Instagram','#E1306C','<rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.500"/><circle cx="17" cy="7" r=".8"/>'],
+tiktok:['TikTok','#111827','<path d="M14 4v10a3.500 3.500 0 11-3.500-3.500M14 4c0 2.500 2 4.500 5 4.500"/>'],
+phone:['โทรศัพท์','#0053FF','<rect x="7" y="2" width="10" height="20" rx="3"/><path d="M11 18h2"/>'],
+email:['อีเมล','#EA4335','<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 8l9 6 9-6"/>'],
+other:['อื่น ๆ','#64748b','<path d="M10 14a4 4 0 005.700 0l3-3a4 4 0 00-5.700-5.700l-1 1M14 10a4 4 0 00-5.700 0l-3 3a4 4 0 005.700 5.700l1-1"/>']};
+const CTU=['ສອບຖາມສິນຄ້າ ແລະ ລາຄາ','ເຕີມເງິນແລ້ວຍອດຍັງບໍ່ເຂົ້າ (ສົ່ງສະລິບມາດ້ວຍ)','ສິນຄ້າມີບັນຫາ ຫຼື ຕ້ອງການຄວາມຊ່ວຍເຫຼືອ'];
+// แปลง SET.contacts → CTS (รูปแบบที่หน้า ติดต่อแอดมิน ใช้) — เฉพาะช่องที่มีลิงก์
+function ctsSync(){CTS.length=0;(SET.contacts||[]).forEach(x=>{if(!x||!x.url)return;const t=CTT[x.type]||CTT.other,nm=x.type==='other'&&x.name?x.name:t[0];
+CTS.push([nm,esc(x.name||((x.type==='phone'||x.type==='email')&&x.url_raw?x.url_raw:nm)),esc(x.url),t[2],t[1],esc(x.desc||'ຊ່ອງທາງຕິດຕໍ່ແອດມິນຂອງຮ້ານ ຕອບກັບໄວໃນເວລາທຳການ'),(x.uses&&x.uses.length?x.uses:CTU).map(esc),esc(x.img||'')])})}
+{const _c=views.contact;views.contact=m=>CTS.length?_c(m):`<div class="bc"><a href="#" data-v="home">หน้าหลัก</a> &nbsp;/&nbsp; ติดต่อแอดมิน</div><h1 class="tp-h">ติดต่อแอดมิน</h1><div class="hs-em">ຍັງບໍ່ມີຊ່ອງທາງຕິດຕໍ່</div>`}
+function ctUrl(t,v){v=(v||'').trim();if(!v)return'';
+if(t==='phone'){const d=v.replace(/[^\d+]/g,'');return d.length>=6?'tel:'+d:null}
+if(t==='email')return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)?'mailto:'+v:null;
+if(t==='whatsapp'&&/^\+?[\d\s-]{7,}$/.test(v))return'https://wa.me/'+v.replace(/\D/g,'');
+if(t==='telegram'&&/^@?\w{4,}$/.test(v))return'https://t.me/'+v.replace('@','');
+return /^https?:\/\/\S+$/i.test(v)?v:null}
+// ฟอร์มตั้งค่า 4 ช่อง (ADMIN)
+const ctForm=()=>{const A=SET.contacts||[];return '<div data-nt><div class="tp-card"><h2>ช่องทางติดต่อแอดมิน (สูงสุด 4 ช่อง)</h2><small style="display:block;opacity:.75;line-height:1.6">ช่องไหนไม่ใส่ลิงก์ = ไม่แสดงให้ลูกค้า ใส่แค่ Discord ช่องเดียว หน้าติดต่อแอดมินก็จะมีแค่ Discord</small></div>'+[0,1,2,3].map(i=>{const x=A[i]||{};return `<div class="tp-card ct-ed" data-ci="${i}"><h2>ช่องที่ ${i+1}</h2><select class="ad-in ct-t" style="padding-right:14px">${Object.entries(CTT).map(([k,v])=>`<option value="${k}"${(x.type||(['facebook','discord','telegram','phone'][i]))===k?' selected':''}>${v[0]}</option>`).join('')}</select><input class="ad-in ct-u" autocomplete="off" style="padding-right:14px;margin-top:10px" placeholder="ลิงก์ / เบอร์ / @ชื่อ (เว้นว่าง = ไม่แสดง)" value="${esc(x.url_raw||x.url||'')}"><input class="ad-in ct-n" maxlength="40" style="padding-right:14px;margin-top:10px" placeholder="ข้อความที่แสดง เช่น PXPSHOP หรือ @pxpshop" value="${esc(x.name||'')}"><textarea class="ad-ta ct-d" maxlength="200" style="margin-top:10px" placeholder="คำอธิบายช่องทางนี้ (ภาษาลาว, ไม่บังคับ)">${esc(x.desc||'')}</textarea><textarea class="ad-ta ct-w" maxlength="300" style="margin-top:10px" placeholder="ใช้ช่องทางนี้เมื่อ... (1 บรรทัดต่อ 1 ข้อ, ไม่บังคับ)">${esc((x.uses||[]).join('\n'))}</textarea><label class="tp-up ad-up ct-up${x.img?' has':''}" style="margin-top:10px"><input class="st-ct" data-i="${i}" type="file" accept="image/*" hidden><img class="tp-pv" alt=""${x.img?` src="${esc(x.img)}"`:''}><span class="tp-t"><span>แตะเพื่อเลือกรูปปก (ไม่บังคับ)</span></span></label><button type="button" class="aa-btn full ct-rm" data-i="${i}" style="margin-top:8px">ลบรูปปก</button></div>`}).join('')+'</div>'};
+// เก็บค่าจากฟอร์ม: คืน array 4 ช่อง / null ถ้าลิงก์ผิด
+function ctCollect(){const out=[];let bad=false;document.querySelectorAll('.ct-ed').forEach(c=>{const i=+c.dataset.ci,t=c.querySelector('.ct-t').value,raw=c.querySelector('.ct-u').value.trim(),u=ctUrl(t,raw);if(u===null)bad=true;
+const old=((SET.contacts||[])[i]||{});out.push({type:t,url:u||'',url_raw:raw,name:c.querySelector('.ct-n').value.trim(),desc:c.querySelector('.ct-d').value.trim(),uses:c.querySelector('.ct-w').value.split('\n').map(x=>x.trim()).filter(Boolean).slice(0,5),img:SS.ci&&SS.ci[i]===0?'':old.img||'',_f:SS.ci&&SS.ci[i] instanceof Blob?SS.ci[i]:null})});return bad?null:out}
+async function ctUpload(a){for(let i=0;i<a.length;i++){const x=a[i];if(x._f){const p='ct_'+Date.now()+'_'+i+'.jpg',u=await sb.storage.from('product-images').upload(p,x._f,{contentType:'image/jpeg'});if(u.error)throw u.error;x.img=sb.storage.from('product-images').getPublicUrl(p).data.publicUrl}delete x._f}return a}
+function ctImg(f,i){const im=new Image(),u=URL.createObjectURL(f);im.onload=()=>{const k=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);c.toBlob(b=>{URL.revokeObjectURL(u);if(!b)return stT('ไฟล์รูปไม่ถูกต้อง');SS.ci=SS.ci||[];SS.ci[i]=b;const l=document.querySelector(`.ct-ed[data-ci="${i}"] .ct-up`);l.querySelector('.tp-pv').src=URL.createObjectURL(b);l.classList.add('has')},'image/jpeg',.85)};im.onerror=()=>stT('ไฟล์รูปไม่ถูกต้อง');im.src=u}
+document.addEventListener('change',e=>{if(e.target.classList.contains('st-ct')&&e.target.files[0]&&isAdm())ctImg(e.target.files[0],+e.target.dataset.i)}); // ADMIN
+document.addEventListener('click',e=>{const b=e.target.closest('.ct-rm');if(!b||!isAdm())return;const i=+b.dataset.i;SS.ci=SS.ci||[];SS.ci[i]=0;const l=document.querySelector(`.ct-ed[data-ci="${i}"] .ct-up`);l.classList.remove('has');l.querySelector('.tp-pv').removeAttribute('src')}); // ADMIN
+
 // ============================================================
 // ===== ระบบอนุมัติเติมเงิน (เพิ่มใหม่) =====
 //  • ลูกค้า: หน้ารอแอดมินยืนยัน (topup-wait) + หน้าสำเร็จ/ถูกปฏิเสธ + ประวัติเติมเงินจริง
