@@ -73,7 +73,7 @@ h2{font-size:22px;font-weight:600;line-height:1.3;color:var(--ice)}.sec p{font-s
 .sr button{width:44px;height:44px;border:1px solid var(--border);border-radius:50%}
 .sr svg{width:20px;height:20px;fill:none;stroke:#2f5be0;stroke-width:2}
 .top{position:fixed;right:12px;bottom:76px;width:40px;height:40px;border-radius:50%;border:1px solid var(--text);background:var(--surface);opacity:.85;z-index:15}
-.ov{position:fixed;inset:0;background:var(--ov);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .25s;z-index:30}
+.ov{position:fixed;inset:0;background:var(--ov);opacity:0;pointer-events:none;transition:opacity .25s;z-index:30}
 .dr{position:fixed;top:0;bottom:0;left:0;width:min(372px,90vw);background:var(--surface);transform:translateX(-100%);transition:transform .25s;z-index:31;padding-top:env(safe-area-inset-top,0px)}
 body.open .ov{opacity:1;pointer-events:auto}body.open .dr{transform:none}
 .dh{height:84px;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid var(--border);margin-top:20px}
@@ -186,7 +186,7 @@ html:not([data-theme=dark]) .bgfx{display:none}
 .tp-cta{width:100%;height:54px;border-radius:14px;font-size:18px;font-weight:500;color:#fff;background:linear-gradient(160deg,#0071FF,#0053FF 60%,#00228a);box-shadow:0 6px 18px rgba(0,83,255,.4);transition:transform .15s,opacity .2s,filter .2s}
 .tp-cta:active{transform:scale(.97)}
 .tp-cta:disabled{opacity:.45;filter:grayscale(.4);box-shadow:none}
-.tp-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .35s;z-index:200;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.tp-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .35s;z-index:200}
 .tp-ov.on{opacity:1;pointer-events:auto}
 .tp-sh{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:560px;max-height:92%;overflow-y:auto;background:var(--bg);color:var(--text);border-radius:24px 24px 0 0;padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 20px);z-index:210;transform:translateY(105%);transition:transform .55s cubic-bezier(.22,1.2,.36,1);will-change:transform}
 html[data-theme=dark] .tp-sh{background:var(--surface)}
@@ -672,3 +672,8 @@ html[data-theme=dark] .ok-card{background:var(--surface)}
 .adm-on .aa-av{transition:transform .35s cubic-bezier(.22,1.4,.36,1)}
 .adm-on .aa-row:active .aa-av{transform:scale(1.12) rotate(-6deg)}
 @media(prefers-reduced-motion:reduce){.adm-on *,.adm-on *:before,.adm-on *:after{animation-duration:.01s!important;animation-delay:0s!important;transition-duration:.01s!important}}
+
+/* ===== ลดภาระเครื่อง: รายการยาวไม่ต้องเรนเดอร์ตอนอยู่นอกจอ / เลื่อนลื่นขึ้น ===== */
+.adm-on :is(.hs-row,.aa-row,.sl-row,.ac-row){content-visibility:auto;contain-intrinsic-size:auto 76px}
+.adm-on .tt-c{content-visibility:auto;contain-intrinsic-size:auto 150px}
+html{-webkit-overflow-scrolling:touch}

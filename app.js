@@ -794,7 +794,7 @@ function fx(root){
   const list=(root.matches(SEL)?[root]:[]).concat([...root.querySelectorAll(SEL)]);
   list.forEach(e=>{
     if(e.dataset.fx||e.parentNode===app)return;
-    e.dataset.fx='1';e.style.setProperty('--i',Math.min(k++,10));e.classList.add('fx-in');
+    e.dataset.fx='1';if(e.classList.contains('tt-c')||k>=14)return;e.style.setProperty('--i',Math.min(k++,10));e.classList.add('fx-in');
   });
   root.querySelectorAll('.sl-bars button').forEach((b,i)=>{b.style.setProperty('--bi',Math.min(i,40))});
   root.querySelectorAll('.aa-st>b,.sl-hero>b').forEach(countUp);
@@ -817,32 +817,31 @@ document.addEventListener('pointerdown',e=>{
 },{passive:true});
 })();
 
-// ===== เอฟเฟกต์เปลี่ยนหน้าแบบผิวน้ำ: เนื้อหาบิดเป็นคลื่น + เบลอ ค้างจนโหลดเสร็จ แล้วค่อยนิ่งลง =====
+// ===== เอฟเฟกต์เปลี่ยนหน้าแบบผิวน้ำ (เวอร์ชันเบา: ใช้ GPU ล้วน ไม่ใช้ SVG filter): เนื้อหาโยกเป็นคลื่น + เบลอ ค้างจนโหลดเสร็จ แล้วค่อยนิ่งลง =====
 (function(){
 const orig=show,RM=matchMedia('(prefers-reduced-motion:reduce)');
-const AMP=41,BLUR=2,IN=650,MIN=350,OUT=700,MAXWAIT=3000;
-const box=document.createElement('div');
-box.innerHTML='<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="wat" x="-10%" y="-5%" width="120%" height="110%" color-interpolation-filters="sRGB"><feTurbulence id="wtb" type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="1" seed="3" result="n"/><feDisplacementMap id="wdm" in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur id="wgb" in="d" stdDeviation="0"/></filter></svg><div id="wtint" style="position:fixed;inset:0;background:#0071FF;opacity:0;pointer-events:none;z-index:1"></div>';
-while(box.firstChild)document.body.appendChild(box.firstChild);
-const tb=document.getElementById('wtb'),dm=document.getElementById('wdm'),gb=document.getElementById('wgb'),tint=document.getElementById('wtint');
+const AMP=41,BLUR=2,IN=450,MIN=200,OUT=500,MAXWAIT=3000;
+const tint=document.createElement('div');
+tint.style.cssText='position:fixed;inset:0;background:#0071FF;opacity:0;pointer-events:none;z-index:1;will-change:opacity';
+document.body.appendChild(tint);
 const ease=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
 const loading=()=>[...app.querySelectorAll('.hs-em')].some(e=>/กำลังโหลด|ກຳລັງໂຫຼດ/.test(e.textContent));
 let busy=false,pend=null;
 function apply(k,w){
-  dm.setAttribute('scale',(AMP*k).toFixed(1));
-  gb.setAttribute('stdDeviation',(BLUR*k).toFixed(2));
-  tb.setAttribute('baseFrequency',(0.012+0.004*Math.sin(w*3)).toFixed(4)+' '+(0.02+0.006*Math.cos(w*2.4)).toFixed(4));
+  const a=Math.sin(w*5.2),b=Math.cos(w*4.1),c=Math.sin(w*3.3+1);
+  app.style.transform='translate3d('+(a*AMP*.08*k).toFixed(2)+'px,'+(b*AMP*.03*k).toFixed(2)+'px,0) skew('+(c*AMP*.025*k).toFixed(3)+'deg,'+(b*AMP*.01*k).toFixed(3)+'deg) scale('+(1+.012*k*(1+a)).toFixed(4)+')';
+  app.style.filter=k>.03?'blur('+(BLUR*k).toFixed(2)+'px)':'none';
   app.style.opacity=(1-.3*k).toFixed(3);
   tint.style.opacity=(.3*k).toFixed(3);
 }
 function finish(){
-  app.style.filter='';app.style.opacity='';app.style.pointerEvents='';tint.style.opacity='0';busy=false;pend=null;
+  app.style.transform='';app.style.filter='';app.style.opacity='';app.style.pointerEvents='';app.style.willChange='';app.style.transformOrigin='';tint.style.opacity='0';busy=false;pend=null;
 }
 show=function(v,m){
   if(busy){pend=[v,m];return}
   if(RM.matches||!app.firstElementChild||(v===CUR&&m===CURM))return orig(v,m);
   busy=true;pend=[v,m];
-  app.style.filter='url(#wat)';app.style.pointerEvents='none';
+  app.style.willChange='transform,filter,opacity';app.style.transformOrigin='50% 0';app.style.pointerEvents='none';
   const t0=performance.now();let phase=0,tS=0,tO=0,k=0;
   (function f(now){
     const t=now-t0;
