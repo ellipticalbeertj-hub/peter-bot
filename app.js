@@ -252,7 +252,7 @@ if(!sb||!isAdm())return;g.disabled=true;g.textContent='กำลังบัน�
 try{let url=AD.rm?null:(AD.old||null);if(AD.f){const path=Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg',u=await sb.storage.from('product-images').upload(path,AD.f,{contentType:'image/jpeg'});if(u.error)throw u.error;url=sb.storage.from('product-images').getPublicUrl(path).data.publicUrl}
 const row={name,image_url:url,price,description:$('#add').value.trim()||null,options:opts};if(AD.catOk)row.category_id=AD.cat||null;let r;
 if(AD.id){row.is_active=AD.act;r=await sb.from('products').update(row).eq('id',AD.id)}else r=await sb.from('products').insert(row);
-if(r.error)throw r.error;tpToast(AD.id?'บันทึกการแก้ไขสำเร็จ':'เพิ่มสินค้าสำเร็จ');await loadProds();show('admin-prod')}
+if(r.error)throw r.error;okPop(AD.id?'บันทึกการแก้ไขสำเร็จ':'เพิ่มสินค้าสำเร็จ');await loadProds();show('admin-prod')}
 catch(x){g.disabled=false;g.textContent=lb;tr(g);tpToast('บันทึกไม่สำเร็จ'+(x&&x.message?' ['+x.message+']':''))}}
 async function adDel(){if(!AD.id||!sb||!isAdm()||!confirm(trs('ลบสินค้านี้ใช่ไหม?')))return;try{const r=await sb.from('products').delete().eq('id',AD.id);if(r.error)throw r.error;tpToast('ลบสินค้าแล้ว');await loadProds();show('admin-prod')}catch(x){tpToast('ลบไม่สำเร็จ'+(x&&x.message?' ['+x.message+']':''))}}
 document.addEventListener('change',e=>{if(!e.target.classList.contains('ad-fi'))return;const f=e.target.files[0];if(f)adImg(f)}); // ADMIN
@@ -278,7 +278,7 @@ ${o.length?`<div class="tp-card"><h2>เลือกระยะเวลา</h2
 async function adsLoad(){const l=$('#adsl');if(!l||!sb)return;try{ADS=await adFetch('id,name,image_url,stock,sold,options,option_stock');if(!ADS.length){l.innerHTML=hsEmpty;tr(l);return}if(!ADS.some(x=>x.id===AS.p))AS={p:ADS[0].id,o:0,t:''};adsR()}catch(_){adErr(l)}} // ADMIN
 async function adsAdd(){const p=ADS.find(x=>x.id===AS.p),ta=$('.ad-sta'),ls=ta?adLines(ta.value):[],b=$('.ad-sg');if(!p||!ls.length||!sb||!isAdm())return;if(ls.length>500)return tpToast('ครั้งละไม่เกิน 500 ชิ้น');b.disabled=true;const oi=adsOpts(p).length?AS.o:null;
 try{const r=await sb.from('stock_items').insert(ls.map(content=>({product_id:p.id,content,option_idx:oi})));if(r.error)throw r.error;
-const g=await sb.from('products').select('stock,option_stock,sold').eq('id',p.id).single();if(g.data)Object.assign(p,g.data);AS.t='';adsR();tpToast('เติมสต็อกสำเร็จ +'+ls.length);loadProds()}
+const g=await sb.from('products').select('stock,option_stock,sold').eq('id',p.id).single();if(g.data)Object.assign(p,g.data);AS.t='';adsR();okPop('เติมสต็อกสำเร็จ +'+ls.length);loadProds()}
 catch(x){b.disabled=false;tpToast('เติมไม่สำเร็จ'+(x&&x.message?' ['+x.message+']':''))}} // ADMIN
 document.addEventListener('click',e=>{if(e.target.closest('.ad-sg')){adsAdd();return}const o=e.target.closest('.as-op');if(o){AS.o=+o.dataset.i;adsR()}}); // ADMIN
 document.addEventListener('change',e=>{if(e.target.id==='ass'){AS={p:e.target.value,o:0,t:''};adsR()}}); // ADMIN
@@ -330,7 +330,7 @@ else{row.sort_order=ACL.length?Math.max(...ACL.map(c=>c.sort_order||0))+1:0;r=aw
 const was=ACP.filter(p=>p.category_id===id).map(p=>String(p.id)),add=[...AC.sel].filter(x=>!was.includes(x)),rem=was.filter(x=>!AC.sel.has(x));
 if(add.length){r=await sb.from('products').update({category_id:id}).in('id',add);if(r.error)throw r.error}
 if(rem.length){r=await sb.from('products').update({category_id:null}).in('id',rem);if(r.error)throw r.error}
-tpToast(AC.id?'บันทึกหมวดหมู่สำเร็จ':'เพิ่มหมวดหมู่สำเร็จ');await loadProds();show('admin-cat')}
+okPop(AC.id?'บันทึกหมวดหมู่สำเร็จ':'เพิ่มหมวดหมู่สำเร็จ');await loadProds();show('admin-cat')}
 catch(x){g.disabled=false;g.textContent=lb;tr(g);tpToast('บันทึกไม่สำเร็จ'+(x&&x.message?' ['+x.message+']':''))}} // ADMIN
 async function acDel(){if(!AC.id||!sb||!isAdm()||!confirm(trs('ลบหมวดหมู่นี้ใช่ไหม? สินค้าในหมวดจะไม่ถูกลบ')))return;try{const r=await sb.from('categories').delete().eq('id',AC.id);if(r.error)throw r.error;tpToast('ลบหมวดหมู่แล้ว');await loadProds();show('admin-cat')}catch(x){tpToast('ลบไม่สำเร็จ'+(x&&x.message?' ['+x.message+']':''))}} // ADMIN
 // --- ตัวเลือกหมวดหมู่ในฟอร์มสินค้า (โหลดจากตาราง categories; ถ้าโหลดไม่ได้จะไม่ส่ง category_id เพื่อไม่ให้บันทึกสินค้าพัง)
@@ -398,7 +398,7 @@ l.innerHTML=`<div class="tp-card aa-hd"><span class="aa-av big${bn?' bn':''}">${
 // --- Bottom sheet ใช้สไตล์เดียวกับหน้าเติมเงิน (ปิดด้วย tpClose)
 function aaSheet(h){document.querySelectorAll('.tp-ov,.tp-sh').forEach(x=>x.remove());document.body.insertAdjacentHTML('beforeend',`<div class="tp-ov"></div><section class="tp-sh aa-sh"><div class="tp-gr"></div>${h}</section>`);const sh=$('.tp-sh');tr(sh);sh.querySelectorAll('[placeholder]').forEach(i=>i.placeholder=trs(i.placeholder));document.body.style.overflow='hidden';sh.offsetWidth;sh.classList.add('on');$('.tp-ov').classList.add('on');return sh}
 const aaChips=(a,k)=>a.map(t=>`<button type="button" class="aa-chip sm" data-${k}="${t}">${t}</button>`).join('');
-const aaDone=async(msg)=>{tpClose();tpToast(msg);if(USER&&AU&&USER.id===AU.p.id){await loadProf();anav()}await aaULoad(AU.p.id)};
+const aaDone=async(msg)=>{tpClose();okPop(msg);if(USER&&AU&&USER.id===AU.p.id){await loadProf();anav()}await aaULoad(AU.p.id)};
 // เพิ่ม/หักเงิน
 function aaBalSh(sg){AU.bs={sg,amt:0};aaSheet(`<h3 id="aabt"></h3><p class="tp-sub">${esc(AU.p.username)} · ${tpf(+AU.p.balance)} กีบ</p><div class="seg aa-seg" id="aasg"><button type="button" data-sg="1">+ เพิ่มเงิน</button><button type="button" data-sg="-1">− หักเงิน</button></div>
 <input class="ad-in" id="aaamt" inputmode="numeric" autocomplete="off" placeholder="จำนวนเงิน (กีบ)"><div class="aa-chips">${[10000,50000,100000,500000].map(v=>`<button type="button" class="aa-chip" data-aq="${v}">${tpf(v)}</button>`).join('')}</div><div class="aa-pv" id="aapv"></div>
@@ -520,7 +520,7 @@ let SET={shop_name:'PXPSHOP',logo_url:null,maintenance:false,maint_title:'',main
 const maint=()=>!!(SET.maintenance&&!isAdm());
 async function loadSettings(){try{if(sb){const r=await sb.rpc('public_settings');if(r.data)SET={...SET,...r.data}}}catch(_){}
 ctsSync();TPMIN=SET.topup_min;TPMAX=SET.topup_max;TPQR=SET.topup_qr_url||'';brand(document)}
-function brand(r){const n=SET.shop_name||'PXPSHOP';document.title=n;const w=document.createTreeWalker(r===document?document.body:r,NodeFilter.SHOW_TEXT);let x;while(x=w.nextNode())if(x.nodeValue.includes('PXPSHOP'))x.nodeValue=x.nodeValue.split('PXPSHOP').join(n);
+function brand(r){const n=SET.shop_name||'PXPSHOP';document.title=n;document.querySelectorAll('.dh b').forEach(e=>{e.textContent=n});const w=document.createTreeWalker(r===document?document.body:r,NodeFilter.SHOW_TEXT);let x;while(x=w.nextNode())if(x.nodeValue.includes('PXPSHOP'))x.nodeValue=x.nodeValue.split('PXPSHOP').join(n);
 if(SET.logo_url){document.querySelectorAll('.dh .ph,.alg').forEach(e=>{if(!e.querySelector('img'))e.innerHTML='<img alt="" src="'+esc(SET.logo_url)+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">'});let l=document.querySelector('link[rel=icon]');if(!l){l=document.createElement('link');l.rel='icon';document.head.appendChild(l)}l.href=SET.logo_url}
 let a=$('#ann');if(!a){a=document.createElement('div');a.id='ann';a.className='ann';app.parentNode.insertBefore(a,app)}a.textContent=SET.announce_text||'';a.hidden=!(SET.announce_on&&SET.announce_text&&!maint())}
 views.maint=()=>`<div class="mt"><div class="mt-ic">${SET.logo_url?`<img alt="" src="${esc(SET.logo_url)}">`:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>'}</div><h1>${esc(SET.maint_title||'ປິດປັບປຸງຊົ່ວຄາວ')}</h1><p>${esc(SET.maint_msg||'').replace(/\n/g,'<br>')}</p><a href="#" class="mt-ad" data-v="auth" data-m="login">ແອດມິນເຂົ້າສູ່ລະບົບ</a></div>`;
@@ -529,6 +529,8 @@ let h=null;try{if(f&&window.crypto&&crypto.subtle){const bf=await f.arrayBuffer(
 const r=await sb.rpc('submit_topup',{p_amount:tpA,p_slip:su,p_hash:h});if(r.error)throw r.error;return{...(r.data||{}),amount:tpA}}
 // --- หน้าแอดมิน: ตั้งค่าร้าน (ข้อความหน้านี้เป็นภาษาไทย ไม่แปลเป็นลาว: ใช้ data-nt)
 let SS={f:null,q:null,wh:'',ok:false};
+// ===== ป็อปอัปติ๊กถูกตอนบันทึกสำเร็จ (ห้องแอดมิน) =====
+function okPop(t){document.querySelectorAll('.ok-pop').forEach(x=>x.remove());const p=document.createElement('div');p.className='ok-pop';p.innerHTML='<div class="ok-card"><div class="ok-ic"><i class="ok-r"></i><i class="ok-r r2"></i><svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.5"/></svg>'+[0,1,2,3,4,5,6,7].map(n=>'<b class="ok-d" style="--a:'+n*45+'deg"></b>').join('')+'</div><div class="ok-t"></div></div>';p.querySelector('.ok-t').textContent=trs(t);document.body.appendChild(p);requestAnimationFrame(()=>p.classList.add('on'));setTimeout(()=>{p.classList.remove('on');setTimeout(()=>p.remove(),350)},1700)}
 const stT=t=>{let p=$('.tp-toast');if(!p){p=document.createElement('div');p.className='tp-toast';document.body.appendChild(p)}p.textContent=trs(t);p.classList.add('on');setTimeout(()=>p.classList.remove('on'),2400)};
 views['admin-set']=()=>{SS={f:null,q:null,wh:'',ok:false,ci:[]};const S=SET,sw=(id,on)=>`<button type="button" class="ad-sw${on?' on':''}" id="${id}" role="switch" aria-checked="${!!on}"><i></i></button>`;
 return `<div><div class="bc"><a href="#" data-v="home">หน้าหลัก</a> &nbsp;/&nbsp; <a href="#" data-v="admin">ห้องแอดมิน</a> &nbsp;/&nbsp; ตั้งค่าร้าน</div><h1 class="tp-h">ตั้งค่าร้าน</h1>
@@ -554,10 +556,10 @@ let qr=SET.topup_qr_url;if(SS.q){const pth='qr_'+Date.now()+'.png',u=await sb.st
 const ctsv=await ctUpload(cts);const row={contacts:ctsv,shop_name:nm,logo_url:lg,topup_qr_url:qr,maint_title:$('#stmti').value.trim()||'ປິດປັບປຸງຊົ່ວຄາວ',maint_msg:$('#stmm').value.trim(),announce_on:$('#stan').classList.contains('on'),announce_text:$('#stat').value.trim(),topup_min:mn,topup_max:mx,maintenance:SET.maintenance,updated_at:new Date().toISOString()};
 const r=await sb.from('shop_settings').update(row).eq('id',1).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');
 if(SS.ok){const w=await sb.from('shop_secrets').update({webhook_url:wh||null,site_url:(($('#stsite')||{}).value||'').trim()||null}).eq('id',1).select('id');if(w.error||!w.data||!w.data.length)throw w.error||new Error('no_permission')}
-Object.assign(SET,row);ctsSync();SS.ci=[];TPMIN=mn;TPMAX=mx;TPQR=qr||'';SS.f=null;SS.q=null;brand(document);g.disabled=false;g.textContent='บันทึกการตั้งค่า';stT('บันทึกสำเร็จ')}
+Object.assign(SET,row);ctsSync();SS.ci=[];TPMIN=mn;TPMAX=mx;TPQR=qr||'';SS.f=null;SS.q=null;brand(document);g.disabled=false;g.textContent='บันทึกการตั้งค่า';okPop('บันทึกสำเร็จ')}
 catch(x){g.disabled=false;g.textContent='บันทึกการตั้งค่า';stT('บันทึกไม่สำเร็จ'+(x&&x.message?' ['+x.message+']':''))}}
 async function stMaint(on){if(!sb||!isAdm())return;if(on&&!confirm('ปิดเว็บเพื่อปรับปรุง? ลูกค้าจะเข้าเว็บไม่ได้ (แอดมินยังใช้ได้ปกติ)'))return;const b=$('#stmt');b.disabled=true;
-try{const r=await sb.from('shop_settings').update({maintenance:on,updated_at:new Date().toISOString()}).eq('id',1).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');SET.maintenance=on;b.classList.toggle('on',!on);b.setAttribute('aria-checked',String(!on));$('#stms').textContent=on?'ตอนนี้ปิดปรับปรุง: เฉพาะแอดมินเข้าได้':'ตอนนี้เว็บเปิดปกติ';brand(document);stT(on?'ปิดเว็บแล้ว':'เปิดเว็บแล้ว')}
+try{const r=await sb.from('shop_settings').update({maintenance:on,updated_at:new Date().toISOString()}).eq('id',1).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');SET.maintenance=on;b.classList.toggle('on',!on);b.setAttribute('aria-checked',String(!on));$('#stms').textContent=on?'ตอนนี้ปิดปรับปรุง: เฉพาะแอดมินเข้าได้':'ตอนนี้เว็บเปิดปกติ';brand(document);okPop(on?'ปิดเว็บแล้ว':'เปิดเว็บแล้ว')}
 catch(x){stT('ไม่สำเร็จ'+(x&&x.message?' ['+x.message+']':''))}b.disabled=false}
 async function stTest(){const u=$('#stwh').value.trim();if(!/^https:\/\/(discord(app)?\.com)\/api\/webhooks\//.test(u))return stT('ใส่ลิงก์เว็บฮุกก่อน');try{const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:'✅ ทดสอบแจ้งเตือนจาก '+SET.shop_name})});stT(r.ok?'ส่งแล้ว ดูใน Discord':'ส่งไม่สำเร็จ ('+r.status+')')}catch(_){stT('ส่งไม่สำเร็จ')}}
 document.addEventListener('click',e=>{if(!isAdm())return;const t=e.target;if(t.closest('#stgo'))stSave();else if(t.closest('#stmt'))stMaint(SET.maintenance?false:true);else if(t.closest('#stwt'))stTest();else if(t.closest('#stan'))t.closest('#stan').classList.toggle('on')}); // ADMIN
@@ -772,3 +774,90 @@ show=(o=>function(v,m){if(v!=='topup-wait')twStop();if(v!=='admin-topup')adStop(
 
 anav();
 tr($('.dr'));tr($('#pop'));loadSettings().then(()=>{show('home');loadProds();SETREADY=true;hashGo()});
+
+// ===== ห้องแอดมิน: อนิเมชันทั้งหมด (เปลี่ยนหน้า / ไล่โผล่รายการ / ริปเปิลตอนกด / ตัวเลขนับขึ้น / แท่งกราฟ) =====
+(function(){
+const SEL='.tp-card,.hs-row,.aa-row,.ac-row,.sl-row,.sl-top,.aa-st,.ad-add,.dl-card,.sl-hero,.tt-sum,#adm .bt,.btns .bt';
+const RSEL='.tp-cta,.aa-btn,.aa-chip,.aa-more,.ad-del,.ad-sg,.tt-tab,.ad-add,.hs-row,.tt-ac button,.tt-rf,.sl-it,.ac-mv button,.tp-chip,.bt,.aa-seg button,.seg button';
+const isA=()=>/^admin/.test(typeof CUR==='string'?CUR:'');
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function countUp(el){
+  if(RM||el.dataset.cu)return;el.dataset.cu='1';
+  const n=[...el.childNodes].find(x=>x.nodeType===3&&/^\s*-?[\d,]+\s*$/.test(x.nodeValue));if(!n)return;
+  const to=parseInt(n.nodeValue.replace(/[^\d-]/g,''),10);if(!isFinite(to)||Math.abs(to)<10)return;
+  const t0=performance.now(),D=900,pre=n.nodeValue.match(/\s*$/)[0];
+  (function f(t){const p=Math.min(1,(t-t0)/D),e=1-Math.pow(1-p,4);n.nodeValue=Math.round(to*e).toLocaleString('en-US')+(p<1?'':pre);if(p<1)requestAnimationFrame(f)})(t0);
+}
+function fx(root){
+  if(!root||root.nodeType!==1)return;
+  let k=0;
+  const list=(root.matches(SEL)?[root]:[]).concat([...root.querySelectorAll(SEL)]);
+  list.forEach(e=>{
+    if(e.dataset.fx||e.parentNode===app)return;
+    e.dataset.fx='1';e.style.setProperty('--i',Math.min(k++,10));e.classList.add('fx-in');
+  });
+  root.querySelectorAll('.sl-bars button').forEach((b,i)=>{b.style.setProperty('--bi',Math.min(i,40))});
+  root.querySelectorAll('.aa-st>b,.sl-hero>b').forEach(countUp);
+}
+new MutationObserver(ms=>{
+  const a=isA();document.body.classList.toggle('adm-on',a);if(!a)return;
+  ms.forEach(m=>{
+    if(m.target===app){[...app.children].forEach((e,i)=>{if(e.dataset.pg)return;e.dataset.pg='1';e.style.setProperty('--p',Math.min(i,8));e.classList.add('pg-in')})}
+    m.addedNodes.forEach(fx);
+  });
+}).observe(app,{childList:true,subtree:true});
+// ริปเปิลตอนกดปุ่ม
+document.addEventListener('pointerdown',e=>{
+  if(RM||!document.body.classList.contains('adm-on'))return;
+  const b=e.target.closest&&e.target.closest(RSEL);if(!b||b.disabled)return;
+  const r=b.getBoundingClientRect(),d=Math.max(r.width,r.height)*2,s=document.createElement('span');
+  s.className='fx-rp';s.style.cssText='width:'+d+'px;height:'+d+'px;left:'+(e.clientX-r.left-d/2)+'px;top:'+(e.clientY-r.top-d/2)+'px';
+  if(getComputedStyle(b).position==='static')b.style.position='relative';
+  b.classList.add('fx-rpb');b.appendChild(s);setTimeout(()=>s.remove(),650);
+},{passive:true});
+})();
+
+// ===== เอฟเฟกต์เปลี่ยนหน้าแบบผิวน้ำ: เนื้อหาบิดเป็นคลื่น + เบลอ ค้างจนโหลดเสร็จ แล้วค่อยนิ่งลง =====
+(function(){
+const orig=show,RM=matchMedia('(prefers-reduced-motion:reduce)');
+const AMP=41,BLUR=2,IN=650,MIN=350,OUT=700,MAXWAIT=3000;
+const box=document.createElement('div');
+box.innerHTML='<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="wat" x="-10%" y="-5%" width="120%" height="110%" color-interpolation-filters="sRGB"><feTurbulence id="wtb" type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="1" seed="3" result="n"/><feDisplacementMap id="wdm" in="SourceGraphic" in2="n" scale="0" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur id="wgb" in="d" stdDeviation="0"/></filter></svg><div id="wtint" style="position:fixed;inset:0;background:#0071FF;opacity:0;pointer-events:none;z-index:1"></div>';
+while(box.firstChild)document.body.appendChild(box.firstChild);
+const tb=document.getElementById('wtb'),dm=document.getElementById('wdm'),gb=document.getElementById('wgb'),tint=document.getElementById('wtint');
+const ease=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const loading=()=>[...app.querySelectorAll('.hs-em')].some(e=>/กำลังโหลด|ກຳລັງໂຫຼດ/.test(e.textContent));
+let busy=false,pend=null;
+function apply(k,w){
+  dm.setAttribute('scale',(AMP*k).toFixed(1));
+  gb.setAttribute('stdDeviation',(BLUR*k).toFixed(2));
+  tb.setAttribute('baseFrequency',(0.012+0.004*Math.sin(w*3)).toFixed(4)+' '+(0.02+0.006*Math.cos(w*2.4)).toFixed(4));
+  app.style.opacity=(1-.3*k).toFixed(3);
+  tint.style.opacity=(.3*k).toFixed(3);
+}
+function finish(){
+  app.style.filter='';app.style.opacity='';app.style.pointerEvents='';tint.style.opacity='0';busy=false;pend=null;
+}
+show=function(v,m){
+  if(busy){pend=[v,m];return}
+  if(RM.matches||!app.firstElementChild||(v===CUR&&m===CURM))return orig(v,m);
+  busy=true;pend=[v,m];
+  app.style.filter='url(#wat)';app.style.pointerEvents='none';
+  const t0=performance.now();let phase=0,tS=0,tO=0,k=0;
+  (function f(now){
+    const t=now-t0;
+    if(phase===0){
+      k=ease(Math.min(1,t/IN));
+      if(t>=IN){phase=1;tS=now;try{orig(pend[0],pend[1])}catch(e){console.error(e)}}
+    }else if(phase===1){
+      k=1;
+      if(now-tS>=MIN&&(!loading()||now-tS>=MAXWAIT)){phase=2;tO=now}
+    }else{
+      k=1-ease(Math.min(1,(now-tO)/OUT));
+    }
+    apply(k,t/1000);
+    if(phase===2&&now-tO>=OUT){finish();return}
+    requestAnimationFrame(f);
+  })(t0);
+};
+})();

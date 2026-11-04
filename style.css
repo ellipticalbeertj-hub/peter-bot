@@ -76,8 +76,9 @@ h2{font-size:22px;font-weight:600;line-height:1.3;color:var(--ice)}.sec p{font-s
 .ov{position:fixed;inset:0;background:var(--ov);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .25s;z-index:30}
 .dr{position:fixed;top:0;bottom:0;left:0;width:min(372px,90vw);background:var(--surface);transform:translateX(-100%);transition:transform .25s;z-index:31;padding-top:env(safe-area-inset-top,0px)}
 body.open .ov{opacity:1;pointer-events:auto}body.open .dr{transform:none}
-.dh{height:60px;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid var(--border);margin-top:20px}
-.dh .ph{flex:0 0 38px;width:38px;height:38px;border-radius:50%}.dh .ph svg{width:58%}.dh b{flex:1;font-weight:600;font-size:15px;color:var(--text)}.dh button{font-size:26px;color:#777}
+.dh{height:84px;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid var(--border);margin-top:20px}
+.dh .ph{flex:0 0 64px;width:64px;height:64px;border-radius:0;background:transparent}
+.dh .ph img{object-fit:contain!important;border-radius:0!important}.dh .ph svg{width:58%}.dh b{flex:1;font-weight:600;font-size:15px;color:var(--text)}.dh button{font-size:26px;color:#777}
 .dt{display:flex;align-items:center;gap:12px;margin:20px 12px 8px;font-size:13px;color:var(--sub)}.dt:before,.dt:after{content:"";flex:1;height:1px;background:var(--border)}
 .dr a{display:flex;align-items:center;gap:12px;padding:0 20px;height:40px;font-size:15px;color:var(--sub);text-decoration:none}
 .dr a.on{color:var(--text);font-weight:400}.dr a svg{width:18px;height:18px;fill:#8fb0ee}.dr a.on svg{fill:#1b4dff}
@@ -490,13 +491,15 @@ html[data-theme=dark] .aa-b.ad{background:rgba(255,184,0,.18);color:#ffcc55}
 .sl-it{font-size:15px;padding:12px;margin:8px 0;cursor:pointer;text-align:left;letter-spacing:0}
 
 .ann{background:var(--pri);color:#fff;text-align:center;font-size:13px;padding:8px 14px;margin:0 auto}
+.ann{display:none!important}
 .mt{text-align:center;padding:64px 22px 40px;max-width:420px;margin:0 auto}
 .mt-ic{width:96px;height:96px;margin:0 auto 22px;border-radius:50%;background:var(--btn);color:var(--pri);display:grid;place-items:center;overflow:hidden}
 .mt-ic svg{width:48px;height:48px}.mt-ic img{width:100%;height:100%;object-fit:cover}
 .mt h1{font-size:22px;color:var(--text);margin:0 0 10px}.mt p{font-size:15px;line-height:1.6;color:var(--sub);margin:0 0 26px}
 .mt-ad{display:inline-block;font-size:13px;color:var(--ice);padding:8px 16px;border:1px solid var(--border);border-radius:20px;text-decoration:none}
 
-img.tp-qr{object-fit:contain;background:#fff}
+img.tp-qr{aspect-ratio:auto;width:auto;height:auto;max-width:100%;max-height:52vh;margin:0 auto;object-fit:contain;background:#fff}
+.tp-qrw{max-width:300px}
 .ad-up.sq{height:260px}.ad-up.sq .tp-pv{object-fit:contain}
 
 /* ===== ระบบอนุมัติเติมเงิน: หน้ารอลูกค้า / สำเร็จ / ปฏิเสธ / ห้องแอดมินจัดการเติมเงิน ===== */
@@ -598,3 +601,74 @@ img.tp-qr{object-fit:contain;background:#fff}
 .tt-lb button{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:16px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font-size:18px}
 .tt-lb a{color:#fff;font-size:14px;opacity:.85}
 @media (prefers-reduced-motion:reduce){.tw-rad i,.tw-ic svg,.tw-big:before,.tw-big:after,.tw-cf i,.tw-s.act b{animation:none}}
+
+/* ===== ป็อปอัปติ๊กถูกตอนบันทึกสำเร็จ ===== */
+.ok-pop{position:fixed;inset:0;z-index:400;display:grid;place-items:center;background:rgba(10,20,50,0);pointer-events:none;transition:background .3s}
+.ok-pop.on{background:rgba(10,20,50,.35)}
+.ok-card{min-width:200px;max-width:80%;background:var(--bg);color:var(--text);border-radius:24px;padding:28px 28px 22px;text-align:center;box-shadow:0 18px 50px rgba(0,30,100,.28);opacity:0;transform:scale(.7) translateY(20px);transition:opacity .25s,transform .45s cubic-bezier(.22,1.4,.36,1)}
+html[data-theme=dark] .ok-card{background:var(--surface)}
+.ok-pop.on .ok-card{opacity:1;transform:none}
+.ok-ic{position:relative;width:84px;height:84px;margin:0 auto 14px;border-radius:50%;background:linear-gradient(145deg,#34d399,#12b76a);display:grid;place-items:center;box-shadow:0 8px 22px rgba(18,183,106,.45);transform:scale(0)}
+.ok-pop.on .ok-ic{animation:okpop .55s .1s cubic-bezier(.22,1.5,.36,1) forwards}
+.ok-ic svg{width:46px;height:46px;fill:none;stroke:#fff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:30;stroke-dashoffset:30}
+.ok-pop.on .ok-ic svg{animation:okdraw .45s .45s ease-out forwards}
+.ok-r{position:absolute;inset:0;border-radius:50%;border:3px solid #12b76a;opacity:0}
+.ok-pop.on .ok-r{animation:okring .9s .35s ease-out forwards}
+.ok-pop.on .ok-r.r2{animation-delay:.55s}
+.ok-d{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px;border-radius:50%;background:#12b76a;opacity:0;transform:rotate(var(--a)) translateY(0)}
+.ok-d:nth-of-type(even){background:#5b9bff;width:6px;height:6px;margin:-3px}
+.ok-pop.on .ok-d{animation:okdot .7s .45s ease-out forwards}
+.ok-t{font-size:16px;font-weight:600}
+@keyframes okpop{to{transform:scale(1)}}
+@keyframes okdraw{to{stroke-dashoffset:0}}
+@keyframes okring{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(1.9)}}
+@keyframes okdot{0%{opacity:1;transform:rotate(var(--a)) translateY(-44px) scale(1)}100%{opacity:0;transform:rotate(var(--a)) translateY(-70px) scale(.3)}}
+@media(prefers-reduced-motion:reduce){.ok-card,.ok-ic,.ok-ic svg,.ok-r,.ok-d{animation-duration:.01s!important;transition-duration:.01s!important}}
+
+/* ===== ห้องแอดมิน: อนิเมชันทั้งหมด (ใช้เฉพาะตอน body.adm-on) ===== */
+@keyframes fxUp{from{opacity:0;transform:translateY(18px) scale(.98)}}
+@keyframes fxPop{0%{transform:scale(.88)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes fxBar{from{transform:scaleY(0)}}
+@keyframes fxRp{from{transform:scale(0);opacity:.35}to{transform:scale(1);opacity:0}}
+@keyframes fxSheet{from{opacity:0;transform:translateY(14px)}}
+.adm-on .pg-in{animation:fxUp .6s cubic-bezier(.22,1,.36,1) backwards;animation-delay:calc(var(--p,0)*60ms)}
+.adm-on .fx-in{animation:fxUp .55s cubic-bezier(.22,1,.36,1) backwards;animation-delay:calc(var(--i,0)*50ms)}
+/* กดแล้วยุบตัวนุ่มๆ */
+.adm-on :where(a,button,label,.sl-row,.aa-row,.hs-row){transition:transform .28s cubic-bezier(.22,1.3,.36,1)}
+.adm-on :is(a,button,label.tp-up,.sl-row,.aa-row,.hs-row,.sl-top):not(.ad-sw):not(.ac-sw):not(:disabled):active{transform:scale(.96)}
+.adm-on .tp-card:is(a,[data-v]):active,.adm-on .hs-row:active{transform:scale(.975)}
+/* ริปเปิล */
+.adm-on .fx-rpb{overflow:hidden}
+.fx-rp{position:absolute;border-radius:50%;background:currentColor;pointer-events:none;opacity:0;transform:scale(0);animation:fxRp .65s ease-out}
+.dl-card .fx-rp,.tp-cta .fx-rp,.ad-sg .fx-rp,.tt-ac .fx-rp{background:#fff}
+/* สวิตช์ */
+.adm-on :is(.ad-sw,.ac-sw){transition:background .3s,box-shadow .3s}
+.adm-on :is(.ad-sw,.ac-sw) i{transition:transform .38s cubic-bezier(.22,1.45,.36,1),width .2s ease}
+.adm-on :is(.ad-sw,.ac-sw):active i{width:31px}
+.adm-on :is(.ad-sw,.ac-sw).on:active i{transform:translateX(13px)}
+.adm-on :is(.ad-sw,.ac-sw).on{box-shadow:0 0 0 5px rgba(0,83,255,.14)}
+/* ช่องกรอก */
+.adm-on :is(.ad-in,.ad-ta){transition:border-color .25s,background .25s,box-shadow .3s,transform .25s}
+.adm-on :is(.ad-in,.ad-ta):focus{box-shadow:0 0 0 5px rgba(0,83,255,.13)}
+/* แท็บ / ชิป ตอนเลือก */
+.adm-on :is(.tt-tab,.aa-chip,.aa-seg button,.seg button,.tp-chip){transition:background .28s,color .28s,border-color .28s,box-shadow .28s,transform .28s cubic-bezier(.22,1.3,.36,1)}
+.adm-on :is(.tt-tab,.aa-chip,.aa-seg button,.tp-chip).on{animation:fxPop .42s cubic-bezier(.22,1.5,.36,1)}
+.adm-on .tt-tab.on{box-shadow:0 3px 10px rgba(0,40,140,.14)}
+/* แผ่นเลื่อนขึ้น: เนื้อหาไล่โผล่ */
+.adm-on .tp-sh>*{animation:fxSheet .5s cubic-bezier(.22,1,.36,1) backwards}
+.adm-on .tp-sh>:nth-child(2){animation-delay:.12s}.adm-on .tp-sh>:nth-child(3){animation-delay:.17s}.adm-on .tp-sh>:nth-child(4){animation-delay:.22s}
+.adm-on .tp-sh>:nth-child(5){animation-delay:.27s}.adm-on .tp-sh>:nth-child(6){animation-delay:.32s}.adm-on .tp-sh>:nth-child(7){animation-delay:.37s}.adm-on .tp-sh>:nth-child(n+8){animation-delay:.42s}
+.adm-on .tp-sh{transition:transform .6s cubic-bezier(.22,1.15,.36,1)}
+.adm-on .tp-ov{transition:opacity .4s ease}
+/* toast เด้งแบบสปริง */
+.adm-on .tp-toast{transition:opacity .3s,transform .55s cubic-bezier(.22,1.5,.36,1)}
+/* กราฟแท่งโตขึ้น */
+.adm-on .sl-bars i{transform-origin:bottom;animation:fxBar .8s cubic-bezier(.22,1,.36,1) backwards;animation-delay:calc(var(--bi,0)*20ms)}
+/* ปุ่มไอคอนรีเฟรชหมุนตอนกด */
+.adm-on .tt-rf svg{transition:transform .6s cubic-bezier(.22,1,.36,1)}
+.adm-on .tt-rf:active svg{transform:rotate(180deg)}
+/* ป้ายสถานะ / จุด live */
+.adm-on .tt-bd{animation:fxPop .45s cubic-bezier(.22,1.5,.36,1) backwards}
+.adm-on .aa-av{transition:transform .35s cubic-bezier(.22,1.4,.36,1)}
+.adm-on .aa-row:active .aa-av{transform:scale(1.12) rotate(-6deg)}
+@media(prefers-reduced-motion:reduce){.adm-on *,.adm-on *:before,.adm-on *:after{animation-duration:.01s!important;animation-delay:0s!important;transition-duration:.01s!important}}
