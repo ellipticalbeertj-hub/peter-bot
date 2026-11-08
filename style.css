@@ -677,3 +677,43 @@ html[data-theme=dark] .ok-card{background:var(--surface)}
 .adm-on :is(.hs-row,.aa-row,.sl-row,.ac-row){content-visibility:auto;contain-intrinsic-size:auto 76px}
 .adm-on .tt-c{content-visibility:auto;contain-intrinsic-size:auto 150px}
 html{-webkit-overflow-scrolling:touch}
+
+.hero.has-bn{background:transparent}.hero img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;border-radius:inherit}
+.ad-up.bn{height:auto;aspect-ratio:3.94}
+
+/* ===== รอบปรับดีไซน์: เรียบ นิ่ง ไม่เรืองแสง ===== */
+/* แถบบน */
+.hd{padding:0 10px 0 8px;gap:8px}
+.hd #mn,.hd #gr{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;transition:background-color .2s}
+.hd #mn:active,.hd #gr:active{background:var(--btn)}
+@media(hover:hover){.hd #mn:hover,.hd #gr:hover{background:var(--btn)}}
+.hb{display:flex;align-items:center;gap:10px;flex:1;min-width:0;text-decoration:none;color:inherit;padding:0 4px}
+.hl{flex:none;width:34px;height:34px;border-radius:9px;background:var(--pri)}
+.hd .hl svg{width:19px;height:19px;max-width:none;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hl img{border-radius:inherit}
+.ht{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.hn{font-weight:500;font-size:16px;letter-spacing:.2px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ht small{font-size:11px;color:var(--sub);white-space:nowrap}
+@keyframes hdIn{from{opacity:0;transform:translateY(-8px)}}
+.hd{animation:hdIn .4s cubic-bezier(.2,.7,.2,1) backwards}
+/* เมนูข้าง */
+.ov{transition:opacity .3s ease}
+.dr{transition:transform .38s cubic-bezier(.32,.72,0,1)}
+body:not(.open) .dr{transition-duration:.26s}
+body.open .dr{box-shadow:16px 0 40px -24px rgba(10,42,138,.4)}
+.dr a{margin:1px 10px;padding:0 10px;border-radius:10px;transition:background-color .2s}
+.dr a:active{background:var(--btn)}
+.dr a.on{background:var(--btn)}
+@media(hover:hover){.dr a:hover{background:var(--btn)}}
+body.open .dr>.dt,body.open .dr>a,body.open .dr>#an{animation:drIn .4s cubic-bezier(.2,.7,.2,1) both}
+body.open .dr>:nth-child(2){animation-delay:.08s}body.open .dr>:nth-child(3){animation-delay:.11s}
+body.open .dr>:nth-child(4){animation-delay:.14s}body.open .dr>:nth-child(5){animation-delay:.17s}
+body.open .dr>:nth-child(6){animation-delay:.2s}body.open .dr>:nth-child(n+7){animation-delay:.23s}
+@keyframes drIn{from{opacity:0;transform:translateX(-10px)}}
+/* ทั้งเว็บ: เอาตัวอักษรเรืองแสง เงาเรืองแสง ไล่สีซ้ำ ๆ และแสงกวาดวนไม่หยุดออก */
+*{text-shadow:none!important}
+.sc{filter:none}
+.nm{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#fff;filter:none}
+.in:after,.tp-fr>.tp-in:after{display:none;animation:none}
+.bt,.st,.ad-pc,.or-op.on,.as-op.on,.dl-card{background:var(--pri)!important;box-shadow:0 1px 2px rgba(10,42,138,.18)!important}
+@media(prefers-reduced-motion:reduce){.hd,body.open .dr>*{animation:none!important}.dr{transition-duration:.01s!important}}
