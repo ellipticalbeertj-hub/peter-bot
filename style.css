@@ -1,5 +1,5 @@
 :root{--pri:#0053FF;--sec:#0071FF;--ice:#0071FF;--bg:#ffffff;--surface:#fff;--text:#0a2a8a;--sub:#4a6fc0;--muted:#8fb0ee;--border:#c4d8ff;--btn:#e0ebff;--ov:rgba(0,0,0,.55);box-sizing:border-box}
-:root[data-theme=dark]{--ice:#5ea7ff;--bg:#020a26;--surface:#051a52;--text:#eaf2ff;--sub:#9cc0ff;--border:#0a3ea8;--btn:#0a2a7a}
+:root[data-theme=dark]{--ice:#5ea7ff;--bg:#000;--surface:#0d0d0d;--text:#f2f2f2;--sub:#a3a3a3;--muted:#6e6e6e;--border:#262626;--btn:#1c1c1c}
 *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg);color:var(--text);font-family:Kanit,"Noto Sans Lao",system-ui,sans-serif;font-weight:400;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
 html[data-theme=dark] body{background:transparent}
@@ -129,7 +129,7 @@ body.open .ov{opacity:1;pointer-events:auto}body.open .dr{transform:none}
 #gr{margin-left:auto}
 .bgfx{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;contain:strict;background:linear-gradient(180deg,#02081f 0%,#04174f 24%,#0a3fb0 42%,#020a26 100%)}
 .bgfx:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,10,40,.35),rgba(2,10,40,.1))}
-html:not([data-theme=dark]) .bgfx{display:none}
+html .bgfx{display:none}
 .gl{position:absolute;display:block;border-radius:50%;width:110vmax;height:110vmax;will-change:transform}
 .g1{right:calc(14vw - 20vmax + 28px);top:calc(9vh - 20vmax + 28px);bottom:auto;width:40vmax;height:40vmax;background:radial-gradient(circle,rgba(200,225,250,.3),transparent 62%);animation:none}
 .g2{display:none}
@@ -756,7 +756,7 @@ body.open .dr{transform:none;visibility:visible;transition-delay:0s;box-shadow:-
 .dr .dgb .dtb{flex:1;padding:0 8px}
 .dr .dtb.o{background:var(--btn);color:var(--text)}
 .dhr{height:1px;background:var(--border);margin:22px 0 0}
-.dhr.in{margin:18px 14px 0}
+.dhr.dhi{margin:18px 14px 0}
 .dsec{font-size:13px;line-height:18px;color:var(--sub);padding:0 26px;margin:13px 0 10px}
 .dsec.b{margin-top:16px}
 .dl{padding:0 14px;display:flex;flex-direction:column;gap:3px}
@@ -774,17 +774,19 @@ body.open .dr{transform:none;visibility:visible;transition-delay:0s;box-shadow:-
 .dsub{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
 .dtg.op .dsub{grid-template-rows:1fr}
 .dsub>div{overflow:hidden;min-height:0}
-.dr .di.sb{height:40px;padding-left:43px;font-size:15px;font-weight:400;color:var(--sub);margin-top:3px}
-.dr .di.sb.on{color:var(--text)}
+.dr .di.dsb{height:40px;padding-left:43px;font-size:15px;font-weight:400;color:var(--sub);margin-top:3px}
+.dr .di.dsb.on{color:var(--text)}
 .dft{flex:none;border-top:1px solid var(--border);padding:13px 0 calc(17px + env(safe-area-inset-bottom,0px))}
-.dr .fi{display:flex;align-items:center;gap:10px;width:100%;height:42px;margin:0;padding:0 24px 0 25px;border-radius:0;font-size:15px;font-weight:500;color:var(--text);background:transparent}
-.dr .fi>svg:first-child{width:18px;height:18px;flex:none;fill:none;stroke:var(--text);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.dr .fi span{flex:1;min-width:0}
-.dr .fi .chv{width:14px;height:14px}
-.dr .fi.lo,.dr .fi.lo>svg:first-child{color:#e5484d;stroke:#e5484d}
-.dr .fi.lo{stroke:none}
-.dr .fi.on{background:transparent}
+.dr .fti{display:flex;align-items:center;gap:10px;width:100%;height:42px;margin:0;padding:0 24px 0 25px;border-radius:0;font-size:15px;font-weight:500;color:var(--text);background:transparent}
+.dr .fti>svg:first-child{width:18px;height:18px;flex:none;fill:none;stroke:var(--text);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.dr .fti span{flex:1;min-width:0}
+.dr .fti .chv{width:14px;height:14px}
+.dr .fti.lo,.dr .fti.lo>svg:first-child{color:#e5484d;stroke:#e5484d}
+.dr .fti.lo{stroke:none}
+.dr .fti.on{background:transparent}
 @keyframes drIn2{from{opacity:0;transform:translateX(14px)}}
 body.open .dr-sc>*{animation:drIn2 .4s cubic-bezier(.2,.7,.2,1) both}
 body.open .dr-sc>:nth-child(2){animation-delay:.05s}body.open .dr-sc>:nth-child(3){animation-delay:.08s}body.open .dr-sc>:nth-child(5){animation-delay:.11s}body.open .dr-sc>:nth-child(6){animation-delay:.14s}body.open .dr-sc>:nth-child(n+7){animation-delay:.18s}
-
+html[data-theme=dark],html[data-theme=dark] body{background:#000}
+html[data-theme=dark] .dr{box-shadow:none}
+html[data-theme=dark] body.open .dr{box-shadow:-16px 0 40px -24px rgba(0,0,0,.9)}
