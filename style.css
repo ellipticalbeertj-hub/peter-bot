@@ -59,7 +59,7 @@ h2{font-size:22px;font-weight:600;line-height:1.3;color:var(--ice)}.sec p{font-s
 .sh div{flex:1}.sh h2{font-size:18px}.sh p{font-size:13.5px;color:var(--sub)}
 .pill{border:1px solid var(--ice);color:var(--ice);border-radius:22px;padding:8px 24px;font-size:14px;background:var(--surface)}
 .grid{display:grid;grid-template-columns:repeat(var(--cols,2),minmax(0,1fr));gap:16px;margin-bottom:24px}
-.pc{padding:8px 8px 8px;position:relative}.grid .pc:nth-child(even){border-color:var(--ice);box-shadow:0 0 12px rgba(0,113,255,.35)}
+.pc{padding:8px 8px 8px;position:relative}
 .pi{aspect-ratio:1;border-radius:8px;overflow:hidden}.pi .ph{width:100%;height:100%}
 .pc h3{font-size:15px;font-weight:400;color:var(--sub);margin:5px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pc .pr{text-align:left;font-weight:500;font-size:15px;margin:8px 0 5px;color:var(--ice)}
@@ -851,3 +851,118 @@ html[data-theme=dark] body.open .dr{box-shadow:-16px 0 40px -24px rgba(0,0,0,.9)
 .adm-on .ad-sw.ad-sm:active i{width:20px}.adm-on .ad-sw.ad-sm.on:active i{transform:translateX(12px)}
 .adm-on .ad-sw.ad-sm.on{box-shadow:0 0 0 3px rgba(0,83,255,.14)}.adm-on .ad-sw.ad-sm.u.on{box-shadow:0 0 0 3px var(--wtb)}
 a.ad-cv{flex:none;color:inherit;text-decoration:none;display:grid;place-items:center;padding:6px 0 6px 2px}
+
+
+/* ===== FULL-SCREEN FILL (iOS Safari): ให้พื้นหลังทุกชั้นลากถึงขอบบน/ล่างจริง ใต้ status bar และแถบ Safari ===== */
+html{min-height:100%;background-color:var(--bg)}
+body{min-height:100vh;min-height:100lvh}
+/* ชั้นเต็มจอ: ขยายเกินขอบจอทั้งบนและล่าง (สมมาตร จึงไม่กระทบการจัดกลาง) */
+.ov,.tp-ov,.tt-lb,.ok-pop{top:-160px;bottom:-160px;left:0;right:0}
+/* เมนูข้าง: เนื้อหาอยู่ในพื้นที่ปลอดภัยเหมือนเดิม แต่พื้นหลังต่อเลยขอบบน/ล่างออกไป */
+.dr{box-shadow:0 160px 0 0 var(--surface),0 -160px 0 0 var(--surface)}
+body.open .dr{box-shadow:-16px 0 40px -24px rgba(10,42,138,.4),0 160px 0 0 var(--surface),0 -160px 0 0 var(--surface)}
+html[data-theme=dark] .dr{box-shadow:0 160px 0 0 var(--surface),0 -160px 0 0 var(--surface)}
+html[data-theme=dark] body.open .dr{box-shadow:-16px 0 40px -24px rgba(0,0,0,.9),0 160px 0 0 var(--surface),0 -160px 0 0 var(--surface)}
+/* แผ่นเติมเงินด้านล่าง: พื้นหลังต่อลงไปใต้แถบ Safari */
+.tp-sh{box-shadow:0 160px 0 0 var(--bg)}
+html[data-theme=dark] .tp-sh{box-shadow:0 160px 0 0 var(--surface)}
+
+
+/* ===== การ์ดเลือกธีม ===== */
+.tm-ov{position:fixed;left:0;right:0;top:-160px;bottom:-160px;z-index:500;display:flex;align-items:center;justify-content:center;padding:0 16px;background:rgba(0,0,0,.74);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);opacity:0;transition:opacity .4s ease;font-family:Kanit,"Noto Sans Lao",system-ui,sans-serif}
+.tm-ov.on{opacity:1}
+.tm-ov.out{opacity:0;transition:opacity .32s ease .04s}
+.tm-cd{width:100%;max-width:400px;background:#090909;border:1px solid #1f1f1f;border-radius:22px;padding:28px 16px 22px;text-align:center;color:#fff;box-shadow:0 30px 80px rgba(0,0,0,.65);transform:translateY(54px) scale(.9);opacity:0;transition:transform .65s cubic-bezier(.22,1.2,.36,1),opacity .4s ease}
+.tm-ov.on .tm-cd{transform:none;opacity:1}
+.tm-ov.out .tm-cd{transform:translateY(26px) scale(.94);opacity:0;transition:transform .3s ease-in,opacity .28s ease-in}
+.tm-cd h2{font-size:21px;font-weight:500;letter-spacing:.2px;color:#fff}
+.tm-cd p{font-size:14.5px;line-height:1.5;color:#9b9b9b;margin:8px 0 20px;padding:0 2px}
+.tm-gr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tm-op{position:relative;display:block;text-align:left;background:#0b0b0b;border:1px solid #222;border-radius:16px;padding:10px 10px 14px;color:#fff;font:inherit;transition:transform .18s,border-color .3s,box-shadow .3s;animation:tmUp .6s cubic-bezier(.22,1.2,.36,1) backwards}
+.tm-op:nth-child(1){animation-delay:.22s}.tm-op:nth-child(2){animation-delay:.34s}
+.tm-op:active{transform:scale(.97)}
+.tm-op.sel{border-color:#e0392b;box-shadow:0 0 0 2px rgba(224,57,43,.28),0 0 26px rgba(224,57,43,.3);animation:tmUp .6s cubic-bezier(.22,1.2,.36,1) backwards,tmGlow 2.2s ease-in-out .9s infinite}
+@keyframes tmUp{from{opacity:0;transform:translateY(22px) scale(.94)}}
+@keyframes tmGlow{50%{box-shadow:0 0 0 2px rgba(224,57,43,.4),0 0 34px rgba(224,57,43,.5)}}
+.tm-pv{position:relative;height:100px;border-radius:9px;overflow:hidden;padding:11px 11px 0}
+.tm-pv.dk{background:#0d0d11;border:1px solid #26262d}
+.tm-pv.lt{background:#f6f6f8;border:1px solid #e6e6ea}
+.tm-pv i{display:block;flex:none}
+.tm-pv .r{display:flex;align-items:center;gap:6px}
+.tm-pv .lg{width:11px;height:11px;border-radius:3px;background:#d92d20}
+.tm-pv .b{width:34px;height:6px;border-radius:3px}
+.tm-pv .pl{width:30px;height:9px;border-radius:5px;background:#d92d20;margin-left:auto}
+.tm-pv .pn{margin-top:9px;border-radius:7px;padding:8px}
+.tm-pv .b1{width:60%;height:6px;border-radius:3px}.tm-pv .b2{width:34%;height:5px;border-radius:3px;margin-top:5px}
+.tm-pv .tl{display:flex;gap:6px;margin-top:8px}.tm-pv .tl i{flex:1;height:44px;border-radius:6px}
+.dk .b,.dk .b1,.dk .b2{background:#33343b}.dk .pn{background:#16161b;border:1px solid #26262d}.dk .tl i{background:#1b1b21}
+.lt .b,.lt .b1,.lt .b2{background:#dcdce1}.lt .pn{background:#fff;border:1px solid #e6e6ea}.lt .tl i{background:#e9e9ee}
+.tm-pv:after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.1) 50%,transparent 65%);transform:translateX(-120%);animation:tmSh 3.4s ease-in-out 1s infinite}
+.lt:after{background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.7) 50%,transparent 65%)}
+@keyframes tmSh{0%{transform:translateX(-120%)}55%,100%{transform:translateX(120%)}}
+.tm-ck{position:absolute;top:20px;right:6px;width:21px;height:21px;border-radius:50%;background:#d92d20;display:grid;place-items:center;transform:scale(0);transition:transform .45s cubic-bezier(.3,1.9,.5,1)}
+.tm-op.sel .tm-ck{transform:scale(1)}
+.tm-ck svg path{stroke-dasharray:24;stroke-dashoffset:24;transition:stroke-dashoffset .3s ease .15s}
+.tm-op.sel .tm-ck svg path{stroke-dashoffset:0}
+.tm-lb{display:flex;align-items:center;gap:8px;margin-top:12px}
+.tm-lb b{font-size:17px;font-weight:500}
+.tm-lb em{font-style:normal;font-size:12px;line-height:1;color:#ff5a4d;background:rgba(217,45,32,.2);padding:5px 9px;border-radius:10px}
+.tm-op small{display:block;margin-top:4px;font-size:13px;color:#9b9b9b}
+.tm-sk{display:block;margin:20px auto 0;padding:6px 10px;font-size:14px;color:#9b9b9b;animation:tmUp .5s ease .5s backwards}
+.tm-sk:active{color:#fff}
+@media(prefers-reduced-motion:reduce){.tm-pv:after,.tm-op.sel{animation:none}}
+
+
+/* ===== การ์ดสถิติหน้าแรก (ดีไซน์กระจกอ่อน + ไอคอนลายน้ำใหญ่) ===== */
+.sx{position:relative;overflow:hidden;display:flex;align-items:center;gap:13px;min-height:64px;padding:11px 12px 11px 14px;border-radius:18px;
+  background:linear-gradient(135deg,rgba(236,243,255,.95) 0%,rgba(219,232,255,.78) 100%);
+  border:1px solid rgba(0,83,255,.22);
+  box-shadow:0 6px 18px rgba(0,83,255,.10),inset 0 1px 0 rgba(255,255,255,.85),inset 0 0 0 1px rgba(255,255,255,.35);
+  transition:transform .18s ease}
+.sx:active{transform:scale(.985)}
+.sx.w{grid-column:1/3}
+.sx-wm{position:absolute;right:-4px;top:50%;width:76px;height:76px;transform:translateY(-50%);fill:none;stroke:rgba(0,83,255,.17);stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.sx.w .sx-wm{right:10px;width:84px;height:84px}
+.sx-ic{position:relative;flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:rgba(0,83,255,.10);box-shadow:inset 0 0 0 1px rgba(0,83,255,.06)}
+.sx-ic svg{width:19px;height:19px;fill:none;stroke:#1448c4;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.sx-tx{position:relative;min-width:0;display:block}
+.sx-lb{display:block;font-size:12.5px;line-height:1.2;color:var(--sub);font-weight:400}
+.sx-nm{display:block;margin-top:2px;white-space:nowrap;font-size:clamp(17px,5.4vw,22px);font-weight:500;line-height:1.15;color:#1448c4;letter-spacing:.2px;-webkit-text-fill-color:#1448c4}
+.sx-nm i{font-style:normal;font-size:12px;font-weight:400;margin-left:5px;color:var(--sub);-webkit-text-fill-color:var(--sub);opacity:.85}
+html[data-theme=dark] .sx{background:linear-gradient(135deg,rgba(0,113,255,.16) 0%,rgba(0,83,255,.07) 100%);border-color:rgba(94,167,255,.26);box-shadow:0 6px 18px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.07)}
+html[data-theme=dark] .sx-wm{stroke:rgba(94,167,255,.16)}
+html[data-theme=dark] .sx-ic{background:rgba(94,167,255,.14);box-shadow:inset 0 0 0 1px rgba(94,167,255,.1)}
+html[data-theme=dark] .sx-ic svg{stroke:#8ec0ff}
+html[data-theme=dark] .sx-nm{color:#8ec0ff;-webkit-text-fill-color:#8ec0ff}
+@media(min-width:700px){.sx.w{grid-column:auto}}
+
+
+/* ===== การ์ดสินค้า: เส้นสีฟ้าวิ่งรอบขอบ (ทุกใบ) — ใช้ transform หมุน จึงลื่นและไม่กิน CPU ===== */
+.pc{isolation:isolate;overflow:hidden;box-shadow:0 4px 16px rgba(0,83,255,.10)}
+.pc:before{content:"";position:absolute;z-index:-1;left:50%;top:50%;width:300%;aspect-ratio:1;pointer-events:none;
+  background:conic-gradient(from 0deg,rgba(0,113,255,.16) 0deg,rgba(0,113,255,.16) 210deg,rgba(0,113,255,.55) 262deg,#2f8bff 312deg,#a8d4ff 346deg,#fff 360deg);
+  transform:translate(-50%,-50%) rotate(0deg);animation:pcBeam 3.6s linear infinite;will-change:transform}
+.pc:after{content:"";position:absolute;z-index:-1;inset:2px;border-radius:14px;background:var(--surface);pointer-events:none}
+.pc:nth-child(3n+2):before{animation-delay:-1.2s}.pc:nth-child(3n):before{animation-delay:-2.4s}
+@keyframes pcBeam{to{transform:translate(-50%,-50%) rotate(360deg)}}
+html[data-theme=dark] .pc{box-shadow:0 4px 18px rgba(0,0,0,.5)}
+html[data-theme=dark] .pc:before{background:conic-gradient(from 0deg,rgba(94,167,255,.18) 0deg,rgba(94,167,255,.18) 210deg,rgba(94,167,255,.55) 262deg,#4a9bff 312deg,#b5dbff 346deg,#fff 360deg)}
+@media(prefers-reduced-motion:reduce){.pc:before{animation:none}}
+
+
+/* ===== กรอบรูปสินค้าพอดีกับรูป (ความสูงการ์ดปรับตามรูปเอง) ===== */
+.grid{align-items:start}
+.pi{aspect-ratio:1;transition:none}
+.pi .ph,.pi .ph img{width:100%;height:100%!important;display:block}
+.pi .ph img{object-fit:cover!important}
+.or-img{aspect-ratio:4/3;height:auto}
+.or-img img{object-fit:cover}
+
+
+/* ===== สต็อกของแต่ละแพ็กเกจในหน้ายืนยันสั่งซื้อ ===== */
+.or-op .osk{display:block;margin-top:6px;padding-top:6px;border-top:1px dashed rgba(0,83,255,.25);font-size:12px;line-height:1.2;color:var(--sub);white-space:nowrap}
+.or-op.on .osk{border-top-color:rgba(255,255,255,.4);color:rgba(255,255,255,.9)}
+.or-op.no{opacity:.6}
+.or-op.no .osk{color:#e5484d;font-weight:500}
+.or-op.on.no .osk{color:#ffd0d3}
+html[data-theme=dark] .or-op .osk{border-top-color:rgba(94,167,255,.3)}

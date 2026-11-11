@@ -18,10 +18,14 @@ const PH='<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="
 const CHK='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l1 12H4z"/><path d="M9 8V7a3 3 0 016 0v1"/><path d="M9 14l2 2 4-4"/></svg>';
 const CART='<svg viewBox="0 0 24 24" width="15" height="15" style="vertical-align:-3px;margin-left:3px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h3l2.5 12h11L21 7H6"/><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/></svg>';
 const box='<svg viewBox="0 0 24 24" width="14" height="14" style="vertical-align:-2px;margin-right:4px" fill="#9a918b"><path d="M3 5h14v4H3zM4 10h12v8H4z"/><circle cx="18" cy="18" r="4" fill="#7a7370"/></svg>';
-const card=p=>`<div class="card pc${pst(p)!=='ok'?' pc-'+pst(p):''}"><div class="pi"><div class="ph">${p[5]?`<img src="${esc(p[5])}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover">`:PH}</div>${ptag(p)}</div><h3>${esc(p[1])}</h3><div class="pr">${p[7].length?'เริ่ม ':''}${tpf(p[2])} กีบ</div><button class="buy${pst(p)!=='ok'?' buy-'+pst(p):''}" data-v="order" data-m="${p[0]}">${pst(p)==='ok'?'สั่งซื้อ '+CART:NOI+PSB[pst(p)]}</button><div class="sk"><span>${CHK}ขายแล้ว <b>${p[4]}</b></span><span>${box}เหลือ <b>${p[3]}</b></span></div>${p[4]+p[3]>0?`<div class="bar"><i style="width:${Math.round(p[4]/(p[4]+p[3])*100)}%"></i></div>`:''}</div>`;
+const IAR=(()=>{try{return JSON.parse(localStorage.getItem('px_iar')||'{}')||{}}catch(_){return{}}})();
+const iarSt=src=>IAR[src]?` style="aspect-ratio:${IAR[src]}"`:'';
+const card=p=>`<div class="card pc${pst(p)!=='ok'?' pc-'+pst(p):''}"><div class="pi"${iarSt(p[5])}><div class="ph">${p[5]?`<img src="${esc(p[5])}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover">`:PH}</div>${ptag(p)}</div><h3>${esc(p[1])}</h3><div class="pr">${p[7].length?'เริ่ม ':''}${tpf(p[2])} กีบ</div><button class="buy${pst(p)!=='ok'?' buy-'+pst(p):''}" data-v="order" data-m="${p[0]}">${pst(p)==='ok'?'สั่งซื้อ '+CART:NOI+PSB[pst(p)]}</button><div class="sk"><span>${CHK}ขายแล้ว <b>${p[4]}</b></span><span>${box}เหลือ <b>${p[3]}</b></span></div>${p[4]+p[3]>0?`<div class="bar"><i style="width:${Math.round(p[4]/(p[4]+p[3])*100)}%"></i></div>`:''}</div>`;
 let cats=[]; // [id,name,'','',image_url] — โหลดจากตาราง categories ใน Supabase PXPSHOP (จัดการได้ที่ ห้องแอดมิน > จัดการหมวดหมู่)
 const cat=(c,i)=>{const n=P.filter(p=>p[9]===c[0]).length;return `<a href="#" class="card cat" data-v="cat" data-m="${c[0]}" data-n="${esc(c[1]).toLowerCase()}" data-i="${i}"><div class="ph">${c[4]?`<img src="${esc(c[4])}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:PH}</div><div class="ct"><h3>${esc(c[1])}</h3><span class="cn">${n?n+' สินค้า':''}</span><span class="pr2">${c[3]}</span></div></a>`};
 let ST={u:0,s:0,o:0}; // สถิติหน้าหลักจริง: ผู้ใช้งาน / สต็อก / ยอดขาย (ฟังก์ชัน shop_stats)
+const SXI={u:'<circle cx="12" cy="8" r="3.6"/><path d="M4.8 20c0-4 3.2-6.4 7.2-6.4s7.2 2.4 7.2 6.4"/>',s:'<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.4l2.8 2.8 5-5.6"/>',o:'<path d="M3.5 17l5.5-5.5 3.5 3.5 8-8"/><path d="M15 7h5.5v5.5"/>'};
+const sxCard=(k,label,val,unit,w)=>`<div class="sx${w?' w':''}"><svg class="sx-wm" viewBox="0 0 24 24" aria-hidden="true">${SXI[k]}</svg><span class="sx-ic"><svg viewBox="0 0 24 24" aria-hidden="true">${SXI[k]}</svg></span><span class="sx-tx"><small class="sx-lb">${label}</small><b class="sx-nm">${tpf(val)}<i>${unit}</i></b></span></div>`;
 let ROR=[]; // รายการสั่งซื้อล่าสุดจริงจาก Supabase (ฟังก์ชัน recent_orders: ชื่อผู้ซื้อถูกปิดบางส่วน เช่น be****tj)
 const bag='<svg viewBox="0 0 24 24"><path d="M6 8h12l1 12H5zM9 8a3 3 0 016 0" fill="none" stroke="#fff" stroke-width="0"/></svg>';
 const BI=[
@@ -40,7 +44,7 @@ ${rg?'<div class="ar"><label class="ck"><input type="checkbox" name="t">ฉั�
 <div class="dv">หรือ</div><div class="sw">${rg?'มีบัญชีอยู่แล้ว?':'ยังไม่มีบัญชี?'}<a href="#" class="lk" data-a="${rg?'login':'register'}">${rg?'เข้าสู่ระบบ':'สมัครสมาชิก'}</a></div>`};
 const views={
 home:()=>`<div class="ph hero${SET.banner_url?' has-bn':''}" role="img" aria-label="PXPSHOP">${SET.banner_url?`<img alt="" src="${esc(SET.banner_url)}" decoding="async">`:PH}</div>
-<div class="stats"><div class="sc"><span class="fr"><span class="in"><span class="lb">ผู้ใช้งาน</span><span class="nm">${tpf(ST.u)}<i>คน</i></span><span class="tr"></span><span class="bd"><span><svg viewBox="0 0 60 60"><circle cx="30" cy="19" r="10"/><path d="M9 53c0-13 8-19 21-19s21 6 21 19"/></svg></span></span></span></span></div><div class="sc"><span class="fr"><span class="in"><span class="lb">สต็อก</span><span class="nm">${tpf(ST.s)}<i>ชิ้น</i></span><span class="tr"></span><span class="bd"><span><svg viewBox="0 0 60 60"><path d="M6 17L30 6l24 11v26L30 54 6 43z"/><path d="M6 17l24 11 24-11M30 28v26"/></svg></span></span></span></span></div><div class="sc w"><span class="fr"><span class="in"><span class="lb">ยอดขาย</span><span class="nm">${tpf(ST.o)}<i>ครั้ง</i></span><span class="tr"></span><span class="bd"><span><svg viewBox="0 0 60 60"><path d="M10 21h40l3 32H7z"/><path d="M20 21v-4a10 10 0 0120 0v4"/><path d="M20 36l7 7 14-12"/></svg></span></span></span></span></div></div>
+<div class="stats">${sxCard('u','ผู้ใช้งาน',ST.u,'คน')}${sxCard('s','คลังสินค้า',ST.s,'ชิ้น')}${sxCard('o','ขายแล้ว',ST.o,'ครั้ง',1)}</div>
 <div class="btns">${btns()}</div>
 ${ROR.length?`<div class="sec"><h2>รายการสั่งซื้อล่าสุด</h2><p>รายการสินค้าที่เพิ่งถูกสั่งซื้อ</p></div>
 <div class="row"><div class="trk">${(h=>[...h,...h])(Array.from({length:Math.max(4,ROR.length)},(_,i)=>ROR[i%ROR.length])).map(o=>`<div class="card od"><div class="ph">${o.image_url?`<img src="${esc(o.image_url)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:PH}</div><div><b>${esc(o.buyer)}</b><span>${esc(o.product_name)}</span><em>${fdt(o.created_at)}</em></div></div>`).join('')}</div></div>`:''}
@@ -71,14 +75,14 @@ contact:()=>`<div class="bc"><a href="#" data-v="home">หน้าหลัก<
 <div class="tp-card"><h2>ใช้ช่องทางนี้เมื่อ</h2><ul class="ct-ul">${c[6].map(x=>`<li><span>${x}</span></li>`).join('')}</ul></div>
 <a class="tp-cta ct-go2" href="${c[2]}" target="_blank" rel="noopener">${c[2].startsWith('tel:')?'โทรหาแอดมิน':'ติดต่อผ่าน '+c[0]}</a>`},
 order:(m)=>{const p=P.find(x=>x[0]===m)||P[0];if(!p)return hsPage('','ยืนยันสั่งซื้อ',hsEmpty);{const st=pst(p);if(st!=='ok')return psPage(p,st)}ORP=p;ORQ=1;ORO=0;ORX=optsOf(p);return `<div class="bc"><a href="#" data-v="home">หน้าหลัก</a> &nbsp;/&nbsp; ยืนยันสั่งซื้อ</div><h1 class="tp-h">ยืนยันสั่งซื้อ</h1>
-<div class="tp-card or-pd"><div class="ph or-img">${p[5]?`<img src="${esc(p[5])}" alt="">`:PH}</div><div class="or-i"><b>${esc(p[1])}</b><small>เหลือ ${p[3]} ชิ้น</small><strong class="or-pp"></strong></div></div>
-${p[6]?`<div class="tp-card"><h2>รายละเอียด</h2><p class="ct-p">${esc(p[6])}</p></div>`:''}${ORX[0]._?'':`<div class="tp-card"><h2>เลือกแพ็กเกจ</h2><div class="or-ops">${ORX.map((o,i)=>{const sv=0;return `<button class="or-op${i?'':' on'}" data-i="${i}">${sv>0?`<span class="sv">ประหยัด ${sv}%</span>`:''}<span class="ck"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></span><span class="n">${o.n}</span><span class="u">${o.u}</span><span class="p">${tpf(orPr(p,o))} กีบ</span></button>`}).join('')}</div></div>`}
+<div class="tp-card or-pd"><div class="ph or-img"${iarSt(p[5])}>${p[5]?`<img src="${esc(p[5])}" alt="">`:PH}</div><div class="or-i"><b>${esc(p[1])}</b><small>เหลือ ${p[3]} ชิ้น</small><strong class="or-pp"></strong></div></div>
+${p[6]?`<div class="tp-card"><h2>รายละเอียด</h2><p class="ct-p">${esc(p[6])}</p></div>`:''}${ORX[0]._?'':`<div class="tp-card"><h2>เลือกแพ็กเกจ</h2><div class="or-ops">${ORX.map((o,i)=>{const sv=0;return `<button class="or-op${i?'':' on'}${((p[8]||{})[i]|0)>0?'':' no'}" data-i="${i}">${sv>0?`<span class="sv">ประหยัด ${sv}%</span>`:''}<span class="ck"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></span><span class="n">${o.n}</span><span class="u">${o.u}</span><span class="p">${tpf(orPr(p,o))} กีบ</span><span class="osk">${((p[8]||{})[i]|0)>0?'เหลือ '+((p[8]||{})[i]|0)+' ชิ้น':'สินค้าหมด'}</span></button>`}).join('')}</div></div>`}
 <div class="tp-card or-qt"><h2>จำนวน</h2><div class="or-st"><button class="or-m" aria-label="-">−</button><span class="or-q">1</span><button class="or-p" aria-label="+">+</button></div></div>
 <div class="tp-fr tp-cut"><div class="tp-in tp-cut"><div class="tp-lb">ยอดที่ต้องชำระ</div><div class="or-tot">0<small>กีบ</small></div>
 <div class="or-sm"><div class="or-r"><span>แพ็กเกจ</span><b class="or-pk"></b></div><div class="or-r"><span>ราคาต่อชิ้น</span><b class="or-un"></b></div><div class="or-r"><span>จำนวน</span><b class="or-rq">1</b></div><div class="or-r"><span>ยอดเงินของคุณ</span><b class="or-bal"></b></div><div class="or-r"><span>คงเหลือหลังซื้อ</span><b class="or-aft"></b></div></div></div></div>
 <div class="or-warn">ยอดเงินไม่พอ กรุณาเติมเงินก่อนสั่งซื้อ</div>
 <p class="or-nt">ตรวจสอบรายการให้ถูกต้องก่อนกดยืนยัน</p>
-<button class="tp-cta" id="ordgo">ยืนยันสั่งซื้อ</button>${(setTimeout(orUpd),'')}`}
+<button class="tp-cta" id="ordgo">ยืนยันสั่งซื้อ</button>${(setTimeout(()=>{orUpd();orLive();clearInterval(window.__orPoll);window.__orPoll=setInterval(()=>{if(!$('#ordgo')){clearInterval(window.__orPoll);return}orLive()},15000)}),'')}`}
 };
 const LO={"ห้องแอดมิน":"ຫ້ອງແອດມິນ","แอดมิน":"ແອດມິນ","สมาชิก":"ສະມາຊິກ","กรุณาเข้าสู่ระบบก่อน":"ກະລຸນາເຂົ້າສູ່ລະບົບກ່ອນ","ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง":"ຊື່ຜູ້ໃຊ້ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ","ชื่อผู้ใช้นี้ถูกใช้แล้ว":"ຊື່ຜູ້ໃຊ້ນີ້ຖືກໃຊ້ແລ້ວ","ชื่อผู้ใช้ 3-20 ตัว ใช้ a-z 0-9 _ เท่านั้น":"ຊື່ຜູ້ໃຊ້ 3-20 ຕົວ ໃຊ້ a-z 0-9 _ ເທົ່ານັ້ນ","กำลังดำเนินการ...":"ກຳລັງດຳເນີນການ...","เข้าสู่ระบบสำเร็จ":"ເຂົ້າສູ່ລະບົບສຳເລັດ","สมัครสมาชิกสำเร็จ":"ສະໝັກສະມາຊິກສຳເລັດ","ออกจากระบบแล้ว":"ອອກຈາກລະບົບແລ້ວ","ออกจากระบบ":"ອອກຈາກລະບົບ","บัญชีของฉัน":"ບັນຊີຂອງຂ້ອຍ","ยอดเงิน ":"ຍອດເງິນ ","แอดมิน · ":"ແອດມິນ · ","ลืมรหัสผ่าน? ติดต่อแอดมินเพื่อรีเซ็ต":"ລືມລະຫັດຜ່ານ? ຕິດຕໍ່ແອດມິນເພື່ອຣີເຊັດ","สมัครไม่สำเร็จ ลองชื่อผู้ใช้อื่น":"ສະໝັກບໍ່ສຳເລັດ ລອງຊື່ຜູ້ໃຊ້ອື່ນ","เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง":"ເຊື່ອມຕໍ່ບໍ່ໄດ້ ລອງໃໝ່ອີກຄັ້ງ","เกิดข้อผิดพลาด ลองใหม่อีกครั้ง":"ເກີດຂໍ້ຜິດພາດ ລອງໃໝ່ອີກຄັ້ງ","ไม่พบหมวดหมู่":"ບໍ່ພົບໝວດໝູ່","เรียงตามชื่อ A-Z":"ຮຽງຕາມຊື່ A-Z","เรียงตามชื่อ Z-A":"ຮຽງຕາມຊື່ Z-A","เรียงตามค่าเริ่มต้น":"ຮຽງຕາມຄ່າເລີ່ມຕົ້ນ","เลือกแพ็กเกจ":"ເລືອກແພັກເກັດ","แพ็กเกจ":"ແພັກເກັດ","ประหยัด":"ປະຫຍັດ","วัน":"ວັນ","ยืนยันสั่งซื้อ":"ຢືນຢັນສັ່ງຊື້","จำนวน":"ຈຳນວນ","ราคาต่อชิ้น":"ລາຄາຕໍ່ຊິ້ນ","ยอดที่ต้องชำระ":"ຍອດທີ່ຕ້ອງຊຳລະ","ยอดเงินของคุณ":"ຍອດເງິນຂອງທ່ານ","คงเหลือหลังซื้อ":"ຍັງເຫຼືອຫຼັງຊື້","ยอดเงินคงเหลือ":"ຍອດເງິນຄົງເຫຼືອ","ยอดเงินไม่พอ กรุณาเติมเงินก่อนสั่งซื้อ":"ຍອດເງິນບໍ່ພໍ ກະລຸນາເຕີມເງິນກ່ອນສັ່ງຊື້","เติมเงินก่อนสั่งซื้อ":"ເຕີມເງິນກ່ອນສັ່ງຊື້","ตรวจสอบรายการให้ถูกต้องก่อนกดยืนยัน":"ກວດສອບລາຍການໃຫ້ຖືກຕ້ອງກ່ອນກົດຢືນຢັນ","กำลังสั่งซื้อ...":"ກຳລັງສັ່ງຊື້...","สั่งซื้อสำเร็จ":"ສັ່ງຊື້ສຳເລັດ","เลขที่คำสั่งซื้อ":"ເລກທີ່ຄຳສັ່ງຊື້","ดูสินค้าที่ซื้อได้ในประวัติการสั่งซื้อ":"ເບິ່ງສິນຄ້າທີ່ຊື້ໄດ້ໃນປະຫວັດການສັ່ງຊື້","ยอดชำระ":"ຍອດຊຳລະ","กลับหน้าหลัก":"ກັບໜ້າຫຼັກ","สินค้าหมด":"ສິນຄ້າໝົດ","ชิ้น":"ຊິ້ນ","สินค้า":"ສິນຄ້າ","ช่องทางหลักของร้าน ใช้ติดตามข่าวสาร โปรโมชั่น และแจ้งปัญหาทั่วไป พร้อมแนบรูปหรือสลิปได้สะดวก":"ຊ່ອງທາງຫຼັກຂອງຮ້ານ ໃຊ້ຕິດຕາມຂ່າວສານ ໂປຣໂມຊັນ ແລະ ແຈ້ງບັນຫາທົ່ວໄປ ພ້ອມແນບຮູບ ຫຼື ສະລິບໄດ້ສະດວກ","เหมาะกับเรื่องด่วนที่ต้องการคำตอบเร็ว แอดมินตอบกลับไวที่สุดในช่องทางนี้":"ເໝາະກັບເລື່ອງດ່ວນທີ່ຕ້ອງການຄຳຕອບໄວ ແອດມິນຕອບກັບໄວທີ່ສຸດໃນຊ່ອງທາງນີ້","ใช้รับไฟล์และอัปเดตสินค้าใหม่ๆ รวมถึงแจ้งปัญหาเรื่องไฟล์ขนาดใหญ่":"ໃຊ້ຮັບໄຟລ໌ ແລະ ອັບເດດສິນຄ້າໃໝ່ໆ ລວມທັງແຈ້ງບັນຫາເລື່ອງໄຟລ໌ຂະໜາດໃຫຍ່","โทรคุยกับแอดมินโดยตรง เหมาะกับปัญหาที่อธิบายยาก หรือเรื่องบัญชีและการเงิน":"ໂທລົມກັບແອດມິນໂດຍກົງ ເໝາະກັບບັນຫາທີ່ອະທິບາຍຍາກ ຫຼື ເລື່ອງບັນຊີ ແລະ ການເງິນ","สอบถามสินค้าและราคา":"ສອບຖາມສິນຄ້າ ແລະ ລາຄາ","ติดตามโปรโมชั่นและข่าวสารร้าน":"ຕິດຕາມໂປຣໂມຊັນ ແລະ ຂ່າວສານຮ້ານ","ส่งรูปหรือวิดีโอปัญหาการใช้งาน":"ສົ່ງຮູບ ຫຼື ວິດີໂອບັນຫາການໃຊ້ງານ","เติมเงินแล้วยอดยังไม่เข้า (ส่งสลิปมาด้วย)":"ເຕີມເງິນແລ້ວຍອດຍັງບໍ່ເຂົ້າ (ສົ່ງສະລິບມາດ້ວຍ)","สินค้าที่ซื้อมีปัญหาหรือใช้งานไม่ได้":"ສິນຄ້າທີ່ຊື້ມີບັນຫາ ຫຼື ໃຊ້ງານບໍ່ໄດ້","ต้องการความช่วยเหลือเร่งด่วน":"ຕ້ອງການຄວາມຊ່ວຍເຫຼືອດ່ວນ","ขอรับไฟล์หรือสินค้าซ้ำ":"ຂໍຮັບໄຟລ໌ ຫຼື ສິນຄ້າຄືນໃໝ່","ติดตามอัปเดตสินค้าใหม่":"ຕິດຕາມອັບເດດສິນຄ້າໃໝ່","ส่งไฟล์ขนาดใหญ่ให้แอดมินตรวจสอบ":"ສົ່ງໄຟລ໌ຂະໜາດໃຫຍ່ໃຫ້ແອດມິນກວດສອບ","ปัญหาบัญชีหรือเข้าสู่ระบบไม่ได้":"ບັນຫາບັນຊີ ຫຼື ເຂົ້າສູ່ລະບົບບໍ່ໄດ້","ปัญหาการเงินที่ต้องยืนยันตัวตน":"ບັນຫາການເງິນທີ່ຕ້ອງຢືນຢັນຕົວຕົນ","ต้องการคุยกับแอดมินโดยตรง":"ຕ້ອງການລົມກັບແອດມິນໂດຍກົງ","ใช้ช่องทางนี้เมื่อ":"ໃຊ້ຊ່ອງທາງນີ້ເມື່ອ","เกี่ยวกับช่องทางนี้":"ກ່ຽວກັບຊ່ອງທາງນີ້","ติดต่อผ่าน":"ຕິດຕໍ່ຜ່ານ","โทรหาแอดมิน":"ໂທຫາແອດມິນ","คัดลอกแล้ว":"ຄັດລອກແລ້ວ","คัดลอก":"ຄັດລອກ","ติดต่อแอดมิน":"ຕິດຕໍ່ແອດມິນ","แอดมินตอบกลับเร็ว ทุกวัน":"ແອດມິນຕອບກັບໄວ ທຸກວັນ","โทรศัพท์":"ໂທລະສັບ","ประวัติการซื้อ":"ປະຫວັດການຊື້","ดูประวัติเติมเงิน":"ເບິ່ງປະຫວັດເຕີມເງິນ","ดูประวัติสั่งซื้อ":"ເບິ່ງປະຫວັດສັ່ງຊື້","ดูบันทึกสินค้า":"ເບິ່ງບັນທຶກສິນຄ້າ","สินค้าซื้อบ่อย":"ສິນຄ້າຊື້ເລື້ອຍໆ","ประวัติ":"ປະຫວັດ","เติมเงินผ่าน QR":"ເຕີມເງິນຜ່ານ QR","สำเร็จ":"ສຳເລັດ","รอตรวจสอบ":"ລໍກວດສອບ","ไม่สำเร็จ":"ບໍ່ສຳເລັດ","ยังไม่มีรายการ":"ຍັງບໍ່ມີລາຍການ","ซื้อแล้ว":"ຊື້ແລ້ວ","ครั้ง":"ຄັ້ງ","กีบ":"ກີບ","กรอกจำนวนเงินที่ต้องการเติม":"ຕື່ມຈຳນວນເງິນທີ່ຕ້ອງການເຕີມ","เลือกจำนวนเงิน":"ເລືອກຈຳນວນເງິນ","วิธีเติมเงินผ่านการโอน QR":"ວິທີເຕີມເງິນຜ່ານການໂອນ QR","กรอกหรือเลือกจำนวนเงิน แล้วกดปุ่ม ":"ຕື່ມ ຫຼື ເລືອກຈຳນວນເງິນ ແລ້ວກົດປຸ່ມ ","จะมี ":"ຈະມີ ","QR Code ของร้าน":"QR Code ຂອງຮ້ານ"," แสดงขึ้นมา กดบันทึกภาพหน้าจอ":" ສະແດງຂຶ້ນມາ ກົດບັນທຶກພາບໜ້າຈໍ","เปิดแอปธนาคาร เลือก ":"ເປີດແອັບທະນາຄານ ເລືອກ ","สแกนเพื่อโอนเงิน":"ສະແກນເພື່ອໂອນເງິນ","สแกน QR":"ສະແກນ QR"," แล้วโอนตามยอดที่ระบุ":" ແລ້ວໂອນຕາມຍອດທີ່ລະບຸ","แนบสลิป":"ແນບສະລິບ","การโอน แล้วกดยืนยัน รอแอดมินตรวจสอบและเติมยอดให้":"ການໂອນ ແລ້ວກົດຢືນຢັນ ລໍຖ້າແອດມິນກວດສອບ ແລະ ເຕີມຍອດໃຫ້","โอนตามยอดให้ตรง แล้วแนบสลิปด้านล่าง":"ໂອນຕາມຍອດໃຫ້ຖືກຕ້ອງ ແລ້ວແນບສະລິບດ້ານລຸ່ມ","แตะเพื่อแนบสลิปการโอน":"ແຕະເພື່ອແນບສະລິບການໂອນ","ยืนยันการเติมเงิน":"ຢືນຢັນການເຕີມເງິນ","เติมเงินเข้าเว็บ":"ເຕີມເງິນເຂົ້າເວັບ","เติมเงิน":"ເຕີມເງິນ","โอนเงิน":"ໂອນເງິນ","ขั้นต่ำ":"ຂັ້ນຕ່ຳ","บาท":"ບາດ","สูงสุด":"ສູງສຸດ","ต่อครั้ง":"ຕໍ່ຄັ້ງ","ยอดเติม":"ຍອດເຕີມ","ไฟล์ใหญ่เกิน":"ໄຟລ໌ໃຫຍ່ເກີນ","รอแอดมินตรวจสอบสลิป":"ລໍແອດມິນກວດສອບສະລິບ","กำลังส่ง...":"ກຳລັງສົ່ງ...","ส่งคำขอเรียบร้อย":"ສົ່ງຄຳຂໍຮຽບຮ້ອຍ","ตกลง":"ຕົກລົງ","ยินดีต้อนรับกลับมา":"ຍິນດີຕ້ອນຮັບກັບມາ","สร้างบัญชีใหม่":"ສ້າງບັນຊີໃໝ່","ชื่อผู้ใช้":"ຊື່ຜູ້ໃຊ້","อีเมลไม่ถูกต้อง":"ອີເມວບໍ່ຖືກຕ້ອງ","อีเมล":"ອີເມວ","ยืนยันรหัสผ่าน":"ຢືນຢັນລະຫັດຜ່ານ","ลืมรหัสผ่าน?":"ລືມລະຫັດຜ່ານ?","รหัสผ่านอย่างน้อย 6 ตัวอักษร":"ລະຫັດຜ່ານຢ່າງໜ້ອຍ 6 ຕົວອັກສອນ","รหัสผ่านไม่ตรงกัน":"ລະຫັດຜ່ານບໍ່ກົງກັນ","รหัสผ่าน":"ລະຫັດຜ່ານ","จดจำฉันไว้":"ຈື່ຂ້ອຍໄວ້","ฉันยอมรับข้อกำหนดการใช้งาน":"ຂ້ອຍຍອມຮັບເງື່ອນໄຂການນຳໃຊ້","กรุณายอมรับข้อกำหนด":"ກະລຸນາຍອມຮັບເງື່ອນໄຂ","กรุณากรอกข้อมูลให้ครบ":"ກະລຸນາຕື່ມຂໍ້ມູນໃຫ້ຄົບ","ข้อมูลถูกต้อง (ยังไม่ได้เชื่อมต่อระบบหลังบ้าน)":"ຂໍ້ມູນຖືກຕ້ອງ (ຍັງບໍ່ໄດ້ເຊື່ອມຕໍ່ລະບົບຫຼັງບ້ານ)","มีบัญชีอยู่แล้ว?":"ມີບັນຊີຢູ່ແລ້ວ?","ยังไม่มีบัญชี?":"ຍັງບໍ່ມີບັນຊີ?","หรือ":"ຫຼື","ขายแล้ว":"ຂາຍແລ້ວ","เหลือ":"ເຫຼືອ","เข้าสู่ระบบ / สมัครสมาชิก":"ເຂົ້າສູ່ລະບົບ / ສະໝັກສະມາຊິກ","เข้าสู่ระบบ":"ເຂົ້າສູ່ລະບົບ","สมัครสมาชิก":"ສະໝັກສະມາຊິກ","เมนู":"ເມນູ","หน้าหลัก":"ໜ້າຫຼັກ","รายการสินค้าที่เพิ่งถูกสั่งซื้อ":"ລາຍການສິນຄ້າທີ່ຖືກສັ່ງຊື້ເມື່ອບໍ່ດົນມານີ້","รายการสั่งซื้อล่าสุด":"ລາຍການສັ່ງຊື້ຫຼ້າສຸດ","รายการสินค้า":"ລາຍການສິນຄ້າ","เกี่ยวกับเรา":"ກ່ຽວກັບພວກເຮົາ","รีวิวร้าน":"ລີວິວຮ້ານ","ช่วยเหลือ":"ຊ່ວຍເຫຼືອ","ติดต่อเรา":"ຕິດຕໍ່ພວກເຮົາ","ผู้ใช้งาน":"ຜູ້ໃຊ້ງານ","คน":"ຄົນ","สต็อก":"ສະຕັອກ","ชิ้น":"ຊິ້ນ","ยอดขาย":"ຍອດຂາຍ","ครั้ง":"ຄັ້ງ","ขายดีประจำสัปดาห์":"ຂາຍດີປະຈຳອາທິດ","สินค้าขายดีที่ลูกค้าเลือกมากที่สุด":"ສິນຄ້າຂາຍດີທີ່ລູກຄ້າເລືອກຫຼາຍທີ່ສຸດ","ดูทั้งหมด":"ເບິ່ງທັງໝົດ","สินค้าแนะนำสำหรับคุณ":"ສິນຄ້າແນະນຳສຳລັບທ່ານ","หมวดหมู่":"ໝວດໝູ່","สินค้า":"ສິນຄ້າ","ค้นหาหมวดหมู่":"ຄົ້ນຫາໝວດໝູ່","สั่งซื้อ":"ສັ່ງຊື້","คงเหลือ":"ຄົງເຫຼືອ","ไฟล์ดูดหัว":"ໄຟລ໌ດູດຫົວ","แอนดรอยด์":"ແອນດຣອຍ","ตั้งค่าดูดหัว จอไว ล็อคหัว โห":"ຕັ້ງຄ່າດູດຫົວ ຈໍໄວ ລັອກຫົວ ໂຫ","ตั้งค่าดูดหัว":"ຕັ້ງຄ່າດູດຫົວ","ตั้งค่ามือถือ":"ຕັ້ງຄ່າມືຖື","ภาษา":"ພາສາ","ไทย":"ລາວ","ธีม":"ຮູບແບບ","เลือกดูสินค้า":"ເລືອກເບິ່ງສິນຄ້າ","เติมเงินเข้าเว็บ":"ເຕີມເງິນເຂົ້າເວັບ","ประวัติการซื้อ":"ປະຫວັດການຊື້","ติดต่อแอดมิน":"ຕິດຕໍ່ແອດມິນ","คลิก":"ຄລິກ"};
 Object.assign(LO,{"เติมสต็อกสำเร็จ":"ເຕີມສະຕັອກສຳເລັດ","เติมสต็อก":"ເຕີມສະຕັອກ","คงเหลือ":"ຄົງເຫຼືອ","กำลังโหลด...":"ກຳລັງໂຫຼດ...","โหลดไม่สำเร็จ":"ໂຫຼດບໍ່ສຳເລັດ","เติมไม่สำเร็จ":"ເຕີມບໍ່ສຳເລັດ","เพิ่มแพ็กเกจ":"ເພີ່ມແພັກເກັດ","เพิ่มสินค้าสำเร็จ":"ເພີ່ມສິນຄ້າສຳເລັດ","เพิ่มสินค้า":"ເພີ່ມສິນຄ້າ","จัดการสินค้า":"ຈັດການສິນຄ້າ","รูปสินค้า":"ຮູບສິນຄ້າ","แตะเพื่อเลือกรูปสินค้า":"ແຕະເພື່ອເລືອກຮູບສິນຄ້າ","ชื่อสินค้า":"ຊື່ສິນຄ້າ","ตั้งราคา":"ຕັ້ງລາຄາ","ราคา":"ລາຄາ","ขายสินค้าแบบระยะเวลา":"ຂາຍສິນຄ້າແບບໄລຍະເວລາ","ตั้งราคาและจำนวนวัน/ชั่วโมงเองได้":"ຕັ້ງລາຄາ ແລະ ຈຳນວນວັນ/ຊົ່ວໂມງເອງໄດ້","รายละเอียดสินค้า":"ລາຍລະອຽດສິນຄ້າ","รายละเอียด":"ລາຍລະອຽດ","อธิบายสินค้า":"ອະທິບາຍສິນຄ້າ","ชม.":"ຊມ.","ชิ้น":"ຊິ້ນ","เริ่ม ":"ເລີ່ມ ","บันทึกสินค้า":"ບັນທຶກສິນຄ້າ","กำลังบันทึก...":"ກຳລັງບັນທຶກ...","บันทึกไม่สำเร็จ":"ບັນທຶກບໍ່ສຳເລັດ","กรุณาใส่ชื่อสินค้า":"ກະລຸນາໃສ່ຊື່ສິນຄ້າ","กรุณาตั้งราคา":"ກະລຸນາຕັ້ງລາຄາ","กรอกวัน/ชม. และราคาของแพ็กเกจให้ครบ":"ກະລຸນາໃສ່ວັນ/ຊມ. ແລະ ລາຄາຂອງແພັກເກັດໃຫ້ຄົບ","ไฟล์รูปไม่ถูกต้อง":"ໄຟລ໌ຮູບບໍ່ຖືກຕ້ອງ","ยังไม่มีรายการ":"ຍັງບໍ່ມີລາຍການ"});
@@ -124,7 +128,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-v]');if(t)
 
 $('#mn').onclick=()=>document.body.classList.add('open');$('#ov').onclick=$('#cl').onclick=()=>document.body.classList.remove('open');
 
-$('#th').onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'};
+$('#th').onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark';const m=document.getElementById('tc');if(m)m.content=r.dataset.theme==='dark'?'#000000':'#ffffff';try{localStorage.setItem('px_theme',r.dataset.theme)}catch(e){}};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.body.classList.remove('open')});
 $('#up').onclick=()=>scrollTo({top:0,behavior:'smooth'});
 document.addEventListener('click',e=>{const b=e.target.closest('.eye');if(b){const i=b.parentNode.querySelector('input');i.type=i.type==='password'?'text':'password'}});
@@ -169,6 +173,9 @@ const OPT=[{n:1,u:'วัน',k:1},{n:2,u:'วัน',k:1.8},{n:7,u:'วัน',
 let ORP,ORQ=1,ORO=0,ORX=OPT,BAL=150000,orT;
 const orPr=(p,o)=>o.p,orUnit=()=>orPr(ORP,ORX[ORO]); // BAL = ยอดเงินตัวอย่าง: แทนที่ด้วยยอดจริงของผู้ใช้
 const orSt=()=>ORP[7].length?((ORP[8]||{})[ORO]|0):(parseInt(ORP[3])||0),orMax=()=>Math.max(0,Math.min(orSt(),10));
+function orStk(){document.querySelectorAll('.or-op').forEach((b,i)=>{const n=((ORP[8]||{})[i])|0,e=b.querySelector('.osk');if(e)e.textContent=n>0?'เหลือ '+n+' ชิ้น':'สินค้าหมด';b.classList.toggle('no',n<=0)})}
+// ดึงสต็อกล่าสุดของสินค้านี้จาก Supabase (ตาราง products ของ PXPSHOP) ทุกครั้งที่เปิดหน้ายืนยันสั่งซื้อ + ทุก 15 วินาที
+async function orLive(){const id=ORP&&ORP[0];if(!sb||!id)return;try{const g=await sb.from('products').select('stock,sold,option_stock').eq('id',id).single();if(!g.data||!ORP||ORP[0]!==id||!$('#ordgo'))return;ORP[3]=g.data.stock|0;ORP[4]=g.data.sold|0;ORP[8]=g.data.option_stock||{};orStk();orUpd()}catch(_){}}
 const orNow=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return z(d.getHours())+':'+z(d.getMinutes())+' '+z(d.getDate())+'/'+z(d.getMonth()+1)+'/'+d.getFullYear()};
 function orUpd(){const g=$('#ordgo');if(!g||!ORP)return;if(ORQ>orMax())ORQ=Math.max(1,orMax());const mx=orMax(),tot=orUnit()*ORQ,aft=BAL-tot,no=aft<0,out=mx<1;
 const o=ORX[ORO];$('.or-i small').textContent='เหลือ '+orSt()+' ชิ้น';$('.or-pp').textContent=tpf(orUnit())+' กีบ';$('.or-un').textContent=tpf(orUnit())+' กีบ';$('.or-pk').textContent=o.n+' '+o.u;document.querySelectorAll('.or-op').forEach((b,i)=>b.classList.toggle('on',i===ORO));$('.or-q').textContent=ORQ;$('.or-tot').innerHTML=tpf(tot)+'<small>กีบ</small>';$('.or-rq').textContent=ORQ;$('.or-bal').textContent=tpf(BAL)+' กีบ';
@@ -966,4 +973,66 @@ show=async function(v,m){
   }catch(e){console.error(e);try{orig(pend[0],pend[1])}catch(_){}}
   cleanup();busy=false;pend=null;
 };
+})();
+
+
+/* ===== การ์ดเลือกธีม (เด้งขึ้นตอนเข้าเว็บครั้งแรก) ===== */
+(function(){
+  var seen=true;
+  try{seen=!!(localStorage.getItem('px_theme')||localStorage.getItem('px_theme_pick'))}catch(e){return}
+  if(seen)return;
+  var mock=function(t){return '<div class="tm-pv '+t+'"><div class="r"><i class="lg"></i><i class="b"></i><i class="pl"></i></div><div class="pn"><i class="b1"></i><i class="b2"></i></div><div class="tl"><i></i><i></i><i></i></div></div>'};
+  var chk='<span class="tm-ck"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>';
+  var ov=document.createElement('div');
+  ov.className='tm-ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
+  ov.innerHTML='<div class="tm-cd"><h2>เลือกธีมที่คุณชอบ</h2><p>เปลี่ยนได้ทุกเมื่อจากปุ่มพระจันทร์/พระอาทิตย์บนแถบเมนู</p>'
+   +'<div class="tm-gr"><button type="button" class="tm-op sel" data-t="dark">'+mock('dk')+chk+'<div class="tm-lb"><b>ธีมมืด</b><em>แนะนำ</em></div><small>สบายตา ตอนกลางคืน</small></button>'
+   +'<button type="button" class="tm-op" data-t="light">'+mock('lt')+chk+'<div class="tm-lb"><b>ธีมสว่าง</b></div><small>อ่านง่าย ตอนกลางวัน</small></button></div>'
+   +'<button type="button" class="tm-sk">ข้าม ใช้ธีมเริ่มต้นของร้าน</button></div>';
+  document.body.appendChild(ov);
+  var prevOv=document.body.style.overflow;document.body.style.overflow='hidden';
+  requestAnimationFrame(function(){requestAnimationFrame(function(){ov.classList.add('on')})});
+  var busy=false;
+  function close(){
+    if(busy)return;busy=true;
+    ov.classList.add('out');
+    setTimeout(function(){ov.remove();document.body.style.overflow=prevOv},360);
+  }
+  function pick(t){
+    if(busy)return;
+    ov.querySelectorAll('.tm-op').forEach(function(b){b.classList.toggle('sel',b.dataset.t===t)});
+    var r=document.documentElement;r.dataset.theme=t;
+    var m=document.getElementById('tc');if(m)m.content=t==='dark'?'#000000':'#ffffff';
+    try{localStorage.setItem('px_theme',t);localStorage.setItem('px_theme_pick','1')}catch(e){}
+    setTimeout(close,620);
+  }
+  ov.querySelectorAll('.tm-op').forEach(function(b){b.addEventListener('click',function(){pick(b.dataset.t)})});
+  ov.querySelector('.tm-sk').addEventListener('click',function(){try{localStorage.setItem('px_theme_pick','1')}catch(e){}close()});
+  document.addEventListener('keydown',function k(e){if(e.key==='Escape'){document.removeEventListener('keydown',k);try{localStorage.setItem('px_theme_pick','1')}catch(x){}close()}});
+})();
+
+
+/* ===== ปรับกรอบรูปสินค้าให้พอดีกับสัดส่วนรูปจริงอัตโนมัติ (การ์ดสินค้า + หน้ายืนยันสั่งซื้อ) ===== */
+(function(){
+  var saveT;
+  function save(){clearTimeout(saveT);saveT=setTimeout(function(){try{localStorage.setItem('px_iar',JSON.stringify(IAR))}catch(e){}},600)}
+  function fit(img){
+    var box=img.closest('.pi,.or-img');
+    if(!box||!img.naturalWidth||!img.naturalHeight)return;
+    var r=img.naturalWidth/img.naturalHeight;
+    r=Math.min(2.2,Math.max(.6,r));
+    var v=+r.toFixed(4);
+    box.style.aspectRatio=v;
+    var src=img.getAttribute('src');
+    if(src&&IAR[src]!==v){IAR[src]=v;save()}
+  }
+  document.addEventListener('load',function(e){var t=e.target;if(t&&t.tagName==='IMG')fit(t)},true);
+  // รูปที่โหลดเสร็จก่อนติด listener / มาจากแคช
+  new MutationObserver(function(ms){
+    ms.forEach(function(m){m.addedNodes.forEach(function(n){
+      if(n.nodeType!==1)return;
+      var l=n.matches&&n.matches('img')?[n]:(n.querySelectorAll?n.querySelectorAll('.pi img,.or-img img'):[]);
+      l.forEach(function(i){if(i.complete)fit(i)});
+    })});
+  }).observe(document.getElementById('app')||document.body,{childList:true,subtree:true});
 })();
