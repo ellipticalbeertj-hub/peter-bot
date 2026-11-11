@@ -793,13 +793,15 @@ html[data-theme=dark] body.open .dr{box-shadow:-16px 0 40px -24px rgba(0,0,0,.9)
 
 /* ===== สถานะสินค้า: การ์ดหน้าร้าน + หน้า อัปเดต/ปิดขาย/สินค้าหมด + สวิตช์แอดมิน ===== */
 .pi{position:relative}
-.pc-tag{position:absolute;left:6px;top:6px;z-index:2;padding:3px 10px;border-radius:12px;font-size:11.5px;font-weight:500;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25)}
-.pc-tag.upd{background:rgba(0,83,255,.92)}.pc-tag.off{background:rgba(247,144,9,.95)}.pc-tag.out{background:rgba(240,68,56,.95)}
-.pc-upd .pi .ph,.pc-off .pi .ph,.pc-out .pi .ph{filter:grayscale(.7) brightness(.82)}
-.pc .buy.buy-upd{background:linear-gradient(90deg,#0053FF,#4d9bff,#0053FF);background-size:200% 100%;animation:psShim 2.2s linear infinite}
-.pc .buy.buy-off{background:linear-gradient(90deg,#f79009,#fdb022)}
-.pc .buy.buy-out{background:var(--btn);color:var(--sub)}
-@keyframes psShim{to{background-position:-200% 0}}
+.pi{container-type:inline-size}
+.pc-tag{--sc:#c9792a;position:absolute;left:50%;top:50%;z-index:2;width:70%;transform:translate(-50%,-50%) rotate(-9deg);display:flex;flex-direction:column;align-items:center;gap:.3em;padding:.5em .5em .55em;border:.28em solid var(--sc);border-radius:.8em;color:var(--sc);font-size:30px;font-size:10cqw;background:rgba(0,0,0,.12);pointer-events:none}
+.pc-tag.off{--sc:#7b6fd6}.pc-tag.out{--sc:#cf3b30}
+.pc-tag b{font-weight:800;font-size:1.55em;line-height:1;letter-spacing:.04em;white-space:nowrap}
+.pc-tag i{display:block;width:100%;box-sizing:border-box;text-align:center;font-style:normal;font-weight:700;font-size:.88em;line-height:1.25;padding:.28em .4em;border-radius:.45em;background:var(--sc);color:#fff;white-space:nowrap}
+.pc-out .pc-tag:after{content:"";position:absolute;inset:-.15em;border-radius:inherit;pointer-events:none;opacity:.55;background-image:radial-gradient(rgba(0,0,0,.6) 0 .6px,transparent 1.3px),radial-gradient(rgba(0,0,0,.45) 0 .5px,transparent 1px);background-size:6px 8px,10px 7px;background-position:0 0,3px 4px}
+.pc-upd .pi .ph,.pc-off .pi .ph,.pc-out .pi .ph{filter:grayscale(1) brightness(.5)}
+.pc .buy.buy-upd,.pc .buy.buy-off,.pc .buy.buy-out{display:flex;align-items:center;justify-content:center;gap:7px;background:var(--btn);color:var(--sub);font-weight:500;animation:none}
+
 .ps{--c:#0071FF;--cb:rgba(0,113,255,.14)}.ps-off{--c:#f79009;--cb:rgba(247,144,9,.16)}.ps-out{--c:#f04438;--cb:rgba(240,68,56,.13)}
 .ps-hero{position:relative;overflow:hidden;text-align:center;padding:30px 18px 22px;border-radius:24px;border:1px solid var(--border);background:var(--surface);margin-bottom:14px}
 .ps-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 0,var(--cb),transparent 65%);pointer-events:none}
