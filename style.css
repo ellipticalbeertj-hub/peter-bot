@@ -790,3 +790,62 @@ body.open .dr-sc>:nth-child(2){animation-delay:.05s}body.open .dr-sc>:nth-child(
 html[data-theme=dark],html[data-theme=dark] body{background:#000}
 html[data-theme=dark] .dr{box-shadow:none}
 html[data-theme=dark] body.open .dr{box-shadow:-16px 0 40px -24px rgba(0,0,0,.9)}
+
+/* ===== สถานะสินค้า: การ์ดหน้าร้าน + หน้า อัปเดต/ปิดขาย/สินค้าหมด + สวิตช์แอดมิน ===== */
+.pi{position:relative}
+.pc-tag{position:absolute;left:6px;top:6px;z-index:2;padding:3px 10px;border-radius:12px;font-size:11.5px;font-weight:500;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.pc-tag.upd{background:rgba(0,83,255,.92)}.pc-tag.off{background:rgba(247,144,9,.95)}.pc-tag.out{background:rgba(240,68,56,.95)}
+.pc-upd .pi .ph,.pc-off .pi .ph,.pc-out .pi .ph{filter:grayscale(.7) brightness(.82)}
+.pc .buy.buy-upd{background:linear-gradient(90deg,#0053FF,#4d9bff,#0053FF);background-size:200% 100%;animation:psShim 2.2s linear infinite}
+.pc .buy.buy-off{background:linear-gradient(90deg,#f79009,#fdb022)}
+.pc .buy.buy-out{background:var(--btn);color:var(--sub)}
+@keyframes psShim{to{background-position:-200% 0}}
+.ps{--c:#0071FF;--cb:rgba(0,113,255,.14)}.ps-off{--c:#f79009;--cb:rgba(247,144,9,.16)}.ps-out{--c:#f04438;--cb:rgba(240,68,56,.13)}
+.ps-hero{position:relative;overflow:hidden;text-align:center;padding:30px 18px 22px;border-radius:24px;border:1px solid var(--border);background:var(--surface);margin-bottom:14px}
+.ps-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 0,var(--cb),transparent 65%);pointer-events:none}
+.ps-art{position:relative;width:150px;height:150px;margin:0 auto 14px;color:var(--c)}
+.ps-art:before{content:"";position:absolute;inset:18px;border-radius:50%;background:var(--cb)}
+.ps-art svg{position:relative;width:100%;height:100%;overflow:visible;fill:none;stroke:var(--c);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+.ps-or{stroke-width:2!important;stroke-dasharray:3 9;transform-origin:80px 80px;animation:psSpin 24s linear infinite}
+.ps-g2{transform-origin:80px 80px;animation:psSpin 9s linear infinite}.ps-g2 path{stroke-width:10}.ps-g2 circle:first-child{stroke-width:8}
+.ps-dt{fill:var(--c);stroke:none;animation:psPulse 2.4s ease-in-out infinite}.ps-dt.d2{animation-delay:.9s}
+.ps-fl{fill:var(--c);stroke:none}.ps-kh{fill:#fff;stroke:none}.ps-kh2{stroke:#fff;stroke-width:5}
+.ps-sh{transform-origin:100px 76px;animation:psSwing 3.4s ease-in-out infinite}
+.ps-lk,.ps-bx{animation:psFloat 3.2s ease-in-out infinite}
+.ps-fp{stroke-width:5;animation:psPulse 2.4s ease-in-out infinite}
+@keyframes psSpin{to{transform:rotate(360deg)}}
+@keyframes psFloat{50%{transform:translateY(-5px)}}
+@keyframes psSwing{0%,60%,100%{transform:rotate(0)}70%{transform:rotate(-14deg)}85%{transform:rotate(5deg)}}
+@keyframes psPulse{50%{opacity:.25}}
+.ps-badge{position:relative;display:inline-flex;align-items:center;gap:7px;padding:5px 13px;border-radius:16px;background:var(--cb);color:var(--c);font-size:13px;font-weight:500}
+.ps-badge i{width:7px;height:7px;border-radius:50%;background:var(--c);animation:psPulse 1.6s ease-in-out infinite}
+.ps-hero h1{position:relative;font-size:23px;font-weight:600;margin:14px 0 6px;color:var(--text)}
+.ps-s{position:relative;font-size:14.5px;line-height:1.6;color:var(--sub);margin:0 0 18px}
+.ps-pd{position:relative;display:flex;align-items:center;gap:12px;text-align:left;padding:10px;border-radius:16px;border:1px solid var(--border);background:var(--bg)}
+.ps-pd .ph{flex:none;width:52px;height:52px;border-radius:10px;overflow:hidden}.ps-pd .ph img{width:100%;height:100%;object-fit:cover;filter:grayscale(.6)}
+.ps-pd b{display:block;font-weight:500;font-size:15px;word-break:break-word}.ps-pd small{font-size:12.5px;color:var(--sub)}
+.ps-bar{position:relative;height:6px;border-radius:3px;background:var(--btn);margin:18px 6px 8px;overflow:hidden}
+.ps-bar i{position:absolute;top:0;bottom:0;width:40%;border-radius:3px;background:linear-gradient(90deg,transparent,var(--c),transparent);animation:psBar 1.5s ease-in-out infinite}
+@keyframes psBar{from{left:-40%}to{left:100%}}
+.ps-bl{position:relative;font-size:12.5px;color:var(--sub)}
+.ps-chs{position:relative;margin-top:14px}.ps-chs span{display:inline-block;padding:6px 14px;border-radius:14px;background:var(--btn);color:var(--sub);font-size:13px}.ps-chs b{color:var(--ice);font-weight:600}
+.ps-nt{display:flex;gap:10px;align-items:flex-start;padding:14px}.ps-nt svg{flex:none;width:22px;height:22px;color:var(--c);margin-top:1px}.ps-nt p{margin:0;font-size:14px;line-height:1.6;color:var(--sub)}
+.ps-rf{display:flex;align-items:center;justify-content:center;gap:8px}.ps-rf.spin svg{animation:psSpin .8s linear infinite}
+.ps-gh2{background:transparent;border:1px solid var(--border)}
+@media(prefers-reduced-motion:reduce){.ps *,.pc .buy.buy-upd{animation:none!important}}
+/* แอดมิน: แถวสินค้ามี 2 สวิตช์ */
+.ad-pr{padding:12px;gap:10px}
+.ad-pm{display:flex;align-items:center;gap:12px;flex:1;min-width:0;color:inherit;text-decoration:none}.ad-pm>div{min-width:0}
+.ad-pm b{overflow:hidden;text-overflow:ellipsis;display:block;white-space:nowrap}
+.ad-ch{display:inline-block;margin-top:5px;padding:2px 9px;border-radius:10px;font-style:normal;font-size:11px;font-weight:500}
+.ad-ch.upd{background:rgba(0,113,255,.14);color:var(--ice)}.ad-ch.off{background:var(--wtb);color:var(--wt)}.ad-ch.out{background:var(--nob);color:var(--no)}
+.ad-tg{flex:none;display:flex;flex-direction:column;gap:8px}
+.ad-tg label{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ad-tg label span{font-size:11.5px;color:var(--sub);white-space:nowrap}
+.ad-sw.ad-sm{width:38px;height:22px;border-radius:11px}
+.ad-sw.ad-sm i{top:3px;left:3px;width:16px;height:16px}
+.ad-sw.ad-sm.on i{transform:translateX(16px)}
+.ad-sw.ad-sm.u.on{background:var(--wt)}
+.adm-on .ad-sw.ad-sm:active i{width:20px}.adm-on .ad-sw.ad-sm.on:active i{transform:translateX(12px)}
+.adm-on .ad-sw.ad-sm.on{box-shadow:0 0 0 3px rgba(0,83,255,.14)}.adm-on .ad-sw.ad-sm.u.on{box-shadow:0 0 0 3px var(--wtb)}
+a.ad-cv{flex:none;color:inherit;text-decoration:none;display:grid;place-items:center;padding:6px 0 6px 2px}
