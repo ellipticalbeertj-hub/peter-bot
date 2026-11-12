@@ -978,3 +978,14 @@ html[data-theme=dark] .or-op .osk{border-top-color:rgba(94,167,255,.3)}
 @keyframes hotIn{from{opacity:0;transform:scale(.4) rotate(12deg)}}
 @keyframes hotShake{0%,60%,100%{transform:rotate(0) translateX(0)}10%{transform:rotate(-3deg) translateX(-1px)}20%{transform:rotate(3deg) translateX(1px)}30%{transform:rotate(-2.5deg) translateX(-1px)}40%{transform:rotate(2.5deg) translateX(1px)}50%{transform:rotate(-1deg)}}
 @media(prefers-reduced-motion:reduce){.pc .hotb{animation:none}}
+
+/* ===== หน้าหลัก: แยกสินค้าตามหมวดหมู่ + เลื่อนซ้าย-ขวา ===== */
+.cs{margin-bottom:24px}
+.cs .cat{margin-bottom:10px}
+.cs-t{display:flex;align-items:baseline;gap:10px;margin:0 2px 10px;padding:0 2px}
+.cs-t h3{font-family:Kanit,"Noto Serif Lao",serif;font-size:19px;font-weight:600;margin:0}
+.cs-t span{font-size:14px;color:var(--sub)}
+.hs-row{display:flex;align-items:flex-start;gap:12px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 10px;margin:0 -2px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scrollbar-width:thin}
+.hs-row::-webkit-scrollbar{height:4px}.hs-row::-webkit-scrollbar-thumb{background:rgba(94,167,255,.35);border-radius:4px}
+.hs-row>.card{flex:0 0 calc((100% - 12px)/2);min-width:0;scroll-snap-align:start;margin:0}
+@media(min-width:700px){.hs-row{gap:16px}.hs-row>.card{flex-basis:calc((100% - 32px)/3)}}
