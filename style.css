@@ -966,3 +966,14 @@ html[data-theme=dark] .pc:before{background:conic-gradient(from 0deg,rgba(94,167
 .or-op.no .osk{color:#e5484d;font-weight:500}
 .or-op.on.no .osk{color:#ffd0d3}
 html[data-theme=dark] .or-op .osk{border-top-color:rgba(94,167,255,.3)}
+
+/* สินค้าหมด: กดไม่ได้ */
+.or-op.no,.or-op:disabled{cursor:not-allowed;pointer-events:none}
+.buy-out,.buy:disabled{cursor:not-allowed;pointer-events:none}
+.tp-cta:disabled{cursor:not-allowed}
+
+
+/* ===== ป้าย HOT (สินค้าขายดี) ===== */
+.pc .hotb{position:absolute;left:4px;top:4px;z-index:4;width:76px;height:auto;pointer-events:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35));transform-origin:20% 60%;animation:hotIn .6s cubic-bezier(.22,1.4,.36,1) backwards}
+@keyframes hotIn{from{opacity:0;transform:scale(.4) rotate(-12deg)}}
+@media(prefers-reduced-motion:reduce){.pc .hotb{animation:none}}
