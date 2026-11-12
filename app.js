@@ -198,8 +198,8 @@ if(t.closest('.or-m')){if(ORQ>1)orSet(ORQ-1);return}
 if(t.closest('.or-p')){if(ORQ<orMax())orSet(ORQ+1);return}
 const g=t.closest('#ordgo');if(!g||g.dataset.v||g.disabled)return;if(!USER){show('order',ORP&&ORP[0]);return}
 g.disabled=true;g.textContent='กำลังสั่งซื้อ...';tr(g);
-(async()=>{try{if(!sb)throw 0;const r=await sb.rpc('purchase_product',{p_product_id:ORP[0],p_option:ORP[7].length?ORO:null,p_qty:ORQ});if(r.error)throw r.error;const d=r.data;BAL=Number(d.balance);anav();DLV[d.order_id]=d;loadProds();show('deliver',d.order_id)}
-catch(x){const m=(x&&x.message)||'';g.disabled=false;g.textContent='ยืนยันสั่งซื้อ';tr(g);tpToast(m.includes('insufficient')?'ยอดเงินไม่พอ':m.includes('product_updating')?'สินค้านี้กำลังอัปเดต':m.includes('product_closed')?'สินค้านี้ปิดขายแล้ว':m.includes('out_of_stock')?'สินค้าหมด':'สั่งซื้อไม่สำเร็จ ลองใหม่อีกครั้ง');if(m.includes('out_of_stock')||/product_(closed|updating)/.test(m))loadProds().then(()=>{if(CUR==='order'&&ORP)show('order',ORP[0])})}})()});
+(async()=>{try{if(!sb)throw 0;const r=await sb.rpc('purchase_product',{p_product_id:ORP[0],p_option:ORP[7].length?ORO:null,p_qty:ORQ});if(r.error)throw r.error;const d=r.data;BAL=Number(d.balance);anav();DLV[d.order_id]=d;loadProds();lgChime();show('deliver',d.order_id)}
+catch(x){const m=(x&&x.message)||'';g.disabled=false;g.textContent='ยืนยันสั่งซื้อ';tr(g);if(m.includes('insufficient'))lgErr();tpToast(m.includes('insufficient')?'ยอดเงินไม่พอ':m.includes('product_updating')?'สินค้านี้กำลังอัปเดต':m.includes('product_closed')?'สินค้านี้ปิดขายแล้ว':m.includes('out_of_stock')?'สินค้าหมด':'สั่งซื้อไม่สำเร็จ ลองใหม่อีกครั้ง');if(m.includes('out_of_stock')||/product_(closed|updating)/.test(m))loadProds().then(()=>{if(CUR==='order'&&ORP)show('order',ORP[0])})}})()});
 // ===== หน้าเติมเงิน =====
 const TPV=[10000,20000,50000,100000,200000,500000];let TPQR="",TPMIN=10000,TPMAX=5000000;
 const tpf=n=>n.toLocaleString('en-US');
@@ -212,6 +212,7 @@ let LGA=null;
 function lgAu(){try{if(!LGA)LGA=new(window.AudioContext||window.webkitAudioContext)();if(LGA.state==='suspended')LGA.resume()}catch(_){}return LGA}
 document.addEventListener('pointerdown',lgAu,{passive:true});
 function lgChime(){try{const a=lgAu();if(!a)return;const t=a.currentTime+.02;[[659.25,0],[783.99,.16]].forEach(([f,d])=>{const o=a.createOscillator(),h=a.createOscillator(),g=a.createGain(),gh=a.createGain();o.type='sine';h.type='sine';o.frequency.value=f;h.frequency.value=f*2;gh.gain.value=.18;o.connect(g);h.connect(gh);gh.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.3,t+d+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d+.6);o.start(t+d);h.start(t+d);o.stop(t+d+.65);h.stop(t+d+.65)})}catch(_){}}
+function lgErr(){try{const a=lgAu();if(!a)return;const t=a.currentTime+.01,o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=221;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.6,t+.004);g.gain.setTargetAtTime(.0001,t+.004,.058);o.start(t);o.stop(t+.45)}catch(_){}}
 function lgCard(t){document.querySelectorAll('.lg-card').forEach(x=>x.remove());const c=document.createElement('div');c.className='lg-card';c.setAttribute('role','status');c.innerHTML='<i class="lg-ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M7.8 12.4l2.9 2.9 5.5-6"/></svg></i><div class="lg-tx"><b></b><small>กำลังโหลด...</small></div>';c.querySelector('b').textContent=t;document.body.appendChild(c);tr(c);lgChime();setTimeout(()=>c.classList.add('out'),2300);setTimeout(()=>c.remove(),2700)}
 function tpToast(t){let p=$('.tp-toast');if(!p){p=document.createElement('div');p.className='tp-toast';document.body.appendChild(p)}p.textContent=t;tr(p);p.classList.add('on');setTimeout(()=>p.classList.remove('on'),2000)}
 function tpQR(){const c=$('.tp-qr');if(!c)return;if(TPQR){const i=new Image();i.src=TPQR;i.className='tp-qr';i.style.imageRendering='auto';c.replaceWith(i);return}
@@ -660,7 +661,7 @@ tr(dr);avr()}
 if(sb)sb.auth.onAuthStateChange((ev,s)=>{USER=s?s.user:null;if(ev==='TOKEN_REFRESHED')return;
 setTimeout(async()=>{await loadProf();anav();if(CUR==='maint'&&!maint())show('home');if((!USER&&NEED.has(CUR))||(/^admin/.test(CUR)&&!isAdm()))show('home');AUTHREADY=true;hashGo()},0)});
 document.addEventListener('submit',async e=>{const f=e.target;if(f.id!=='af')return;e.preventDefault();
-const er=$('#er'),rg=f.dataset.m==='register',btn=f.querySelector('.sb'),el=f.elements,say=(m,ok)=>{er.className=ok?'er ok':'er';er.textContent=m;tr(er)};
+const er=$('#er'),rg=f.dataset.m==='register',btn=f.querySelector('.sb'),el=f.elements,say=(m,ok)=>{er.className=ok?'er ok':'er';er.textContent=m;tr(er);if(m&&!ok)lgErr()};
 const u=el.u.value.trim(),p=el.p.value,c=rg?el.c.value:'';let m='';
 if(!u||!p||(rg&&!c))m='กรุณากรอกข้อมูลให้ครบ';
 else if(!/^[A-Za-z0-9_]{3,20}$/.test(u))m='ชื่อผู้ใช้ 3-20 ตัว ใช้ a-z 0-9 _ เท่านั้น';
