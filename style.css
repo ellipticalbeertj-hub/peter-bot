@@ -974,6 +974,7 @@ html[data-theme=dark] .or-op .osk{border-top-color:rgba(94,167,255,.3)}
 
 
 /* ===== ป้าย HOT (สินค้าขายดี) ===== */
-.pc .hotb{position:absolute;right:10px;top:10px;z-index:4;width:50px;height:auto;pointer-events:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35));transform-origin:80% 60%;animation:hotIn .6s cubic-bezier(.22,1.4,.36,1) backwards}
+.pc .hotb{position:absolute;right:3px;top:3px;z-index:4;width:50px;height:auto;pointer-events:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.35));transform-origin:80% 60%;animation:hotIn .6s cubic-bezier(.22,1.4,.36,1) backwards,hotShake 1.6s ease-in-out .6s infinite}
 @keyframes hotIn{from{opacity:0;transform:scale(.4) rotate(12deg)}}
+@keyframes hotShake{0%,60%,100%{transform:rotate(0) translateX(0)}10%{transform:rotate(-3deg) translateX(-1px)}20%{transform:rotate(3deg) translateX(1px)}30%{transform:rotate(-2.5deg) translateX(-1px)}40%{transform:rotate(2.5deg) translateX(1px)}50%{transform:rotate(-1deg)}}
 @media(prefers-reduced-motion:reduce){.pc .hotb{animation:none}}
