@@ -1001,3 +1001,18 @@ a.cs-more:active{transform:scale(.96)}
 .cs-bn{display:block;aspect-ratio:3.77;margin:0 0 12px;border-radius:12px;overflow:hidden;border:1px solid var(--border);transition:transform .15s}
 .cs-bn:active{transform:scale(.98)}
 .cs-bn img{display:block;width:100%;height:100%;object-fit:cover}
+
+/* การ์ดเข้าสู่ระบบสำเร็จ (เด้งขึ้นจากด้านล่าง) */
+.lg-card{position:fixed;left:14px;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);max-width:520px;margin:0 auto;z-index:600;display:flex;align-items:center;gap:14px;padding:14px 18px;background:#fff;border-radius:22px;box-shadow:0 14px 40px rgba(0,0,0,.35),0 0 0 1px rgba(18,183,106,.12);pointer-events:none;animation:lgIn .42s cubic-bezier(.22,1.3,.36,1) both}
+.lg-card.out{animation:lgOut .4s ease forwards}
+.lg-ic{flex:none;width:52px;height:52px;border-radius:50%;background:rgba(18,183,106,.12);color:#12a05c;display:flex;align-items:center;justify-content:center}
+.lg-ic svg{width:26px;height:26px}
+.lg-ic svg circle{stroke-dasharray:60;stroke-dashoffset:60;animation:lgDraw .5s .1s ease forwards}
+.lg-ic svg path{stroke-dasharray:20;stroke-dashoffset:20;animation:lgDraw .35s .4s ease forwards}
+.lg-tx{display:flex;flex-direction:column;line-height:1.3;min-width:0}
+.lg-tx b{font-size:16px;font-weight:600;color:#0b2e22}
+.lg-tx small{font-size:13.5px;color:#12a05c}
+@keyframes lgIn{from{opacity:0;transform:translateY(60px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes lgOut{to{opacity:0;transform:translateY(40px)}}
+@keyframes lgDraw{to{stroke-dashoffset:0}}
+@media(prefers-reduced-motion:reduce){.lg-card,.lg-card.out{animation-duration:.01s!important}.lg-ic svg circle,.lg-ic svg path{animation:none;stroke-dashoffset:0}}
