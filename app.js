@@ -680,9 +680,10 @@ USER=null;PROF=null;BAL=0;anav();show('home');tpToast('ออกจากระ�
 
 // ===== แถบหัว: ชิปยอดเงิน (ลงชื่อแล้ว = ₭ยอดเงิน กดไปเติมเงิน / ยังไม่ลงชื่อ = เข้าสู่ระบบ) =====
 const WIC='<svg viewBox="0 0 24 24"><path d="M4.5 7.5V6A2 2 0 016.5 4H18"/><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M21 12.5h-4a1.8 1.8 0 000 3.6h4"/></svg>';
+const UIC='<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>';
 function avr(){const c=$('#hc');if(!c)return;
 if(USER){c.dataset.v='topup';delete c.dataset.m;c.setAttribute('aria-label','ยอดเงิน');c.innerHTML=WIC+'<span>₭'+tpf(BAL||0)+'</span>'}
-else{c.dataset.v='auth';c.dataset.m='login';c.setAttribute('aria-label','เข้าสู่ระบบ');c.innerHTML=WIC+'<span>เข้าสู่ระบบ</span>';tr(c)}}
+else{c.dataset.v='auth';c.dataset.m='login';c.setAttribute('aria-label','เข้าสู่ระบบ');c.innerHTML=UIC+'<span>เข้าสู่ระบบ</span>';tr(c)}}
 // เมนู: เติมเงิน (กางออก/พับ) + สถานะ (เลื่อนไปที่สถิติหน้าแรก)
 document.addEventListener('click',e=>{
 const g=e.target.closest('#dtp');if(g){const w=$('#dtg'),o=w.classList.toggle('op');g.setAttribute('aria-expanded',o);return}
