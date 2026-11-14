@@ -805,11 +805,13 @@ return '<section class="agd-tg '+st+'"><div class="agd-tt"><b>'+AGI.tg+'ເປ�
 +'<div class="agd-kv"><span>ໄລຍະເວລາ</span><b>'+(+t.days||0)+' ມື້</b></div>'
 +'<div class="agd-kv"><span>ເລີ່ມນັບ</span><b>'+agDt(t.start)+'</b></div>'
 +'<div class="agd-kv"><span>ຄົບກຳນົດ</span><b>'+agDt(t.end)+' '+agTm(t.end)+'</b></div>'+foot+'</section>'}
+function agMc(t){const st=agTS(t);if(st==='running')return '<div class="agd-mc" id="agmc" role="timer"><small>ໝົດເວລາໃນ</small><b>--</b></div>';
+return '<div class="agd-mc '+(st==='achieved'?'ok':'no')+'"><small>ເປົ້າໝາຍ</small><b>'+(st==='achieved'?'ສຳເລັດ':'ໝົດເວລາ')+'</b></div>'}
 function agRender(){const d=$('#agd');if(!d||!AG.dash||d.hidden)return;const{A,T,items,top}=AG.dash,inf=AG.info||{},tg=AG.tg,fr=AG.fresh;AG.fresh=0;
 const nm=(PROF&&PROF.username)||(USER&&USER.user_metadata&&USER.user_metadata.username)||'?',dc=+inf.discount_pct||0;
 d.innerHTML='<div class="agd-hd"><span class="agd-av">'+AGI.crown+'</span><div class="agd-hn"><b>ແດຊບອດຕົວແທນ</b><small>'+esc(nm)+(inf.name?' · '+esc(inf.name):'')+'</small></div><button type="button" class="agd-rf" id="agrf" aria-label="ໂຫຼດໃໝ່">'+AGI.rf+'</button></div>'
 +'<div class="agd-chs"><em>ຕົວແທນ</em>'+(dc>0?'<em class="b">ສ່ວນຫຼຸດ '+(+dc.toFixed(2))+'%</em>':'')+(inf.since?'<em>ຕັ້ງແຕ່ '+agDt(inf.since)+'</em>':'')+'</div>'
-+'<section class="agd-td"><small>ຍອດຊື້ມື້ນີ້</small><div class="agd-big">₭<span data-n="'+T.s+'">0</span></div><div class="agd-sb"><span><b data-n="'+T.n+'">0</b> ຄຳສັ່ງຊື້</span><span><b data-n="'+T.q+'">0</b> ຊິ້ນ</span><span><b data-n="'+items.length+'">0</b> ລາຍການ</span></div></section>'
++'<section class="agd-td">'+(tg?agMc(tg):'')+'<small>ຍອດຊື້ມື້ນີ້</small><div class="agd-big">₭<span data-n="'+T.s+'">0</span></div><div class="agd-sb"><span><b data-n="'+T.n+'">0</b> ຄຳສັ່ງຊື້</span><span><b data-n="'+T.q+'">0</b> ຊິ້ນ</span><span><b data-n="'+items.length+'">0</b> ລາຍການ</span></div></section>'
 +(tg?agTgHtml(tg):'')
 +'<section class="agd-cd2"><h4>'+AGI.bx+'ສິນຄ້າທີ່ຊື້ມື້ນີ້'+(items.length?'<em>'+items.length+'</em>':'')+'</h4>'
 +(items.length?items.map(x=>'<div class="agd-it"><span class="agd-in2">'+esc(x.k)+'</span><span class="agd-iq">×'+tpf(x.q)+'</span><b>'+agMn(x.s)+'</b></div>').join(''):'<div class="agd-em">ມື້ນີ້ຍັງບໍ່ໄດ້ຊື້ສິນຄ້າ</div>')+'</section>'
@@ -825,6 +827,7 @@ function agTick(){if(!document.body.classList.contains('open')||!AG.on||!AG.is){
 const e=$('#agcd');if(e&&AG.tg){const s=Math.max(0,Math.floor((new Date(AG.tg.end)-(Date.now()+AG.off))/1000)),v={d:Math.floor(s/86400),h:Math.floor(s%86400/3600),m:Math.floor(s%3600/60),s:s%60};
 e.querySelectorAll('[data-u]').forEach(x=>{const n=String(v[x.dataset.u]).padStart(2,'0');if(x.textContent!==n)x.textContent=n});
 e.classList.toggle('low',s<86400);
+const mc=$('#agmc');if(mc){const bb=mc.querySelector('b'),tx=(v.d>0?v.d+' ມື້ ':'')+String(v.h).padStart(2,'0')+':'+String(v.m).padStart(2,'0')+':'+String(v.s).padStart(2,'0');if(bb.textContent!==tx)bb.textContent=tx;mc.classList.toggle('low',s<86400)}
 if(s<=0&&agTS(AG.tg)==='failed'){agRender();return}}
 if(++AG.c%45===0)agDashLoad(1)}
 // ทำเป้าสำเร็จ → การ์ด + เสียงเตือน 1 ครั้งต่อเป้า
