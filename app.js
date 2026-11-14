@@ -690,11 +690,47 @@ const UIC='<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21
 function avr(){const c=$('#hc');if(!c)return;
 if(USER){c.dataset.v='topup';delete c.dataset.m;c.setAttribute('aria-label','ยอดเงิน');c.innerHTML=WIC+'<span>₭'+tpf(BAL||0)+'</span>'}
 else{c.dataset.v='auth';c.dataset.m='login';c.setAttribute('aria-label','เข้าสู่ระบบ');c.innerHTML=UIC+'<span>เข้าสู่ระบบ</span>';tr(c)}}
-// เมนู: เติมเงิน (กางออก/พับ) + สถานะ (เลื่อนไปที่สถิติหน้าแรก)
+// เมนู: เติมเงิน (กางออก/พับ)
+document.addEventListener('click',e=>{const g=e.target.closest('#dtp');if(g){const w=$('#dtg'),o=w.classList.toggle('op');g.setAttribute('aria-expanded',o)}});
+// ============================================================
+// ===== สมัครตัวแทน (ในเมนูข้าง) =====
+// กด "สมัครตัวแทน" → ตัวเลือกเมนู (#dmenu) จางหาย → โชว์แผงสมัคร (#dag): ช่องใส่คีย์ + ปุ่มสมัคร + วิธีสมัคร + ช่องทางติดต่อแอดมิน (ดึงจาก CTS ที่แอดมินตั้งค่า)
+// ตรวจคีย์ฝั่ง Supabase ด้วยฟังก์ชัน redeem_agent_key(p_key text) → คืน true เมื่อสำเร็จ (ถ้ายังไม่สร้างฟังก์ชัน จะแจ้งว่าระบบยังไม่เปิดใช้งาน)
+// ============================================================
+const AG={busy:0,on:0,t:0};
+const agMsg=(t,k)=>{const m=$('#agm');if(!m)return;m.className='ag-msg'+(t?' ag-on ag-'+k:'');m.textContent=t||''};
+function agStep(el){const it=[...el.querySelectorAll('.dsec,.di,.dhr')].filter(x=>x.offsetParent!==null);it.forEach((x,i)=>x.style.setProperty('--d',(i*.02).toFixed(2)+'s'));return it.length}
+function agCt(){const w=$('#agc');if(!w)return;
+const ar='<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',ti='<h4 class="ag-t"><svg viewBox="0 0 24 24"><path d="M20.5 11.8a8.3 8.3 0 01-12.2 7.3L3.5 20.5l1.5-4.4a8.3 8.3 0 1115.5-4.3z"/></svg>ຕິດຕໍ່ແອດມິນເພື່ອສະໝັກ</h4>';
+w.innerHTML=ti+(CTS.length?CTS.map((c,i)=>`<a class="ag-c" href="${c[2]}" target="_blank" rel="noopener" style="--cc:${c[4]};--k:${i}"><span class="ag-ci"><svg viewBox="0 0 24 24">${c[3]}</svg></span><span class="ag-cm"><b>${esc(c[0])}</b><small>${c[1]}</small></span><span class="ag-cg">ຕິດຕໍ່${ar}</span></a>`).join(''):'<div class="ag-em">ຍັງບໍ່ມີຊ່ອງທາງຕິດຕໍ່ ກະລຸນາລໍຖ້າແອດມິນເພີ່ມ</div>');tr(w)}
+function agOpen(){if(AG.busy||AG.on)return;AG.busy=1;const t=AG.t,M=$('#dmenu'),G=$('#dag'),n=agStep(M);M.classList.remove('ag-re');M.classList.add('ag-out');
+setTimeout(()=>{if(t!==AG.t)return;M.hidden=true;M.classList.remove('ag-out');agCt();$('.dr-sc').scrollTop=0;G.hidden=false;[...G.children].forEach((x,i)=>x.style.setProperty('--k',i));G.classList.remove('ag-in','ag-out');void G.offsetWidth;G.classList.add('ag-in');AG.on=1;AG.busy=0;setTimeout(()=>{if(t===AG.t&&AG.on&&!/\S/.test(($('#agk')||{}).value||''))try{$('#agk').focus({preventScroll:true})}catch(_){}},900)},n*20+300)}
+function agBack(){if(AG.busy||!AG.on)return;AG.busy=1;const t=AG.t,M=$('#dmenu'),G=$('#dag');G.classList.add('ag-out');
+setTimeout(()=>{if(t!==AG.t)return;G.hidden=true;G.classList.remove('ag-in','ag-out');const i=$('#agk');if(i){i.blur();i.value=''}agMsg('');$('.ag-fl').classList.remove('ag-er');M.hidden=false;const n=agStep(M);M.classList.add('ag-re');$('.dr-sc').scrollTop=0;AG.on=0;setTimeout(()=>{if(t!==AG.t)return;M.classList.remove('ag-re');AG.busy=0},n*20+420)},260)}
+function agHard(){const M=$('#dmenu'),G=$('#dag');if(!M||!G)return;AG.t++;M.hidden=false;M.classList.remove('ag-out','ag-re');G.hidden=true;G.classList.remove('ag-in','ag-out');AG.on=AG.busy=0;const i=$('#agk'),b=$('#agg');if(i)i.value='';agMsg('');$('.ag-fl').classList.remove('ag-er','ag-sh');if(b){b.classList.remove('ag-ld','ag-done');b.disabled=false;b.querySelector('.ag-lb').textContent='ສະໝັກຕົວແທນ'}}
+async function agSub(){const i=$('#agk'),b=$('#agg'),f=$('.ag-fl'),k=i.value.trim();if(b.classList.contains('ag-ld')||b.classList.contains('ag-done'))return;
+if(!k){agMsg('ກະລຸນາໃສ່ຄີສະໝັກຕົວແທນກ່ອນ','e');f.classList.remove('ag-sh');void f.offsetWidth;f.classList.add('ag-er','ag-sh');i.focus();return}
+if(!USER){document.body.classList.remove('open');show('auth','login');tpToast('ກະລຸນາເຂົ້າສູ່ລະບົບກ່ອນ');return}
+if(!sb){agMsg('ລະບົບຍັງບໍ່ພ້ອມ ກະລຸນາລອງໃໝ່','e');return}
+const t=AG.t;b.classList.add('ag-ld');b.disabled=true;agMsg('');i.blur();
+try{const r=await sb.rpc('redeem_agent_key',{p_key:k});if(t!==AG.t)return;
+if(r.error){const m=String(r.error.message||'')+' '+String(r.error.code||'');
+if(/PGRST202|could not find the function|does not exist|schema cache/i.test(m))agMsg('ລະບົບສະໝັກຕົວແທນຍັງບໍ່ເປີດໃຊ້ ກະລຸນາຕິດຕໍ່ແອດມິນ','e');
+else if(/failed to fetch|network|timeout/i.test(m))agMsg('ເຄືອຂ່າຍມີບັນຫາ ກະລຸນາລອງໃໝ່','e');
+else{agMsg('ຄີບໍ່ຖືກຕ້ອງ ຫຼື ຖືກໃຊ້ແລ້ວ','e');f.classList.remove('ag-sh');void f.offsetWidth;f.classList.add('ag-er','ag-sh')}
+b.classList.remove('ag-ld');b.disabled=false;return}
+if(r.data===false){agMsg('ຄີບໍ່ຖືກຕ້ອງ ຫຼື ຖືກໃຊ້ແລ້ວ','e');f.classList.remove('ag-sh');void f.offsetWidth;f.classList.add('ag-er','ag-sh');b.classList.remove('ag-ld');b.disabled=false;return}
+b.classList.remove('ag-ld');b.classList.add('ag-done');b.querySelector('.ag-lb').textContent='ສະໝັກຕົວແທນສຳເລັດ';agMsg('ຍິນດີດ້ວຍ! ທ່ານເປັນຕົວແທນແລ້ວ','o');
+try{await loadProf();anav()}catch(_){}}
+catch(_){if(t!==AG.t)return;agMsg('ເຄືອຂ່າຍມີບັນຫາ ກະລຸນາລອງໃໝ່','e');b.classList.remove('ag-ld');b.disabled=false}}
 document.addEventListener('click',e=>{
-const g=e.target.closest('#dtp');if(g){const w=$('#dtg'),o=w.classList.toggle('op');g.setAttribute('aria-expanded',o);return}
-const st=e.target.closest('[data-go="stats"]');if(!st)return;e.preventDefault();document.body.classList.remove('open');show('home');
-let n=0;const t=setInterval(()=>{const x=document.querySelector('#app .stats');if(x&&CUR==='home'){clearInterval(t);setTimeout(()=>x.scrollIntoView({behavior:'smooth',block:'center'}),120)}else if(++n>40)clearInterval(t)},100)});
+if(e.target.closest('[data-go="agent"]')){e.preventDefault();agOpen();return}
+if(e.target.closest('#agb')){agBack();return}
+if(e.target.closest('#agg'))agSub()});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='agk'){e.preventDefault();agSub()}});
+document.addEventListener('input',e=>{if(e.target.id==='agk'){$('.ag-fl').classList.remove('ag-er');if(!$('#agg').classList.contains('ag-done'))agMsg('')}});
+// ปิดเมนู (กากบาด/แตะพื้นหลัง/เปลี่ยนหน้า) → คืนเมนูเป็นปกติ เปิดใหม่จะเห็นเมนูหลักเสมอ
+new MutationObserver(()=>{if(!document.body.classList.contains('open')&&(AG.on||AG.busy))setTimeout(()=>{if(!document.body.classList.contains('open'))agHard()},380)}).observe(document.body,{attributes:true,attributeFilter:['class']});
 // ============================================================
 // ===== ช่องทางติดต่อแอดมิน (ตั้งค่าร้าน › ช่องทางติดต่อ 4 ช่อง → โชว์ในหน้า ติดต่อแอดมิน เฉพาะช่องที่ใส่ลิงก์) =====
 // เก็บใน shop_settings.contacts (jsonb) ส่งมากับ public_settings อัตโนมัติ · ช่องที่ไม่ใส่ลิงก์จะไม่แสดง
