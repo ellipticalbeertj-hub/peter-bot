@@ -2,7 +2,11 @@ const I={};
 let CURM; // พารามิเตอร์ของหน้าปัจจุบัน (ใช้รีเฟรชหน้าหมวดหมู่)
 let P=[]; // [id,name,price,stock,sold,image,desc,options,option_stock,category_id] — โหลดจากตาราง products ใน Supabase PXPSHOP
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const pm=r=>[r.id,r.name,Number(r.price)||0,r.stock|0,r.sold|0,r.image_url||'',r.description||'',Array.isArray(r.options)?r.options:[],r.option_stock||{},r.category_id||null,r.sales_closed===true,r.update_mode===true];
+let AGP=null; // ราคาตัวแทน {productId:{optionIdx:price}} จาก my_agent_info (null = ไม่ใช่ตัวแทน → ใช้ราคาปกติ)
+const agPx=r=>{const o=Array.isArray(r.options)?r.options:[],m=AGP&&AGP[r.id];if(!m)return[Number(r.price)||0,o];
+if(o.length){const n=o.map((x,i)=>m[i]!=null&&isFinite(+m[i])?{...x,p:+m[i]}:x);return[Math.min(...n.map(x=>+x.p||0)),n]}
+return[m['-1']!=null&&isFinite(+m['-1'])?+m['-1']:(Number(r.price)||0),o]};
+const pm=r=>{const a=agPx(r);return [r.id,r.name,a[0],r.stock|0,r.sold|0,r.image_url||'',r.description||'',a[1],r.option_stock||{},r.category_id||null,r.sales_closed===true,r.update_mode===true]};
 const pout=p=>p[7].length?p[7].every((_,i)=>((p[8]||{})[i]|0)<1):p[3]<1; // สินค้าหมดจริง (รองรับแบบแพ็กเกจ)
 const pst=p=>p[11]?'upd':p[10]?'off':pout(p)?'out':'ok'; // สถานะ: upd=กำลังอัปเดต off=ปิดขาย out=สินค้าหมด ok=ขายปกติ
 const PSL={upd:'กำลังอัปเดต',off:'ปิดขาย',out:'สินค้าหมด'};
@@ -754,11 +758,14 @@ Object.assign(AG,{is:0,info:null,dash:null,tg:null,off:0,tm:0,c:0,fresh:0,uid:''
 const agFm=()=>[...($('#dag')||{children:[]}).children].filter(x=>x.id!=='agd'&&!x.classList.contains('ag-back'));
 function agLbl(){const s=$('#agml');if(s)s.textContent=AG.is?'ແດຊບອດຕົວແທນ':'ສະໝັກຕົວແທນ'}
 function agStop(){clearInterval(AG.tm);AG.tm=0}
-function agReset(){AG.is=0;AG.info=null;AG.dash=null;AG.tg=null;AG.uid='';agStop();agLbl()}
+function agReset(){AG.is=0;AG.info=null;AG.dash=null;AG.tg=null;AG.uid='';agStop();agLbl();agPrices(null)}
+// ใช้ราคาตัวแทนทั้งเว็บ: ถ้าราคาเปลี่ยน (ล็อกอิน/สมัคร/แอดมินปรับราคา/ออกจากระบบ) → โหลดสินค้าใหม่ให้แสดงราคาตรงกับที่ระบบคิดเงินจริง
+function agPrices(m){const n=m&&Object.keys(m).length?m:null;if(JSON.stringify(n)===JSON.stringify(AGP))return;AGP=n;try{loadProds()}catch(_){}}
+let agVt=0;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&USER&&Date.now()-agVt>20000){agVt=Date.now();agInfo()}});
 async function agInfo(){
 if(!sb||!USER){agReset();return null}
 if(AG.uid&&AG.uid!==USER.id){AG.dash=null;AG.tg=null}AG.uid=USER.id;
-try{const r=await sb.rpc('my_agent_info');if(!r.error){AG.info=(r.data&&r.data.list_id)?r.data:null;AG.is=AG.info?1:0}}catch(_){}
+try{const r=await sb.rpc('my_agent_info');if(!r.error){AG.info=(r.data&&r.data.list_id)?r.data:null;AG.is=AG.info?1:0;agPrices(AG.info&&AG.info.prices)}}catch(_){}
 agLbl();return AG.info}
 // สลับระหว่าง ฟอร์มสมัคร ↔ แดชบอร์ด
 function agMode(is){const d=$('#agd');if(!d)return;agFm().forEach(x=>{x.hidden=!!is;x.classList.remove('ag-blur')});d.hidden=!is;
