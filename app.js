@@ -119,6 +119,7 @@ async function psSync(id,st){try{if(!sb)return 0;const r=await sb.from('products
 function psGo(id,k){if(k===2){show('home');return true}if(k===1){const n=P.find(x=>x[0]===id);if(n&&pst(n)==='ok')tpToast('สินค้าพร้อมขายแล้ว');show('order',id);return true}return false}
 function psWatch(id,st){const my=++PSW,tick=async()=>{if(my!==PSW||CUR!=='order'||CURM!==id)return;const k=await psSync(id,st);if(my!==PSW||CUR!=='order'||CURM!==id)return;if(psGo(id,k))return;setTimeout(tick,15000)};setTimeout(tick,15000)}
 document.addEventListener('click',async e=>{const b=e.target.closest('[data-psr]');if(!b||b.disabled)return;e.preventDefault();const id=b.dataset.psr;b.disabled=true;b.classList.add('spin');const k=await psSync(id,b.dataset.st);if(CUR!=='order'||CURM!==id)return;if(psGo(id,k))return;b.disabled=false;b.classList.remove('spin');tpToast('ยังเป็นสถานะเดิม')});
+Object.entries({"จัดการตัวแทน":"ຈັດການຕົວແທນ","ตัวแทนทั้งหมด":"ຕົວແທນທັງໝົດ","ตัวแทน":"ຕົວແທນ","บัญชีนี้ไม่ได้เป็นตัวแทนแล้ว":"ບັນຊີນີ້ບໍ່ໄດ້ເປັນຕົວແທນແລ້ວ","ไม่พบข้อมูล":"ບໍ່ພົບຂໍ້ມູນ","ข้อมูลไม่ถูกต้อง":"ຂໍ້ມູນບໍ່ຖືກຕ້ອງ","คีย์ที่มีคนใช้แล้วลบไม่ได้ ให้ปิดใช้งานแทน":"ຄີທີ່ມີຄົນໃຊ້ແລ້ວລຶບບໍ່ໄດ້ ໃຫ້ປິດໃຊ້ງານແທນ","สร้างคีย์ไม่สำเร็จ ลองอีกครั้ง":"ສ້າງຄີບໍ່ສຳເລັດ ລອງອີກຄັ້ງ","กำลังทำ":"ກຳລັງເຮັດ","ทำยอดสำเร็จ":"ເຮັດຍອດສຳເລັດ","ไม่ถึงเป้า":"ບໍ່ຮອດເປົ້າ","ใช้ได้กี่ครั้งต่อคีย์":"ໃຊ້ໄດ້ຈັກຄັ້ງຕໍ່ຄີ","ใช้ได้":"ໃຊ້ໄດ້","ใช้หมดแล้ว":"ໃຊ້ໝົດແລ້ວ","ใช้แล้ว":"ໃຊ້ແລ້ວ","ไม่หมดอายุ":"ບໍ່ໝົດອາຍຸ","หมดอายุ":"ໝົດອາຍຸ","ถูกปิด":"ຖືກປິດ","สร้างคีย์ตัวแทน":"ສ້າງຄີຕົວແທນ","สร้างคีย์สำเร็จ":"ສ້າງຄີສຳເລັດ","สร้างคีย์":"ສ້າງຄີ","สร้างกลุ่มราคาใหม่":"ສ້າງກຸ່ມລາຄາໃໝ່","สร้างกลุ่มราคาแล้ว":"ສ້າງກຸ່ມລາຄາແລ້ວ","สร้างกลุ่มราคา":"ສ້າງກຸ່ມລາຄາ","คีย์ใหม่":"ຄີໃໝ່","คีย์ทั้งหมด":"ຄີທັງໝົດ","คีย์ที่ใช้ได้":"ຄີທີ່ໃຊ້ໄດ້","คีย์จะขึ้นต้นด้วย":"ຄີຈະຂຶ້ນຕົ້ນດ້ວຍ","จำนวนคีย์ที่สร้าง":"ຈຳນວນຄີທີ່ສ້າງ","อายุคีย์":"ອາຍຸຄີ","ลบคีย์":"ລຶບຄີ","คีย์":"ຄີ","ค้นหา":"ຄົ້ນຫາ","ชื่อกลุ่มราคา":"ຊື່ກຸ່ມລາຄາ","กรุณากรอกชื่อกลุ่มราคา":"ກະລຸນາປ້ອນຊື່ກຸ່ມລາຄາ","ส่วนลดต้องไม่เกิน":"ສ່ວນຫຼຸດຕ້ອງບໍ່ເກີນ","ส่วนลดทั้งกลุ่ม":"ສ່ວນຫຼຸດທັງກຸ່ມ","ส่วนลด":"ສ່ວນຫຼຸດ","กลุ่มราคาใช้ผูกกับคีย์ ส่วนลดจะใช้กับทุกสินค้า (ปรับรายสินค้ารายคนได้ภายหลัง)":"ກຸ່ມລາຄາໃຊ້ຜູກກັບຄີ ສ່ວນຫຼຸດຈະໃຊ້ກັບທຸກສິນຄ້າ (ປັບລາຍສິນຄ້າລາຍຄົນໄດ້ພາຍຫຼັງ)","กลุ่มราคา":"ກຸ່ມລາຄາ","ส่งให้ตัวแทนไปกรอกที่เมนู":"ສົ່ງໃຫ້ຕົວແທນໄປປ້ອນທີ່ເມນູ","ป้ายกำกับ (ไม่บังคับ)":"ປ້າຍກຳກັບ (ບໍ່ບັງຄັບ)","เช่น ล็อตแรก / ชื่อคนที่จะให้":"ເຊັ່ນ ລ໊ອດທຳອິດ / ຊື່ຄົນທີ່ຈະໃຫ້","เป้ายอดกำลังวิ่ง":"ເປົ້າຍອດກຳລັງແລ່ນ","ยอดเป้าหมาย":"ຍອດເປົ້າໝາຍ","เป้ายอด":"ເປົ້າຍອດ","ยังไม่ได้ตั้งเป้ายอด ตั้งยอดที่ตัวแทนต้องทำให้ถึงภายในระยะเวลาที่กำหนด":"ຍັງບໍ່ໄດ້ຕັ້ງເປົ້າຍອດ ຕັ້ງຍອດທີ່ຕົວແທນຕ້ອງເຮັດໃຫ້ຮອດພາຍໃນໄລຍະເວລາທີ່ກຳນົດ","ต้องทำยอดซื้อให้ถึงเป้าภายในระยะเวลาที่กำหนด":"ຕ້ອງເຮັດຍອດຊື້ໃຫ້ຮອດເປົ້າພາຍໃນໄລຍະເວລາທີ່ກຳນົດ","ยังไม่ได้ตั้งเป้ายอด":"ຍັງບໍ່ໄດ້ຕັ້ງເປົ້າຍອດ","ยังไม่ได้ปรับ":"ຍັງບໍ່ໄດ້ປັບ","ยังไม่มีตัวแทน":"ຍັງບໍ່ມີຕົວແທນ","ยังไม่มีคีย์":"ຍັງບໍ່ມີຄີ","ไม่พบตัวแทน":"ບໍ່ພົບຕົວແທນ","อาจถูกปลดแล้ว":"ອາດຖືກປົດແລ້ວ","ปลดจากตัวแทนแล้ว":"ປົດອອກຈາກຕົວແທນແລ້ວ","ปลดจากตัวแทน":"ປົດອອກຈາກຕົວແທນ","ออกจากตัวแทนใช่ไหม":"ອອກຈາກຕົວແທນແມ່ນບໍ","ปลด":"ປົດ","เป้า":"ເປົ້າ","เริ่มนับยอดตั้งแต่ตอนนี้":"ເລີ່ມນັບຍອດຕັ້ງແຕ່ດຽວນີ້","เริ่มนับ":"ເລີ່ມນັບ","ครบกำหนด":"ຄົບກຳນົດ","ยังขาดอีก":"ຍັງຂາດອີກ","แก้ไขเป้ายอด":"ແກ້ໄຂເປົ້າຍອດ","ตั้งเป้ายอด":"ຕັ້ງເປົ້າຍອດ","บันทึกเป้ายอดแล้ว":"ບັນທຶກເປົ້າຍອດແລ້ວ","ยกเลิกเป้ายอดแล้ว":"ຍົກເລີກເປົ້າຍອດແລ້ວ","ยกเลิกเป้ายอดของ":"ຍົກເລີກເປົ້າຍອດຂອງ","เป็นตัวแทนตั้งแต่":"ເປັນຕົວແທນຕັ້ງແຕ່","ยอดซื้อรวม":"ຍອດຊື້ລວມ","ยอดเงินคงเหลือ":"ຍອດເງິນຄົງເຫຼືອ","ราคาเฉพาะและเป้ายอดจะถูกลบ":"ລາຄາສະເພາະແລະເປົ້າຍອດຈະຖືກລຶບ","ตัวแทนจะกลับไปซื้อราคาปกติ":"ຕົວແທນຈະກັບໄປຊື້ລາຄາປົກກະຕິ","ราคาเฉพาะคนนี้":"ລາຄາສະເພາະຄົນນີ້","ราคาเฉพาะ":"ລາຄາສະເພາະ","ราคาตัวแทน":"ລາຄາຕົວແທນ","ราคาปกติ":"ລາຄາປົກກະຕິ","ราคา":"ລາຄາ","สินค้าที่ปรับราคาเอง":"ສິນຄ້າທີ່ປັບລາຄາເອງ","เลือกปรับราคาแต่ละสินค้าให้ตัวแทนคนนี้ได้ ไม่กระทบตัวแทนคนอื่น":"ເລືອກປັບລາຄາແຕ່ລະສິນຄ້າໃຫ້ຕົວແທນຄົນນີ້ໄດ້ ບໍ່ກະທົບຕົວແທນຄົນອື່ນ","ปรับราคาตัวแทน":"ປັບລາຄາຕົວແທນ","ปรับราคาสินค้า":"ປັບລາຄາສິນຄ້າ","ปรับราคา":"ປັບລາຄາ","รายละเอียด":"ລາຍລະອຽດ","หรือกรอกจำนวนวันเอง":"ຫຼືປ້ອນຈຳນວນວັນເອງ","ตามกลุ่ม":"ຕາມກຸ່ມ","ใช้ราคาเฉพาะคนนี้":"ໃຊ້ລາຄາສະເພາະຄົນນີ້","ใช้ราคากลุ่ม":"ໃຊ້ລາຄາກຸ່ມ","กรอกราคาที่ต้องการให้ตัวแทนคนนี้ซื้อ ช่องที่เว้นว่างจะใช้ราคาปกติ":"ປ້ອນລາຄາທີ່ຕ້ອງການໃຫ້ຕົວແທນຄົນນີ້ຊື້ ຊ່ອງທີ່ປ່ອຍວ່າງຈະໃຊ້ລາຄາປົກກະຕິ","หักส่วนลดกลุ่ม":"ຫັກສ່ວນຫຼຸດກຸ່ມ","การปรับนี้มีผลกับคนนี้คนเดียว":"ການປັບນີ້ມີຜົນກັບຄົນນີ້ຄົນດຽວ","เปลี่ยนแปลง":"ປ່ຽນແປງ","บันทึกราคาแล้ว":"ບັນທຶກລາຄາແລ້ວ","แพ็กเกจ":"ແພັກເກັດ","ปิดใช้งาน":"ປິດໃຊ້ງານ","เปิดใช้งาน":"ເປີດໃຊ້ງານ","รายการ":"ລາຍການ","ลบ":"ລຶບ","ชม.":"ຊມ.","ชื่อผู้ใช้":"ຊື່ຜູ້ໃຊ້","เริ่มนับ":"ເລີ່ມນັບ"}).forEach(([k,v])=>{if(!(k in LO))LO[k]=v});
 const K=Object.keys(LO).sort((a,b)=>b.length-a.length);
 function trs(t){for(const k of K)t=t.split(k).join(LO[k]);return t}
 function tr(r){const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){let t=n.nodeValue;if(!/[\u0E00-\u0E7F]/.test(t))continue;if(n.parentNode.closest&&n.parentNode.closest('[data-nt]'))continue;for(const k of K)t=t.split(k).join(LO[k]);n.nodeValue=t}}
@@ -267,7 +268,7 @@ views['admin-prod']=()=>`<div class="bc"><a href="#" data-v="home">หน้า�
 const ADMT=[
 ['ຄຳຂໍ','ເຕີມເງິນ',36,'<ellipse cx="26" cy="14" rx="18" ry="7"/><path d="M8 14v11c0 4 8 7 18 7s18-3 18-7V14M8 25v11c0 4 8 7 18 7s18-3 18-7V25"/><circle cx="46" cy="44" r="9" fill="#2d231b"/><path d="M46 39v5l3.500 2"/>']];
 views['admin-topup']=()=>`<div class="bc"><a href="#" data-v="home">หน้าหลัก</a> &nbsp;/&nbsp; <a href="#" data-v="admin">ห้องแอดมิน</a> &nbsp;/&nbsp; จัดการเติมเงิน</div><h1 class="tp-h">จัดการเติมเงิน</h1><div class="btns" id="admp">${ADMT.map((c,i)=>`<a href="#" class="bt" data-adm="t${i}"><svg viewBox="0 0 60 60">${c[3]}</svg><span class="t"><span class="t1">${c[0]}</span><span class="t2" style="font-size:${c[2]}px">${c[1]}</span></span></a>`).join('')}</div>`; // ADMIN
-document.addEventListener('click',e=>{const el=e.target.closest('[data-adm]');if(!el)return;e.preventDefault();if(!isAdm())return;if(el.dataset.adm==='0')show('admin-prod');else if(el.dataset.adm==='p0')show('admin-add');else if(el.dataset.adm==='p1')show('admin-edit');else if(el.dataset.adm==='p2')show('admin-stock');else if(el.dataset.adm==='1')show('admin-cat');else if(el.dataset.adm==='2')show('admin-topup');else if(el.dataset.adm==='5')show('admin-acc');else if(el.dataset.adm==='6')show('admin-sales');else if(el.dataset.adm==='4')show('admin-set');else tpToast('ຍັງບໍ່ເປີດໃຊ້ງານ') /* p0=เพิ่มสินค้า p1=แก้ไขสินค้า p2=เติมสต็อก: หน้าปลายทางยังว่าง */}); // ADMIN: ยังไม่มีหน้าปลายทางของเพิ่ม/แก้ไขสินค้า
+document.addEventListener('click',e=>{const el=e.target.closest('[data-adm]');if(!el)return;e.preventDefault();if(!isAdm())return;if(el.dataset.adm==='0')show('admin-prod');else if(el.dataset.adm==='p0')show('admin-add');else if(el.dataset.adm==='p1')show('admin-edit');else if(el.dataset.adm==='p2')show('admin-stock');else if(el.dataset.adm==='1')show('admin-cat');else if(el.dataset.adm==='2')show('admin-topup');else if(el.dataset.adm==='5')show('admin-acc');else if(el.dataset.adm==='6')show('admin-sales');else if(el.dataset.adm==='4')show('admin-set');else if(el.dataset.adm==='3')show('admin-agent');else tpToast('ຍັງບໍ່ເປີດໃຊ້ງານ') /* p0=เพิ่มสินค้า p1=แก้ไขสินค้า p2=เติมสต็อก: หน้าปลายทางยังว่าง */}); // ADMIN: ยังไม่มีหน้าปลายทางของเพิ่ม/แก้ไขสินค้า
 // ===== ADMIN: เพิ่ม / แก้ไข / เติมสต็อกสินค้า (ตาราง products, stock_items ใน Supabase PXPSHOP) =====
 let AD={},ADL=[],ADS=[];
 const adIc='<svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>';
@@ -1082,3 +1083,131 @@ show=async function(v,m){
     })});
   }).observe(document.getElementById('app')||document.body,{childList:true,subtree:true});
 })();
+
+
+/* ===== ADMIN: จัดการตัวแทน =====
+   หน้า: admin-agent (รายชื่อ) · admin-agu (รายละเอียด: เป้ายอด/ระยะเวลา/ปลด) · admin-agp (ปรับราคารายสินค้า) · admin-agkey (สร้างคีย์ PXR)
+   ข้อมูล: ตาราง agent_* ใน Supabase PXPSHOP ผ่านฟังก์ชัน admin_agent_* / admin_set_agent_* / admin_create_agent_keys (เช็ก is_admin() ฝั่ง DB ทุกตัว) */
+const MGE={forbidden:'ไม่มีสิทธิ์ดำเนินการ',not_agent:'บัญชีนี้ไม่ได้เป็นตัวแทนแล้ว',not_found:'ไม่พบข้อมูล',bad_input:'ข้อมูลไม่ถูกต้อง',key_used:'คีย์ที่มีคนใช้แล้วลบไม่ได้ ให้ปิดใช้งานแทน',try_again:'สร้างคีย์ไม่สำเร็จ ลองอีกครั้ง'};
+const mgM=x=>{const m=(x&&x.message)||'';for(const k in MGE)if(m.includes(k))return MGE[k];return 'ไม่สำเร็จ'+(m?' ['+m+']':'')};
+let MGS={mem:[],keys:[],lists:[],q:'',kf:'all'},MGU=null,MGP=null,MGK={list:'',n:1,days:0,busy:0},MGT={days:30};
+const mgN=v=>parseInt(String(v).replace(/\D/g,''),10)||0;
+const mgPct=t=>{const a=+t.amount||0;return a>0?Math.min(100,Math.floor((+t.progress||0)/a*100)):0};
+const mgST={running:['กำลังทำ','run'],achieved:['ทำยอดสำเร็จ','ok'],failed:['ไม่ถึงเป้า','no']};
+const mgChip=s=>{const c=mgST[s]||mgST.running;return `<em class="aa-b mg-${c[1]}">${c[0]}</em>`};
+const mgBar=t=>`<div class="mg-bar ${(mgST[t.status]||mgST.running)[1]}"><i style="width:${mgPct(t)}%"></i></div>`;
+const mgDays=e=>Math.max(0,Math.ceil((new Date(e)-new Date())/864e5));
+const mgKS=k=>!k.is_active?'off':(k.used_count>=k.max_uses?'used':(k.expires_at&&new Date(k.expires_at)<new Date()?'exp':'ok'));
+const mgKL_={ok:['ใช้ได้','ok'],used:['ใช้หมดแล้ว','off'],exp:['หมดอายุ','no'],off:['ถูกปิด','off']};
+const mgBcS=t=>aaBc('<a href="#" data-v="admin-agent">จัดการตัวแทน</a> &nbsp;/&nbsp; '+t);
+const mgGo='<span class="ct-go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span>';
+async function mgFetch(){const[m,k]=await Promise.all([aaRpc('admin_agent_members'),aaRpc('admin_agent_keys').catch(()=>null)]);MGS.mem=Array.isArray(m)?m:[];if(Array.isArray(k))MGS.keys=k}
+
+// --- หน้ารายชื่อตัวแทน
+views['admin-agent']=()=>aaBc('จัดการตัวแทน')+`<h1 class="tp-h">จัดการตัวแทน</h1><div class="aa-stats" id="mgst">${'<div class="aa-st"><b>-</b><small>&nbsp;</small></div>'.repeat(4)}</div>
+<button class="tp-cta" type="button" data-v="admin-agkey" style="margin-bottom:16px">สร้างคีย์ตัวแทน</button>
+<div class="tp-card"><input class="ad-in" id="mgq" type="search" autocomplete="off" placeholder="ค้นหาชื่อผู้ใช้" value="${esc(MGS.q)}"></div><div id="mgl"><div class="hs-em">กำลังโหลด...</div></div>${(setTimeout(mgInit),'')}`; // ADMIN
+async function mgInit(){const l=$('#mgl');if(!l||!sb)return;try{await mgFetch();if(CUR!=='admin-agent')return;mgStats();mgList()}catch(x){acErr(l,x)}}
+function mgStats(){const el=$('#mgst');if(!el)return;const M=MGS.mem,v=[M.length,M.filter(m=>m.target&&m.target.status==='running').length,M.filter(m=>m.target&&m.target.status==='achieved').length,MGS.keys.filter(k=>mgKS(k)==='ok').length],L=['ตัวแทนทั้งหมด','เป้ายอดกำลังวิ่ง','ทำยอดสำเร็จ','คีย์ที่ใช้ได้'];el.innerHTML=v.map((n,i)=>`<div class="aa-st"><b>${tpf(n)}</b><small>${L[i]}</small></div>`).join('');tr(el)}
+const mgRow=m=>{const t=m.target;return `<a href="#" class="tp-card ad-sh aa-row" data-v="admin-agu" data-m="${m.id}"><span class="aa-av">${esc((m.username||'?').charAt(0).toUpperCase())}</span><div><b>${esc(m.username)}${m.is_personal?'<em class="aa-b ad">ราคาเฉพาะ</em>':''}${t?mgChip(t.status):''}</b><small>${t?tpf(+t.progress||0)+' / '+tpf(+t.amount||0)+' กีบ':'ยังไม่ได้ตั้งเป้ายอด'}</small>${t?mgBar(t):''}</div>${mgGo}</a>`};
+function mgList(){const l=$('#mgl');if(!l)return;const q=MGS.q.trim().toLowerCase(),d=MGS.mem.filter(m=>!q||(m.username||'').toLowerCase().includes(q));l.innerHTML=d.length?d.map(mgRow).join(''):'<div class="hs-em">'+(MGS.mem.length?'ไม่พบตัวแทน':'ยังไม่มีตัวแทน')+'</div>';tr(l)} // ADMIN
+
+// --- หน้ารายละเอียดตัวแทน
+views['admin-agu']=m=>mgBcS('รายละเอียด')+`<div id="mgu"><div class="hs-em">กำลังโหลด...</div></div>${(setTimeout(()=>mgULoad(m)),'')}`; // ADMIN
+async function mgULoad(id){const l=$('#mgu');if(!l||!sb)return;try{await mgFetch();if(CUR!=='admin-agu'||CURM!==id)return;MGU=MGS.mem.find(x=>x.id===id)||null;if(!MGU){l.innerHTML='<div class="hs-em">ไม่พบตัวแทน (อาจถูกปลดแล้ว)</div>';tr(l);return}mgUR()}catch(x){acErr(l,x)}}
+function mgUR(){const l=$('#mgu');if(!l||!MGU)return;const m=MGU,t=m.target,run=t&&t.status==='running';
+const tg=t?`<div class="tp-card"><h2>เป้ายอด ${mgChip(t.status)}</h2><div class="mg-big">${tpf(+t.progress||0)}<span> / ${tpf(+t.amount||0)} กีบ</span></div>${mgBar(t)}
+<div class="aa-kv" style="margin-top:10px"><span>ระยะเวลา</span><b>${t.days} วัน</b></div><div class="aa-kv"><span>เริ่มนับ</span><b>${aaD(t.start)}</b></div>
+<div class="aa-kv"><span>ครบกำหนด</span><b>${aaD(t.end)}${run?' · เหลือ '+mgDays(t.end)+' วัน':''}</b></div>
+<div class="aa-kv"><span>ยังขาดอีก</span><b>${tpf(Math.max(0,(+t.amount||0)-(+t.progress||0)))} กีบ</b></div>
+<div class="aa-acts" style="margin-top:12px"><button class="aa-btn" data-mg="tset">แก้ไขเป้ายอด</button><button class="aa-btn no" data-mg="tclr">ยกเลิกเป้ายอด</button></div></div>`
+:`<div class="tp-card"><h2>เป้ายอด</h2><p class="aa-hint">ยังไม่ได้ตั้งเป้ายอด ตั้งยอดที่ตัวแทนต้องทำให้ถึงภายในระยะเวลาที่กำหนด</p><button class="tp-cta" data-mg="tset">ตั้งเป้ายอด</button></div>`;
+l.innerHTML=`<div class="tp-card"><div class="aa-hd"><span class="aa-av big">${esc((m.username||'?').charAt(0).toUpperCase())}</span><div><b>${esc(m.username)}</b><em class="aa-b ad">${m.is_personal?'ราคาเฉพาะ':esc(m.list_name||'')}</em><small>เป็นตัวแทนตั้งแต่ ${aaD(m.since)}</small></div></div></div>
+<div class="tp-card"><div class="aa-sts"><div><b>${tpf(+m.orders||0)}</b><small>ออเดอร์</small></div><div><b>${tpf(+m.spent||0)}</b><small>ยอดซื้อรวม (กีบ)</small></div><div><b>${tpf(+m.balance||0)}</b><small>ยอดเงินคงเหลือ</small></div></div></div>
+${tg}
+<div class="tp-card"><h2>ราคาตัวแทน</h2><div class="aa-kv"><span>กลุ่มราคา</span><b>${m.is_personal?'ราคาเฉพาะคนนี้':esc(m.list_name||'-')}</b></div><div class="aa-kv"><span>ส่วนลดทั้งกลุ่ม</span><b>${+m.discount_pct||0}%</b></div>
+<div class="aa-kv"><span>สินค้าที่ปรับราคาเอง</span><b>${m.is_personal?(+m.overrides||0)+' รายการ':'ยังไม่ได้ปรับ'}</b></div>
+<p class="aa-hint" style="margin:8px 0 12px">เลือกปรับราคาแต่ละสินค้าให้ตัวแทนคนนี้ได้ ไม่กระทบตัวแทนคนอื่น</p><button class="tp-cta" type="button" data-v="admin-agp" data-m="${m.id}">ปรับราคาสินค้า</button></div>
+<div class="tp-card aa-ban"><h2>ปลดจากตัวแทน</h2><p class="aa-hint">ตัวแทนจะกลับไปซื้อราคาปกติ ราคาเฉพาะและเป้ายอดจะถูกลบ</p><button class="tp-cta aa-red" data-mg="rm">ปลดจากตัวแทน</button></div>`;tr(l)} // ADMIN
+
+// --- ตั้ง/แก้เป้ายอด + ระยะเวลา
+function mgTgSh(){if(!MGU)return;const t=MGU.target;MGT.days=t?+t.days:30;
+aaSheet(`<h3>${t?'แก้ไขเป้ายอด':'ตั้งเป้ายอด'}</h3><p class="tp-sub">${esc(MGU.username)} · ต้องทำยอดซื้อให้ถึงเป้าภายในระยะเวลาที่กำหนด</p>
+<input class="ad-in" id="mgamt" inputmode="numeric" autocomplete="off" placeholder="ยอดเป้าหมาย (กีบ)" value="${t?tpf(+t.amount):''}">
+<span class="mg-lb">ระยะเวลา</span><div class="aa-dur" id="mgdur">${[7,15,30,90].map(d=>`<button type="button" class="aa-chip" data-mg="tday" data-val="${d}">${d} วัน</button>`).join('')}</div>
+<input class="ad-in" id="mgdays" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="หรือกรอกจำนวนวันเอง" value="${MGT.days}">
+<p class="aa-pv" id="mgtpv"></p><button class="tp-cta" id="mgbg" data-mg="tgo" style="margin-top:8px" disabled>บันทึกเป้ายอด</button><button class="aa-cx" data-mg="x">ยกเลิก</button>`);mgTgUpd()}
+function mgTgUpd(){const a=mgN(($('#mgamt')||{}).value),d=mgN(($('#mgdays')||{}).value),ok=a>0&&d>=1&&d<=3650,pv=$('#mgtpv'),g=$('#mgbg');if(!g)return;
+document.querySelectorAll('#mgdur .aa-chip').forEach(c=>c.classList.toggle('on',+c.dataset.val===d));g.disabled=!ok;
+if(pv){pv.classList.remove('err');if(ok){const e=new Date(Date.now()+d*864e5);pv.textContent=trs('เริ่มนับยอดตั้งแต่ตอนนี้ · ครบกำหนด ')+aaD(e)}else pv.textContent=''}}
+async function mgTgGo(){const g=$('#mgbg');if(!MGU||!g||g.disabled)return;const a=mgN($('#mgamt').value),d=mgN($('#mgdays').value);g.disabled=true;
+try{await aaRpc('admin_set_agent_target',{p_user:MGU.id,p_amount:a,p_days:d});tpClose();okPop('บันทึกเป้ายอดแล้ว');await mgULoad(MGU.id)}catch(x){g.disabled=false;tpToast(mgM(x))}} // ADMIN
+async function mgTgClr(){if(!MGU||!confirm(trs('ยกเลิกเป้ายอดของ '+MGU.username+' ใช่ไหม?')))return;try{await aaRpc('admin_set_agent_target',{p_user:MGU.id,p_amount:0,p_days:1});okPop('ยกเลิกเป้ายอดแล้ว');await mgULoad(MGU.id)}catch(x){tpToast(mgM(x))}}
+async function mgRm(){if(!MGU||!confirm(trs('ปลด '+MGU.username+' ออกจากตัวแทนใช่ไหม? ราคาเฉพาะและเป้ายอดจะถูกลบ')))return;try{await aaRpc('admin_remove_agent',{p_user:MGU.id});okPop('ปลดจากตัวแทนแล้ว');show('admin-agent')}catch(x){tpToast(mgM(x))}} // ADMIN
+
+// --- ปรับราคาให้ตัวแทนรายสินค้า (แก้ครั้งแรกจะแยกเป็นราคาเฉพาะคนนี้ ไม่กระทบตัวแทนคนอื่น)
+views['admin-agp']=m=>mgBcS(`<a href="#" data-v="admin-agu" data-m="${m}">รายละเอียด</a> &nbsp;/&nbsp; ปรับราคา`)+`<h1 class="tp-h">ปรับราคาตัวแทน</h1><div id="mgp"><div class="hs-em">กำลังโหลด...</div></div>${(setTimeout(()=>mgPLoad(m)),'')}`; // ADMIN
+async function mgPLoad(id){const l=$('#mgp');if(!l||!sb)return;try{await mgFetch();if(CUR!=='admin-agp'||CURM!==id)return;const m=MGS.mem.find(x=>x.id===id);if(!m){l.innerHTML='<div class="hs-em">ไม่พบตัวแทน (อาจถูกปลดแล้ว)</div>';tr(l);return}
+const[pr,ov]=await Promise.all([sb.from('products').select('id,name,price,options,image_url,is_active').order('created_at',{ascending:false}),aaRpc('admin_agent_prices',{p_list:m.list_id})]);if(pr.error)throw pr.error;if(CUR!=='admin-agp'||CURM!==id)return;
+const o={};(ov||[]).forEach(x=>o[x.product_id+':'+x.option_idx]=+x.price);MGP={id,m,prods:pr.data||[],ov:o,ed:{...o},busy:0};mgPR()}catch(x){acErr(l,x)}}
+const mgOpL=(o,i)=>{const d=+o.d||0,h=+o.h||0,s=((d?d+' วัน ':'')+(h?h+' ชม.':'')).trim();return s||'แพ็กเกจ '+(i+1)};
+const mgDef=r=>Math.max(0,Math.round(r*(1-(+MGP.m.discount_pct||0)/100)));
+function mgPRow(k,lb,retail){const v=MGP.ed[k];return `<div class="mg-pr${v!=null?' set':''}" data-mgr="${k}"><div class="mg-pl"><b>${esc(lb)}</b><small>ราคาปกติ ${tpf(retail)}${(+MGP.m.discount_pct||0)>0?' · ตามกลุ่ม '+tpf(mgDef(retail)):''}</small></div><div class="mg-pi"><input class="ad-in" data-mgp="${k}" inputmode="numeric" autocomplete="off" placeholder="${tpf(mgDef(retail))}" value="${v!=null?tpf(v):''}"><button type="button" class="mg-rs" data-mg="prs" data-k="${k}"${v!=null?'':' hidden'} aria-label="reset">×</button></div></div>`}
+function mgPR(){const l=$('#mgp');if(!l||!MGP)return;const m=MGP.m;
+l.innerHTML=`<div class="tp-card"><div class="aa-hd"><span class="aa-av">${esc((m.username||'?').charAt(0).toUpperCase())}</span><div><b>${esc(m.username)}</b><small>${m.is_personal?'ใช้ราคาเฉพาะคนนี้':'ใช้ราคากลุ่ม '+esc(m.list_name||'')}</small></div></div>
+<p class="aa-hint" style="margin:12px 0 0">กรอกราคาที่ต้องการให้ตัวแทนคนนี้ซื้อ ช่องที่เว้นว่างจะใช้ราคาปกติ${(+m.discount_pct||0)>0?' หักส่วนลดกลุ่ม '+(+m.discount_pct)+'%':''} การปรับนี้มีผลกับคนนี้คนเดียว</p></div>`+
+(MGP.prods.length?MGP.prods.map(p=>{const op=Array.isArray(p.options)?p.options:[];return `<div class="tp-card mg-pc"><div class="mg-ph"><div class="ph">${p.image_url?`<img src="${esc(p.image_url)}" alt="" loading="lazy">`:PH}</div><b>${esc(p.name)}${p.is_active?'':'<em class="aa-b">ซ่อนอยู่</em>'}</b></div>`+
+(op.length?op.map((o,i)=>mgPRow(p.id+':'+i,mgOpL(o,i),+o.p||0)).join(''):mgPRow(p.id+':-1','ราคาปกติ',+p.price||0))+'</div>'}).join(''):'<div class="hs-em">ยังไม่มีสินค้า</div>')+
+`<div class="mg-sv" id="mgsv" hidden><span id="mgsc"></span><button class="tp-cta" type="button" id="mgsb" data-mg="psave">บันทึก</button></div>`;tr(l);mgPUpd()}
+function mgPCh(){const r=[],ks=new Set([...Object.keys(MGP.ov),...Object.keys(MGP.ed)]);ks.forEach(k=>{const a=MGP.ov[k]==null?null:MGP.ov[k],b=MGP.ed[k]==null?null:MGP.ed[k];if(a!==b)r.push({k,pid:k.slice(0,36),idx:+k.slice(37),v:b})});return r}
+function mgPUpd(){if(!MGP)return;const n=mgPCh().length,sv=$('#mgsv');document.querySelectorAll('[data-mgr]').forEach(r=>{const k=r.dataset.mgr,v=MGP.ed[k],a=MGP.ov[k]==null?null:MGP.ov[k],b=v==null?null:v;r.classList.toggle('set',v!=null);r.classList.toggle('chg',a!==b);const x=r.querySelector('.mg-rs');if(x)x.hidden=v==null});
+if(sv){sv.hidden=!n;const c=$('#mgsc');if(c)c.textContent=trs('เปลี่ยนแปลง ')+n+trs(' รายการ')}}
+function mgPRs(k){if(!MGP)return;MGP.ed[k]=null;const i=document.querySelector('[data-mgp="'+k+'"]');if(i)i.value='';mgPUpd()}
+async function mgPSave(){if(!MGP||MGP.busy)return;const ch=mgPCh();if(!ch.length)return;MGP.busy=1;const b=$('#mgsb');if(b)b.disabled=true;const id=MGP.id;
+try{let lid=MGP.m.list_id;if(!MGP.m.is_personal){const r=await aaRpc('admin_agent_personalize',{p_user:id});lid=r.id;MGP.m.is_personal=true;MGP.m.list_id=lid}
+await Promise.all(ch.map(c=>aaRpc('admin_set_agent_price',{p_list:lid,p_product:c.pid,p_opt:c.idx,p_price:c.v})));okPop('บันทึกราคาแล้ว')}catch(x){tpToast(mgM(x))}
+if(CUR==='admin-agp'&&CURM===id)await mgPLoad(id)} // ADMIN
+
+// --- จุดสร้างคีย์ตัวแทน (คีย์ขึ้นต้น PXR-)
+views['admin-agkey']=()=>mgBcS('สร้างคีย์')+`<h1 class="tp-h">สร้างคีย์ตัวแทน</h1><div id="mgk"><div class="hs-em">กำลังโหลด...</div></div>${(setTimeout(mgKInit),'')}`; // ADMIN
+async function mgKInit(){const l=$('#mgk');if(!l||!sb)return;try{const[a,k]=await Promise.all([aaRpc('admin_agent_lists'),aaRpc('admin_agent_keys')]);if(CUR!=='admin-agkey')return;MGS.lists=(a||[]).filter(x=>!x.is_personal);MGS.keys=k||[];if(!MGS.lists.some(x=>x.id===MGK.list))MGK.list=(MGS.lists[0]||{}).id||'';mgKR()}catch(x){acErr(l,x)}}
+const mgLOpt=()=>MGS.lists.map(x=>`<option value="${x.id}"${x.id===MGK.list?' selected':''}>${esc(x.name)} · ส่วนลด ${+x.discount_pct||0}%</option>`).join('');
+function mgKR(){const l=$('#mgk');if(!l)return;
+l.innerHTML=`<div class="tp-card"><h2>คีย์ใหม่</h2>
+<span class="mg-lb" style="margin-top:0">กลุ่มราคา</span><select class="ad-in" id="mglist" style="margin-top:6px">${mgLOpt()}</select><button type="button" class="aa-chip sm" data-mg="newlist" style="margin-top:8px">+ สร้างกลุ่มราคาใหม่</button>
+<span class="mg-lb">จำนวนคีย์ที่สร้าง</span><div class="mg-ch">${[1,5,10,20,50].map(n=>`<button type="button" class="aa-chip" data-mg="kn" data-val="${n}">${n}</button>`).join('')}</div>
+<span class="mg-lb">ใช้ได้กี่ครั้งต่อคีย์</span><input class="ad-in" id="mgmax" inputmode="numeric" maxlength="4" autocomplete="off" value="1" style="margin-top:6px">
+<span class="mg-lb">อายุคีย์</span><div class="mg-ch">${[[0,'ไม่หมดอายุ'],[7,'7 วัน'],[30,'30 วัน'],[90,'90 วัน']].map(([d,t])=>`<button type="button" class="aa-chip" data-mg="kd" data-val="${d}">${t}</button>`).join('')}</div>
+<span class="mg-lb">ป้ายกำกับ (ไม่บังคับ)</span><input class="ad-in" id="mglbl" maxlength="60" autocomplete="off" placeholder="เช่น ล็อตแรก / ชื่อคนที่จะให้" style="margin-top:6px">
+<p class="aa-pv">คีย์จะขึ้นต้นด้วย <b class="mg-ex">PXR-XXXX-XXXX-XXXX</b></p>
+<button class="tp-cta" id="mgkbg" data-mg="kgo"${MGK.list?'':' disabled'}>สร้างคีย์</button></div>
+<div class="tp-card"><h2>คีย์ทั้งหมด</h2><div class="aa-fl" id="mgkf">${[['all','ทั้งหมด'],['ok','ใช้ได้'],['used','ใช้หมดแล้ว'],['exp','หมดอายุ'],['off','ถูกปิด']].map(([k,t])=>`<button type="button" class="aa-chip" data-mg="kfl" data-val="${k}">${t}</button>`).join('')}</div></div><div id="mgkl"></div>`;tr(l);mgKChips();mgKL()}
+function mgKChips(){document.querySelectorAll('[data-mg="kn"]').forEach(c=>c.classList.toggle('on',+c.dataset.val===MGK.n));document.querySelectorAll('[data-mg="kd"]').forEach(c=>c.classList.toggle('on',+c.dataset.val===MGK.days));document.querySelectorAll('[data-mg="kfl"]').forEach(c=>c.classList.toggle('on',c.dataset.val===MGS.kf))}
+const mgKRow=k=>{const s=mgKL_[mgKS(k)];return `<div class="tp-card mg-kr"><div class="mg-kh"><code>${esc(k.key)}</code><em class="aa-b mg-${s[1]}">${s[0]}</em></div><small>${k.label?esc(k.label)+' · ':''}${esc(k.list_name||'')} · ใช้แล้ว ${k.used_count}/${k.max_uses}${k.expires_at?' · หมดอายุ '+aaD(k.expires_at):''}</small><div class="mg-ka"><button class="aa-btn" type="button" data-mg="kcopy" data-k="${k.id}">คัดลอก</button><button class="aa-btn" type="button" data-mg="ktog" data-k="${k.id}">${k.is_active?'ปิดใช้งาน':'เปิดใช้งาน'}</button>${k.used_count>0?'':`<button class="aa-btn no" type="button" data-mg="kdel" data-k="${k.id}">ลบ</button>`}</div></div>`};
+function mgKL(){const l=$('#mgkl');if(!l)return;const d=MGS.keys.filter(k=>MGS.kf==='all'||mgKS(k)===MGS.kf);l.innerHTML=d.length?d.map(mgKRow).join(''):'<div class="hs-em">ยังไม่มีคีย์</div>';tr(l);mgKChips()}
+async function mgKRefresh(){const k=await aaRpc('admin_agent_keys');MGS.keys=k||[];mgKL()}
+async function mgKGo(){const g=$('#mgkbg');if(MGK.busy||!MGK.list||!g)return;const mx=Math.min(1000,Math.max(1,mgN($('#mgmax').value)||1));MGK.busy=1;g.disabled=true;
+try{const ks=await aaRpc('admin_create_agent_keys',{p_list:MGK.list,p_count:MGK.n,p_label:$('#mglbl').value.trim()||null,p_max_uses:mx,p_days:MGK.days||null});mgKOut(ks||[]);await mgKRefresh()}catch(x){tpToast(mgM(x))}finally{MGK.busy=0;g.disabled=false}} // ADMIN
+function mgKOut(ks){aaSheet(`<h3>สร้างคีย์สำเร็จ</h3><p class="tp-sub">${ks.length} คีย์ · ส่งให้ตัวแทนไปกรอกที่เมนู "สมัครตัวแทน"</p><div class="mg-keys" id="mgout"></div><button class="tp-cta" data-mg="cpall">คัดลอกทั้งหมด</button><button class="aa-cx" data-mg="x">เสร็จสิ้น</button>`);$('#mgout').textContent=ks.join('\n')}
+function mgNlSh(){aaSheet(`<h3>สร้างกลุ่มราคาใหม่</h3><p class="tp-sub">กลุ่มราคาใช้ผูกกับคีย์ ส่วนลดจะใช้กับทุกสินค้า (ปรับรายสินค้ารายคนได้ภายหลัง)</p><input class="ad-in" id="mgnn" maxlength="40" autocomplete="off" placeholder="ชื่อกลุ่มราคา"><input class="ad-in" id="mgnd" inputmode="numeric" maxlength="2" autocomplete="off" placeholder="ส่วนลด % (0-90)" value="0" style="margin-top:12px"><button class="tp-cta" id="mgnb" data-mg="nlgo" style="margin-top:16px">สร้างกลุ่มราคา</button><button class="aa-cx" data-mg="x">ยกเลิก</button>`)}
+async function mgNlGo(){const n=$('#mgnn').value.trim(),d=mgN($('#mgnd').value),g=$('#mgnb');if(!n)return tpToast('กรุณากรอกชื่อกลุ่มราคา');if(d>90)return tpToast('ส่วนลดต้องไม่เกิน 90%');g.disabled=true;
+try{const r=await aaRpc('admin_create_price_list',{p_name:n,p_discount:d,p_note:null});MGK.list=r.id;const a=await aaRpc('admin_agent_lists');MGS.lists=(a||[]).filter(x=>!x.is_personal);tpClose();const s=$('#mglist');if(s)s.innerHTML=mgLOpt();const b=$('#mgkbg');if(b)b.disabled=false;okPop('สร้างกลุ่มราคาแล้ว')}catch(x){g.disabled=false;tpToast(mgM(x))}}
+async function mgKTg(id){const k=MGS.keys.find(x=>x.id===id);if(!k)return;try{await aaRpc('admin_set_agent_key_active',{p_id:id,p_active:!k.is_active});await mgKRefresh()}catch(x){tpToast(mgM(x))}}
+async function mgKDel(id){const k=MGS.keys.find(x=>x.id===id);if(!k||!confirm(trs('ลบคีย์ '+k.key+' ใช่ไหม?')))return;try{await aaRpc('admin_delete_agent_key',{p_id:id});await mgKRefresh()}catch(x){tpToast(mgM(x))}}
+
+// --- เหตุการณ์ (เฉพาะแอดมิน)
+document.addEventListener('click',e=>{if(!isAdm())return;const b=e.target.closest('[data-mg]');if(!b||b.disabled)return;e.preventDefault();const a=b.dataset.mg,v=b.dataset.val;
+if(a==='x')tpClose();else if(a==='tset')mgTgSh();else if(a==='tgo')mgTgGo();else if(a==='tclr')mgTgClr();else if(a==='rm')mgRm();
+else if(a==='tday'){const i=$('#mgdays');if(i){i.value=v;mgTgUpd()}}
+else if(a==='psave')mgPSave();else if(a==='prs')mgPRs(b.dataset.k);
+else if(a==='kn'){MGK.n=+v;mgKChips()}else if(a==='kd'){MGK.days=+v;mgKChips()}else if(a==='kfl'){MGS.kf=v;mgKL()}
+else if(a==='kgo')mgKGo();else if(a==='newlist')mgNlSh();else if(a==='nlgo')mgNlGo();
+else if(a==='kcopy'){const k=MGS.keys.find(x=>x.id===b.dataset.k);if(k)aaCopy(k.key)}else if(a==='ktog')mgKTg(b.dataset.k);else if(a==='kdel')mgKDel(b.dataset.k);
+else if(a==='cpall')aaCopy(($('#mgout')||{}).textContent)}); // ADMIN
+document.addEventListener('input',e=>{if(!isAdm())return;const t=e.target;
+if(t.id==='mgq'){MGS.q=t.value;mgList()}
+else if(t.id==='mgamt'){const n=Math.min(mgN(t.value),100000000000);t.value=n?tpf(n):'';mgTgUpd()}
+else if(t.id==='mgdays'){t.value=String(mgN(t.value)||'').slice(0,4);mgTgUpd()}
+else if(t.id==='mgmax'){t.value=String(mgN(t.value)||'').slice(0,4)}
+else if(t.dataset&&t.dataset.mgp&&MGP){const s=t.value.replace(/\D/g,''),n=s===''?null:Math.min(100000000000,parseInt(s,10));t.value=n==null?'':tpf(n);MGP.ed[t.dataset.mgp]=n;mgPUpd()}}); // ADMIN
+document.addEventListener('change',e=>{if(isAdm()&&e.target.id==='mglist')MGK.list=e.target.value}); // ADMIN
