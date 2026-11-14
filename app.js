@@ -214,7 +214,7 @@ function lgAu(){try{if(!LGA)LGA=new(window.AudioContext||window.webkitAudioConte
 document.addEventListener('pointerdown',lgAu,{passive:true});
 function lgChime(){try{const a=lgAu();if(!a)return;const t=a.currentTime+.02;[[659.25,0],[783.99,.16]].forEach(([f,d])=>{const o=a.createOscillator(),h=a.createOscillator(),g=a.createGain(),gh=a.createGain();o.type='sine';h.type='sine';o.frequency.value=f;h.frequency.value=f*2;gh.gain.value=.18;o.connect(g);h.connect(gh);gh.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.0001,t+d);g.gain.exponentialRampToValueAtTime(.3,t+d+.012);g.gain.exponentialRampToValueAtTime(.0001,t+d+.6);o.start(t+d);h.start(t+d);o.stop(t+d+.65);h.stop(t+d+.65)})}catch(_){}}
 function lgErr(){try{const a=lgAu();if(!a)return;const t=a.currentTime+.01,o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=221;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.6,t+.004);g.gain.setTargetAtTime(.0001,t+.004,.058);o.start(t);o.stop(t+.45)}catch(_){}}
-function lgCard(t){document.querySelectorAll('.lg-card').forEach(x=>x.remove());const c=document.createElement('div');c.className='lg-card';c.setAttribute('role','status');c.innerHTML='<i class="lg-ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M7.8 12.4l2.9 2.9 5.5-6"/></svg></i><div class="lg-tx"><b></b><small>กำลังโหลด...</small></div>';c.querySelector('b').textContent=t;document.body.appendChild(c);tr(c);lgChime();setTimeout(()=>c.classList.add('out'),2300);setTimeout(()=>c.remove(),2700)}
+function lgCard(t,s){document.querySelectorAll('.lg-card').forEach(x=>x.remove());const c=document.createElement('div');c.className='lg-card';c.setAttribute('role','status');c.innerHTML='<i class="lg-ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M7.8 12.4l2.9 2.9 5.5-6"/></svg></i><div class="lg-tx"><b></b><small>กำลังโหลด...</small></div>';c.querySelector('b').textContent=t;if(s)c.querySelector('small').textContent=s;document.body.appendChild(c);tr(c);lgChime();setTimeout(()=>c.classList.add('out'),2300);setTimeout(()=>c.remove(),2700)}
 function tpToast(t){let p=$('.tp-toast');if(!p){p=document.createElement('div');p.className='tp-toast';document.body.appendChild(p)}p.textContent=t;tr(p);p.classList.add('on');setTimeout(()=>p.classList.remove('on'),2000)}
 function tpQR(){const c=$('.tp-qr');if(!c)return;if(TPQR){const i=new Image();i.src=TPQR;i.className='tp-qr';i.style.imageRendering='auto';c.replaceWith(i);return}
 const x=c.getContext('2d'),N=29;x.fillStyle='#fff';x.fillRect(0,0,N,N);x.fillStyle='#0a2a8a';let q=tpA*7919+13;const r=()=>(q=(q*16807)%2147483647)/2147483647;
@@ -646,8 +646,8 @@ if(m.includes('already'))return'ชื่อผู้ใช้นี้ถูก
 if(m.includes('database error'))return'สมัครไม่สำเร็จ ลองชื่อผู้ใช้อื่น';
 if(m.includes('fetch')||m.includes('network'))return'เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง';
 return'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง'+(e&&e.message?' ['+e.message+']':'')};
-async function loadProf(){PROF=null;BAL=0;if(!sb||!USER)return;
-try{const{data}=await sb.from('profiles').select('username,role,balance,banned_until').eq('id',USER.id).maybeSingle();PROF=data;if(data&&data.balance!=null)BAL=Number(data.balance);if(data&&data.banned_until&&new Date(data.banned_until)>new Date()){PROF=null;BAL=0;USER=null;try{await sb.auth.signOut({scope:'local'})}catch(_){}tpToast('บัญชีนี้ถูกระงับการใช้งาน')}}catch(_){}}
+async function loadProf(){PROF=null;BAL=0;if(!sb||!USER){try{agReset()}catch(_){}return}
+try{const{data}=await sb.from('profiles').select('username,role,balance,banned_until').eq('id',USER.id).maybeSingle();PROF=data;if(data&&data.balance!=null)BAL=Number(data.balance);if(data&&data.banned_until&&new Date(data.banned_until)>new Date()){PROF=null;BAL=0;USER=null;try{await sb.auth.signOut({scope:'local'})}catch(_){}tpToast('บัญชีนี้ถูกระงับการใช้งาน')}}catch(_){}try{agInfo()}catch(_){}}
 // เมนูข้างซ้าย: ผู้เยี่ยมชม = ปุ่มเข้าสู่ระบบ/สมัคร, สมาชิก = ชื่อ + ยอดเงิน + ออกจากระบบ
 function anav(){const dr=$('#dr');if(!dr)return;
 const nm=USER?((PROF&&PROF.username)||(USER.user_metadata&&USER.user_metadata.username)||'?'):'',us=$('#dus'),bl=$('#dbl');
@@ -705,33 +705,131 @@ function agCt(){const w=$('#agc');if(!w)return;
 const ar='<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',ti='<h4 class="ag-t"><svg viewBox="0 0 24 24"><path d="M20.5 11.8a8.3 8.3 0 01-12.2 7.3L3.5 20.5l1.5-4.4a8.3 8.3 0 1115.5-4.3z"/></svg>ຕິດຕໍ່ແອດມິນເພື່ອສະໝັກ</h4>';
 w.innerHTML=ti+(CTS.length?CTS.map((c,i)=>`<a class="ag-c" href="${c[2]}" target="_blank" rel="noopener" style="--cc:${c[4]};--k:${i}"><span class="ag-ci"><svg viewBox="0 0 24 24">${c[3]}</svg></span><span class="ag-cm"><b>${esc(c[0])}</b><small>${c[1]}</small></span><span class="ag-cg">ຕິດຕໍ່${ar}</span></a>`).join(''):'<div class="ag-em">ຍັງບໍ່ມີຊ່ອງທາງຕິດຕໍ່ ກະລຸນາລໍຖ້າແອດມິນເພີ່ມ</div>');tr(w)}
 function agOpen(){if(AG.busy||AG.on)return;AG.busy=1;const t=AG.t,M=$('#dmenu'),G=$('#dag'),n=agStep(M);M.classList.remove('ag-re');M.classList.add('ag-out');
-setTimeout(()=>{if(t!==AG.t)return;M.hidden=true;M.classList.remove('ag-out');agCt();$('.dr-sc').scrollTop=0;G.hidden=false;[...G.children].forEach((x,i)=>x.style.setProperty('--k',i));G.classList.remove('ag-in','ag-out');void G.offsetWidth;G.classList.add('ag-in');AG.on=1;AG.busy=0;setTimeout(()=>{if(t===AG.t&&AG.on&&!/\S/.test(($('#agk')||{}).value||''))try{$('#agk').focus({preventScroll:true})}catch(_){}},900)},n*20+300)}
+setTimeout(()=>{if(t!==AG.t)return;M.hidden=true;M.classList.remove('ag-out');agCt();agMode(AG.is);$('.dr-sc').scrollTop=0;G.hidden=false;[...G.children].forEach((x,i)=>x.style.setProperty('--k',i));$('#agd').style.setProperty('--k',1);G.classList.remove('ag-in','ag-out');void G.offsetWidth;G.classList.add('ag-in');AG.on=1;AG.busy=0;
+if(AG.is)agDashLoad();
+agInfo().then(()=>{if(t!==AG.t||!AG.on)return;const sh=!$('#agd').hidden;if(AG.is&&!sh){agMode(1);agDashLoad()}else if(!AG.is&&sh)agMode(0)});
+setTimeout(()=>{if(t===AG.t&&AG.on&&!AG.is&&!/\S/.test(($('#agk')||{}).value||''))try{$('#agk').focus({preventScroll:true})}catch(_){}},900)},n*20+300)}
 function agBack(){if(AG.busy||!AG.on)return;AG.busy=1;const t=AG.t,M=$('#dmenu'),G=$('#dag');G.classList.add('ag-out');
 setTimeout(()=>{if(t!==AG.t)return;G.hidden=true;G.classList.remove('ag-in','ag-out');const i=$('#agk');if(i){i.blur();i.value=''}agMsg('');$('.ag-fl').classList.remove('ag-er');M.hidden=false;const n=agStep(M);M.classList.add('ag-re');$('.dr-sc').scrollTop=0;AG.on=0;setTimeout(()=>{if(t!==AG.t)return;M.classList.remove('ag-re');AG.busy=0},n*20+420)},260)}
-function agHard(){const M=$('#dmenu'),G=$('#dag');if(!M||!G)return;AG.t++;M.hidden=false;M.classList.remove('ag-out','ag-re');G.hidden=true;G.classList.remove('ag-in','ag-out');AG.on=AG.busy=0;const i=$('#agk'),b=$('#agg');if(i)i.value='';agMsg('');$('.ag-fl').classList.remove('ag-er','ag-sh');if(b){b.classList.remove('ag-ld','ag-done');b.disabled=false;b.querySelector('.ag-lb').textContent='ສະໝັກຕົວແທນ'}}
+function agHard(){const M=$('#dmenu'),G=$('#dag');if(!M||!G)return;AG.t++;M.hidden=false;M.classList.remove('ag-out','ag-re');G.hidden=true;G.classList.remove('ag-in','ag-out');AG.on=AG.busy=0;const i=$('#agk'),b=$('#agg');if(i)i.value='';agMsg('');$('.ag-fl').classList.remove('ag-er','ag-sh');if(b){b.classList.remove('ag-ld','ag-done');b.disabled=false;b.querySelector('.ag-lb').textContent='ສະໝັກຕົວແທນ'}
+agStop();agFm().forEach(x=>{x.hidden=false;x.classList.remove('ag-blur')});const d=$('#agd');if(d){d.hidden=true;d.innerHTML=''}}
 async function agSub(){const i=$('#agk'),b=$('#agg'),f=$('.ag-fl'),k=i.value.trim();if(b.classList.contains('ag-ld')||b.classList.contains('ag-done'))return;
 if(!k){agMsg('ກະລຸນາໃສ່ຄີສະໝັກຕົວແທນກ່ອນ','e');f.classList.remove('ag-sh');void f.offsetWidth;f.classList.add('ag-er','ag-sh');i.focus();return}
 if(!USER){document.body.classList.remove('open');show('auth','login');tpToast('ກະລຸນາເຂົ້າສູ່ລະບົບກ່ອນ');return}
 if(!sb){agMsg('ລະບົບຍັງບໍ່ພ້ອມ ກະລຸນາລອງໃໝ່','e');return}
 const t=AG.t;b.classList.add('ag-ld');b.disabled=true;agMsg('');i.blur();
+const bad=m=>{agMsg(m,'e');f.classList.remove('ag-sh');void f.offsetWidth;f.classList.add('ag-er','ag-sh');b.classList.remove('ag-ld');b.disabled=false;lgErr()};
 try{const r=await sb.rpc('redeem_agent_key',{p_key:k});if(t!==AG.t)return;
 if(r.error){const m=String(r.error.message||'')+' '+String(r.error.code||'');
-if(/PGRST202|could not find the function|does not exist|schema cache/i.test(m))agMsg('ລະບົບສະໝັກຕົວແທນຍັງບໍ່ເປີດໃຊ້ ກະລຸນາຕິດຕໍ່ແອດມິນ','e');
-else if(/failed to fetch|network|timeout/i.test(m))agMsg('ເຄືອຂ່າຍມີບັນຫາ ກະລຸນາລອງໃໝ່','e');
-else{agMsg('ຄີບໍ່ຖືກຕ້ອງ ຫຼື ຖືກໃຊ້ແລ້ວ','e');f.classList.remove('ag-sh');void f.offsetWidth;f.classList.add('ag-er','ag-sh')}
-b.classList.remove('ag-ld');b.disabled=false;return}
-if(r.data===false){agMsg('ຄີບໍ່ຖືກຕ້ອງ ຫຼື ຖືກໃຊ້ແລ້ວ','e');f.classList.remove('ag-sh');void f.offsetWidth;f.classList.add('ag-er','ag-sh');b.classList.remove('ag-ld');b.disabled=false;return}
+if(/PGRST202|could not find the function|does not exist|schema cache/i.test(m)){agMsg('ລະບົບສະໝັກຕົວແທນຍັງບໍ່ເປີດໃຊ້ ກະລຸນາຕິດຕໍ່ແອດມິນ','e');b.classList.remove('ag-ld');b.disabled=false}
+else if(/failed to fetch|network|timeout/i.test(m)){agMsg('ເຄືອຂ່າຍມີບັນຫາ ກະລຸນາລອງໃໝ່','e');b.classList.remove('ag-ld');b.disabled=false}
+else if(/banned/i.test(m))bad('ບັນຊີນີ້ຖືກລະງັບການໃຊ້ງານ');
+else bad('ຄີບໍ່ຖືກຕ້ອງ ຫຼື ຖືກໃຊ້ແລ້ວ');
+return}
+const d=r.data,err=d&&d.error;
+if(err==='already_agent'){await agInfo();if(t!==AG.t)return;b.classList.remove('ag-ld');b.disabled=false;if(AG.is){agGoDash();return}}
+if(!(d===true||(d&&d.ok===true))){bad(err==='too_many_attempts'?'ລອງຜິດຫຼາຍເກີນໄປ ກະລຸນາລໍຖ້າ 10 ນາທີແລ້ວລອງໃໝ່':'ຄີບໍ່ຖືກຕ້ອງ ຫຼື ຖືກໃຊ້ແລ້ວ');return}
 b.classList.remove('ag-ld');b.classList.add('ag-done');b.querySelector('.ag-lb').textContent='ສະໝັກຕົວແທນສຳເລັດ';agMsg('ຍິນດີດ້ວຍ! ທ່ານເປັນຕົວແທນແລ້ວ','o');
-try{await loadProf();anav()}catch(_){}}
+lgCard('ສະໝັກຕົວແທນສຳເລັດ','ຍິນດີຕ້ອນຮັບ ທ່ານເປັນຕົວແທນແລ້ວ');
+try{await loadProf();anav()}catch(_){}
+try{await agInfo()}catch(_){}
+if(t!==AG.t)return;AG.is=1;agLbl();setTimeout(()=>{if(t===AG.t&&AG.on)agGoDash()},900)}
 catch(_){if(t!==AG.t)return;agMsg('ເຄືອຂ່າຍມີບັນຫາ ກະລຸນາລອງໃໝ່','e');b.classList.remove('ag-ld');b.disabled=false}}
 document.addEventListener('click',e=>{
 if(e.target.closest('[data-go="agent"]')){e.preventDefault();agOpen();return}
 if(e.target.closest('#agb')){agBack();return}
+if(e.target.closest('#agrf')){agDashLoad(0,1);return}
 if(e.target.closest('#agg'))agSub()});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='agk'){e.preventDefault();agSub()}});
 document.addEventListener('input',e=>{if(e.target.id==='agk'){$('.ag-fl').classList.remove('ag-er');if(!$('#agg').classList.contains('ag-done'))agMsg('')}});
 // ปิดเมนู (กากบาด/แตะพื้นหลัง/เปลี่ยนหน้า) → คืนเมนูเป็นปกติ เปิดใหม่จะเห็นเมนูหลักเสมอ
 new MutationObserver(()=>{if(!document.body.classList.contains('open')&&(AG.on||AG.busy))setTimeout(()=>{if(!document.body.classList.contains('open'))agHard()},380)}).observe(document.body,{attributes:true,attributeFilter:['class']});
+// ============================================================
+// ===== แดชบอร์ดตัวแทน (โผล่แทนฟอร์มสมัคร หลังสมัครสำเร็จ / เมื่อเป็นตัวแทนอยู่แล้ว) =====
+// ยอดซื้อวันนี้ · สินค้าที่ซื้อวันนี้ · ยอดรวมทั้งหมด → คำนวณจากตาราง orders ของตัวเอง (RLS อนุญาตอ่านเฉพาะของตัวเอง)
+// เป้ายอด + เวลานับถอยหลังที่แอดมินตั้ง (admin_set_agent_target) → อ่านผ่านฟังก์ชัน my_agent_dashboard() (ไฟล์ agent_dashboard.sql)
+//   ถ้าแอดมินไม่ตั้งเป้า / ยังไม่ได้สร้างฟังก์ชัน → ไม่แสดงส่วนเป้ายอด
+// ============================================================
+Object.assign(AG,{is:0,info:null,dash:null,tg:null,off:0,tm:0,c:0,fresh:0,uid:''});
+const agFm=()=>[...($('#dag')||{children:[]}).children].filter(x=>x.id!=='agd'&&!x.classList.contains('ag-back'));
+function agLbl(){const s=$('#agml');if(s)s.textContent=AG.is?'ແດຊບອດຕົວແທນ':'ສະໝັກຕົວແທນ'}
+function agStop(){clearInterval(AG.tm);AG.tm=0}
+function agReset(){AG.is=0;AG.info=null;AG.dash=null;AG.tg=null;AG.uid='';agStop();agLbl()}
+async function agInfo(){
+if(!sb||!USER){agReset();return null}
+if(AG.uid&&AG.uid!==USER.id){AG.dash=null;AG.tg=null}AG.uid=USER.id;
+try{const r=await sb.rpc('my_agent_info');if(!r.error){AG.info=(r.data&&r.data.list_id)?r.data:null;AG.is=AG.info?1:0}}catch(_){}
+agLbl();return AG.info}
+// สลับระหว่าง ฟอร์มสมัคร ↔ แดชบอร์ด
+function agMode(is){const d=$('#agd');if(!d)return;agFm().forEach(x=>{x.hidden=!!is;x.classList.remove('ag-blur')});d.hidden=!is;
+if(!is){d.innerHTML='';agStop();return}
+AG.fresh=1;if(AG.dash)agRender();else d.innerHTML='<div class="agd-ld"><span class="agd-spin"></span></div>'}
+// สมัครสำเร็จ → ฟอร์ม/ข้อความ ค่อยๆ เบลอแล้วหาย → โชว์แดชบอร์ด
+function agGoDash(){const G=$('#dag');if(!G||!AG.on)return;const fm=agFm().filter(x=>!x.hidden);fm.forEach(x=>x.classList.add('ag-blur'));const t=AG.t;
+setTimeout(()=>{if(t!==AG.t||!AG.on)return;agMode(1);const d=$('#agd');d.style.setProperty('--k',0);d.classList.remove('agd-in');void d.offsetWidth;d.classList.add('agd-in');$('.dr-sc').scrollTop=0;agDashLoad()},650)}
+async function agOrders(){const n=new Date(),sod=new Date(n.getFullYear(),n.getMonth(),n.getDate()).getTime();let rows=[];
+for(let o=0;o<10000;o+=1000){const r=await sb.from('orders').select('product_name,option_label,qty,total,created_at').eq('user_id',USER.id).order('created_at',{ascending:false}).range(o,o+999);if(r.error)throw r.error;const d=r.data||[];rows=rows.concat(d);if(d.length<1000)break}
+const A={n:0,q:0,s:0},T={n:0,q:0,s:0},it={},P={};
+rows.forEach(x=>{const q=+x.qty||1,s=+x.total||0,nm=x.product_name||'-',k=nm+(x.option_label?' · '+x.option_label:'');A.n++;A.q+=q;A.s+=s;P[nm]=(P[nm]||0)+q;
+if(new Date(x.created_at).getTime()>=sod){T.n++;T.q+=q;T.s+=s;const z=it[k]||(it[k]={k,q:0,s:0});z.q+=q;z.s+=s}});
+return{A,T,items:Object.values(it).sort((a,b)=>b.s-a.s),top:Object.entries(P).sort((a,b)=>b[1]-a[1]).slice(0,3),at:Date.now()}}
+async function agTgRpc(){try{const r=await sb.rpc('my_agent_dashboard');if(r.error||!r.data)return{ok:0};return{ok:1,target:r.data.target||null,now:r.data.now}}catch(_){return{ok:0}}}
+async function agDashLoad(quiet,manual){if(!sb||!USER||!AG.is)return;const t=AG.t,rf=$('#agrf');if(rf)rf.classList.add('spin');
+try{const[od,dh]=await Promise.all([agOrders(),agTgRpc()]);if(t!==AG.t||!AG.is)return;
+AG.dash=od;if(dh.ok){AG.tg=dh.target;if(dh.now&&!isNaN(new Date(dh.now)))AG.off=new Date(dh.now)-Date.now()}else if(!AG.tg)AG.tg=null;
+agRender();agAch();if(manual)tpToast('ອັບເດດແລ້ວ')}
+catch(_){if(t!==AG.t)return;const rf2=$('#agrf');if(rf2)rf2.classList.remove('spin');
+if(!AG.dash){const d=$('#agd');if(d)d.innerHTML='<div class="agd-er"><p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p><button type="button" class="agd-bt" id="agrf">ລອງໃໝ່</button></div>'}else if(!quiet)tpToast('ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ')}}
+const agMn=n=>'₭'+tpf(Math.round(+n||0));
+const agDt=x=>{const d=new Date(x);return isNaN(d)?'-':String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()};
+const agTm=x=>{const d=new Date(x);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
+const agTS=t=>{const a=+t.progress||0,m=+t.amount||0;return a>=m?'achieved':(Date.now()+AG.off>new Date(t.end)?'failed':'running')};
+const AGI={crown:'<svg viewBox="0 0 24 24"><path d="M4 8l4.5 4L12 5l3.5 7L20 8l-1.5 10h-13z"/><path d="M6 21h12"/></svg>',
+rf:'<svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.6-5.9M20 4v4.5h-4.5"/></svg>',
+ck:'<svg viewBox="0 0 24 24"><path d="M5.5 12.5l4.2 4.2L18.5 7.5"/></svg>',
+tg:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>',
+bx:'<svg viewBox="0 0 24 24"><path d="M3.5 7.5L12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5L12 11.5l8.5-4M12 11.5v9"/></svg>',
+ch:'<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>',
+cl:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>'};
+function agTgHtml(t){const st=agTS(t),pc=(+t.amount>0)?Math.min(100,Math.floor((+t.progress||0)/(+t.amount)*100)):0,left=Math.max(0,(+t.amount||0)-(+t.progress||0));
+const chip={running:['ກຳລັງດຳເນີນ','run'],achieved:['ສຳເລັດເປົ້າໝາຍ','ok'],failed:['ໝົດເວລາ','no']}[st];
+let foot='';
+if(st==='running')foot='<div class="agd-cd" id="agcd" role="timer"><span class="agd-cdh">'+AGI.cl+'ເຫຼືອເວລາ</span><div class="agd-cdb"><div><b data-u="d">00</b><small>ມື້</small></div><div><b data-u="h">00</b><small>ຊົ່ວໂມງ</small></div><div><b data-u="m">00</b><small>ນາທີ</small></div><div><b data-u="s">00</b><small>ວິນາທີ</small></div></div></div>';
+else if(st==='achieved')foot='<div class="agd-bn ok">'+AGI.ck+'<span>ຍອດຊື້ຄົບຕາມເປົ້າໝາຍແລ້ວ ຂອບໃຈທີ່ສະໜັບສະໜູນ</span></div>';
+else foot='<div class="agd-bn no">'+AGI.cl+'<span>ໝົດເວລາແລ້ວ ຍອດຍັງບໍ່ຮອດເປົ້າໝາຍ ຕິດຕໍ່ແອດມິນເພື່ອຕັ້ງເປົ້າໃໝ່</span></div>';
+return '<section class="agd-tg '+st+'"><div class="agd-tt"><b>'+AGI.tg+'ເປົ້າໝາຍຍອດ <small>ແອດມິນຕັ້ງໃຫ້</small></b><em class="agd-ch '+chip[1]+'">'+chip[0]+'</em></div>'
++'<div class="agd-pg"><b>'+agMn(t.progress)+'</b><span> / '+agMn(t.amount)+'</span></div>'
++'<div class="agd-bar"><i data-w="'+pc+'"></i></div>'
++'<div class="agd-kv"><span>ຄວາມຄືບໜ້າ</span><b>'+pc+'%</b></div>'
++(st==='achieved'?'':'<div class="agd-kv"><span>ຍັງຂາດອີກ</span><b>'+agMn(left)+'</b></div>')
++'<div class="agd-kv"><span>ໄລຍະເວລາ</span><b>'+(+t.days||0)+' ມື້</b></div>'
++'<div class="agd-kv"><span>ເລີ່ມນັບ</span><b>'+agDt(t.start)+'</b></div>'
++'<div class="agd-kv"><span>ຄົບກຳນົດ</span><b>'+agDt(t.end)+' '+agTm(t.end)+'</b></div>'+foot+'</section>'}
+function agRender(){const d=$('#agd');if(!d||!AG.dash||d.hidden)return;const{A,T,items,top}=AG.dash,inf=AG.info||{},tg=AG.tg,fr=AG.fresh;AG.fresh=0;
+const nm=(PROF&&PROF.username)||(USER&&USER.user_metadata&&USER.user_metadata.username)||'?',dc=+inf.discount_pct||0;
+d.innerHTML='<div class="agd-hd"><span class="agd-av">'+AGI.crown+'</span><div class="agd-hn"><b>ແດຊບອດຕົວແທນ</b><small>'+esc(nm)+(inf.name?' · '+esc(inf.name):'')+'</small></div><button type="button" class="agd-rf" id="agrf" aria-label="ໂຫຼດໃໝ່">'+AGI.rf+'</button></div>'
++'<div class="agd-chs"><em>ຕົວແທນ</em>'+(dc>0?'<em class="b">ສ່ວນຫຼຸດ '+(+dc.toFixed(2))+'%</em>':'')+(inf.since?'<em>ຕັ້ງແຕ່ '+agDt(inf.since)+'</em>':'')+'</div>'
++'<section class="agd-td"><small>ຍອດຊື້ມື້ນີ້</small><div class="agd-big">₭<span data-n="'+T.s+'">0</span></div><div class="agd-sb"><span><b data-n="'+T.n+'">0</b> ຄຳສັ່ງຊື້</span><span><b data-n="'+T.q+'">0</b> ຊິ້ນ</span><span><b data-n="'+items.length+'">0</b> ລາຍການ</span></div></section>'
++(tg?agTgHtml(tg):'')
++'<section class="agd-cd2"><h4>'+AGI.bx+'ສິນຄ້າທີ່ຊື້ມື້ນີ້'+(items.length?'<em>'+items.length+'</em>':'')+'</h4>'
++(items.length?items.map(x=>'<div class="agd-it"><span class="agd-in2">'+esc(x.k)+'</span><span class="agd-iq">×'+tpf(x.q)+'</span><b>'+agMn(x.s)+'</b></div>').join(''):'<div class="agd-em">ມື້ນີ້ຍັງບໍ່ໄດ້ຊື້ສິນຄ້າ</div>')+'</section>'
++'<section class="agd-cd2"><h4>'+AGI.tg+'ລວມທັງໝົດ</h4><div class="agd-gr"><div><b data-n="'+A.n+'">0</b><small>ຄຳສັ່ງຊື້</small></div><div><b data-n="'+A.q+'">0</b><small>ສິນຄ້າ (ຊິ້ນ)</small></div><div class="w"><b>'+agMn(A.s)+'</b><small>ຍອດຊື້ທັງໝົດ</small></div></div>'
++(top.length?'<div class="agd-tp"><small>ສິນຄ້າທີ່ຊື້ຫຼາຍທີ່ສຸດ</small>'+top.map((x,i)=>'<div class="agd-it"><span class="agd-rk">'+(i+1)+'</span><span class="agd-in2">'+esc(x[0])+'</span><b>×'+tpf(x[1])+'</b></div>').join('')+'</div>':'')+'</section>'
++'<a href="#" class="agd-lk" data-v="hist-order"><span>ເບິ່ງປະຫວັດຄຳສັ່ງຊື້ທັງໝົດ</span>'+AGI.ch+'</a>'
++'<p class="agd-up">ອັບເດດລ່າສຸດ '+agTm(AG.dash.at)+' · ໂຫຼດໃໝ່ອັດຕະໂນມັດ</p>';
+d.querySelectorAll('[data-n]').forEach(el=>{const n=+el.dataset.n;if(!fr||!n){el.textContent=tpf(n);return}const t0=performance.now();const f=t=>{const p=Math.min(1,(t-t0)/900),e=1-Math.pow(1-p,3);el.textContent=tpf(Math.round(n*e));if(p<1&&el.isConnected)requestAnimationFrame(f)};requestAnimationFrame(f)});
+d.querySelectorAll('.agd-bar i').forEach(i=>{if(!fr){i.style.width=i.dataset.w+'%';return}requestAnimationFrame(()=>requestAnimationFrame(()=>{i.style.width=i.dataset.w+'%'}))});
+agTick();if(!AG.tm)AG.tm=setInterval(agTick,1000)}
+// นับถอยหลัง (ใช้เวลาเซิร์ฟเวอร์เป็นหลัก) + รีเฟรชข้อมูลอัตโนมัติทุก 45 วินาที
+function agTick(){if(!document.body.classList.contains('open')||!AG.on||!AG.is){agStop();return}
+const e=$('#agcd');if(e&&AG.tg){const s=Math.max(0,Math.floor((new Date(AG.tg.end)-(Date.now()+AG.off))/1000)),v={d:Math.floor(s/86400),h:Math.floor(s%86400/3600),m:Math.floor(s%3600/60),s:s%60};
+e.querySelectorAll('[data-u]').forEach(x=>{const n=String(v[x.dataset.u]).padStart(2,'0');if(x.textContent!==n)x.textContent=n});
+e.classList.toggle('low',s<86400);
+if(s<=0&&agTS(AG.tg)==='failed'){agRender();return}}
+if(++AG.c%45===0)agDashLoad(1)}
+// ทำเป้าสำเร็จ → การ์ด + เสียงเตือน 1 ครั้งต่อเป้า
+function agAch(){const t=AG.tg;if(!t||agTS(t)!=='achieved'||!USER)return;const k='agach_'+USER.id+'_'+new Date(t.end).getTime();try{if(localStorage.getItem(k))return;localStorage.setItem(k,'1')}catch(_){}
+if(AG.on)lgCard('ທ່ານບັນລຸເປົ້າໝາຍແລ້ວ!','ຍອດຊື້ຄົບຕາມທີ່ແອດມິນຕັ້ງ')}
 // ============================================================
 // ===== ช่องทางติดต่อแอดมิน (ตั้งค่าร้าน › ช่องทางติดต่อ 4 ช่อง → โชว์ในหน้า ติดต่อแอดมิน เฉพาะช่องที่ใส่ลิงก์) =====
 // เก็บใน shop_settings.contacts (jsonb) ส่งมากับ public_settings อัตโนมัติ · ช่องที่ไม่ใส่ลิงก์จะไม่แสดง
