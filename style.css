@@ -1232,3 +1232,271 @@ body.open .dr-sc>.dmenu.ag-out,body.open .dr-sc>.dmenu.ag-re{animation:none}
 .agd-mc b{display:block;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .agd-mc.low{background:rgba(240,68,56,.85)}
 .agd-mc.ok{background:rgba(18,183,106,.9)}.agd-mc.no{background:rgba(240,68,56,.85)}
+
+/* ===== ADMIN V2 (ดีไซน์ตามรูปอ้างอิง แผงจัดการ V2) ===== */
+.adx-hd,.adx-ov,.adx-dr{display:none}
+body.adm-mode{--bg:#000;--surface:#080808;--text:#f2f2f2;--sub:#8a8a8a;--muted:#6f6f6f;--border:#1b1b1b;--btn:#111;--ice:#3275b2;--pri:#3275b2;--sec:#3a82c4;max-width:none;padding:calc(env(safe-area-inset-top,0px) + 83px) 0 90px;background:#000}
+body.adm-mode .hd,body.adm-mode #ann,body.adm-mode .ann{display:none!important}
+body.adm-mode main#app{max-width:760px;margin:0 auto;padding:0 max(17px,env(safe-area-inset-left,0px)) 0 max(17px,env(safe-area-inset-right,0px))}
+.adx-hd,.adx-dr,.adx{font-family:'IBM Plex Sans Thai','Kanit','Noto Sans Lao',system-ui,-apple-system,sans-serif}
+.adx-hd *,.adx-dr *,.adx *{box-sizing:border-box}
+body.adm-mode .adx-hd{display:block;position:fixed;top:0;left:0;right:0;z-index:25;background:#000;border-bottom:1px solid #1a1a1a;padding-top:env(safe-area-inset-top,0px)}
+.adx-hi{max-width:760px;margin:0 auto;height:66px;padding:0 17px;display:flex;align-items:center;gap:10px}
+.adx-b{flex:none;width:41px;height:41px;border-radius:13px;background:#0a0a0a;border:1px solid #232323;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.adx-b:active,.adx-v1:active,.adx-lo:active{transform:scale(.94)}
+.adx-br{display:flex;align-items:center;gap:12px;flex:1;min-width:0;text-decoration:none;color:#fff}
+.adx-lg{flex:none;width:34px;height:34px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#0e1f2b}
+.adx-lg img{width:100%;height:100%;object-fit:cover;display:block}
+.adx-tt{min-width:0;display:block}
+.adx-tt b{display:block;font-size:15px;font-weight:500;line-height:18px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adx-tt small{display:block;font-size:11px;font-weight:500;line-height:14px;letter-spacing:.12em;color:#3275b2;margin-top:1px;white-space:nowrap}
+.adx-r{flex:none;display:flex;align-items:center;gap:9px}
+.adx-v1{height:36px;padding:0 12px;border-radius:12px;background:#0a0a0a;border:1px solid #232323;color:#b6b6b6;display:flex;align-items:center;gap:6.5px;font:600 12.5px/1 'IBM Plex Sans Thai',sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.adx-ac{height:38px;padding:0 0 0 3px;border-radius:19px;background:#0a0a0a;border:1px solid #232323;display:flex;align-items:center}
+.adx-av{width:29px;height:29px;border-radius:50%;background:#0e1f2b;color:#3275b2;display:flex;align-items:center;justify-content:center;font:600 12px/1 'IBM Plex Sans Thai',sans-serif}
+.adx-lo{width:38px;height:36px;display:flex;align-items:center;justify-content:center;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+/* เมนูแถบบน (dropdown ใต้เฮดเดอร์) */
+body.adm-mode{--adxt:calc(env(safe-area-inset-top,0px) + 67px)}
+.adx-b{position:relative}
+.adx-b svg{position:absolute;transition:opacity .22s ease,transform .32s cubic-bezier(.32,.72,0,1)}
+.adx-b .adx-i2{opacity:0;transform:rotate(-90deg) scale(.6)}
+body.adm-mode.adx-open .adx-b .adx-i1{opacity:0;transform:rotate(90deg) scale(.6)}
+body.adm-mode.adx-open .adx-b .adx-i2{opacity:1;transform:none}
+body.adm-mode .adx-ov{display:block;position:fixed;top:var(--adxt);left:0;right:0;bottom:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .3s ease;z-index:40}
+body.adm-mode.adx-open .adx-ov{opacity:1;pointer-events:auto}
+body.adm-mode .adx-dr{display:block;position:fixed;top:var(--adxt);left:0;right:0;max-height:calc(100vh - var(--adxt) - 16px);max-height:calc(100dvh - var(--adxt) - 16px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#000;border-bottom:1px solid #1a1a1a;z-index:41;color:#fff;
+ visibility:hidden;opacity:0;clip-path:inset(0 0 100% 0);transform:translate3d(0,-10px,0);will-change:clip-path,transform,opacity;
+ transition:clip-path .38s cubic-bezier(.32,.72,0,1),transform .38s cubic-bezier(.32,.72,0,1),opacity .24s ease,visibility 0s linear .38s}
+body.adm-mode.adx-open .adx-dr{visibility:visible;opacity:1;clip-path:inset(0 0 0 0);transform:none;transition-delay:0s}
+.adx-dh{display:none}
+.adx-dm{max-width:760px;margin:0 auto;padding:12px 12px calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:5px}
+.adx-di{position:relative;display:flex;align-items:center;gap:12px;width:100%;height:34px;padding:0 13px;border-radius:18px;background:transparent;color:#d2d6db;text-decoration:none;font:500 15px/1 'IBM Plex Sans Thai','Kanit','Noto Sans Lao',system-ui,sans-serif;border:1px solid transparent;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .22s ease,border-color .22s ease,color .22s ease,transform .16s ease}
+.adx-di>svg:first-child{flex:none;color:#aab2ba;transition:color .22s ease}
+.adx-di span{white-space:nowrap}
+.adx-di:active{transform:scale(.97);background:#0b0b0b}
+.adx-web{color:#3a82c4;border-color:#12344f;background:transparent}
+.adx-web>svg:first-child{color:#3a82c4}
+.adx-web:active{background:#031018}
+.adx-di.on{background:#06141e;border-color:#12344f;color:#fff}
+.adx-di.on>svg:first-child{color:#fff}
+.adx-gw.has>.adx-gh{color:#fff}
+.adx-gw.has>.adx-gh>svg:first-child{color:#8fb6dc}
+.adx-cv2{flex:none;margin-left:-1px;color:#7d848b;transition:transform .35s cubic-bezier(.32,.72,0,1),color .2s}
+.adx-gw.open>.adx-gh .adx-cv2{transform:rotate(180deg);color:#3a82c4}
+.adx-gp{display:grid;grid-template-rows:0fr;transition:grid-template-rows .38s cubic-bezier(.32,.72,0,1)}
+.adx-gw.open>.adx-gp{grid-template-rows:1fr}
+.adx-gw>.adx-gh{transition:background .25s ease,border-color .25s ease,color .22s ease,transform .16s ease}
+.adx-gw.open>.adx-gh{background:#0a0a0a;border-color:#1b1b1b;color:#fff}
+.adx-gw.open>.adx-gh>svg:first-child{color:#2f84c8}
+.adx-gi{min-height:0;overflow:hidden;margin:0;border:0 solid #1b1b1b;border-radius:20px;background:transparent;display:flex;flex-direction:column;transition:margin .38s cubic-bezier(.32,.72,0,1),background .25s ease}
+.adx-gw.open>.adx-gp>.adx-gi{margin:5px 0 3px;border-width:1px;background:#050505}
+.adx-gi::before,.adx-gi::after{content:"";display:block;flex:none;height:6px}
+.adx-sub{display:flex;align-items:center;gap:11px;width:100%;height:43px;padding:0 22px;border-radius:0;background:none;border:0;color:#d2d6db;text-decoration:none;font:500 15px/1 'IBM Plex Sans Thai','Kanit','Noto Sans Lao',system-ui,sans-serif;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;
+ opacity:0;transform:translate3d(0,-7px,0);transition:opacity .22s ease,transform .3s cubic-bezier(.32,.72,0,1),background .2s,color .2s}
+.adx-sub>svg{flex:none;width:19px;height:19px;color:#80878e;transition:color .2s}
+.adx-sub span{white-space:nowrap}
+.adx-gw.open .adx-sub{opacity:1;transform:none;transition-delay:.05s}
+.adx-gw.open .adx-sub:nth-child(3){transition-delay:.09s}
+.adx-gw.open .adx-sub:nth-child(4){transition-delay:.13s}
+.adx-gw.open .adx-sub:nth-child(5){transition-delay:.17s}
+.adx-sub:active{background:#0d0d0d}
+.adx-sub.on{color:#fff;background:#06141e}
+.adx-sub.on>svg{color:#3a82c4}
+body.adm-mode.adx-open .adx-dm>*{animation:adxIn .46s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*42ms + 50ms)}
+@keyframes adxIn{from{opacity:0;transform:translate3d(0,-9px,0)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){body.adm-mode .adx-dr,.adx-gp,.adx-sub,.adx-cv2,.adx-b svg{transition-duration:.01s!important}body.adm-mode.adx-open .adx-dm>*{animation:none}}
+
+/* หน้า ภาพรวมระบบ */
+.adx{padding-top:16px;color:#fff}
+.adx-st{position:relative;margin:0 -1px;border:1px solid #041520;border-radius:16px;padding:17px;background:linear-gradient(180deg,#000203,#000407);box-shadow:0 0 28px rgba(50,117,178,.09)}
+.adx-sr{display:flex;align-items:center;gap:17px}
+.adx-ti{flex:none;width:60px;height:60px;border-radius:18px;background:#03111a;display:flex;align-items:center;justify-content:center;box-shadow:0 0 26px rgba(50,117,178,.13)}
+.adx-sx{min-width:0;flex:1}
+.adx-pl{display:inline-flex;align-items:center;gap:8px;height:26.5px;padding:0 13px;border:1px solid #0b2638;background:#030d13;border-radius:99px;max-width:100%}
+.adx-pl i{flex:none;width:6px;height:6px;border-radius:50%;background:#3275b2}
+.adx-pl em{font-style:normal;font-size:10px;font-weight:500;letter-spacing:.06em;color:#3275b2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adx-sh{margin:9px 0 0;font-size:20px;font-weight:600;line-height:25px;color:#fff}
+.adx-sd{margin:8px 0 0;font-size:13.5px;line-height:16.8px;color:#666667;font-weight:400}
+.adx-rn{margin-top:17px;width:100%;height:46px;border:0;border-radius:12px;background:#3275b2;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;font:500 15px/1 'IBM Plex Sans Thai',sans-serif;box-shadow:0 0 30px rgba(50,117,178,.25);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.adx-rn:active{transform:scale(.985);filter:brightness(.95)}
+.adx-bc{margin:22px 0 17.5px;font-size:13px;line-height:15.6px;font-weight:500;color:rgba(50,117,178,.7);letter-spacing:.01em}
+.adx-ov2{border:1px solid #071c2b;border-radius:16px;padding:20px 19px 16px;background:linear-gradient(180deg,#000102,#000305)}
+.adx-or{display:flex;align-items:center;gap:16px}
+.adx-ti3{flex:none;width:43px;height:43px;border-radius:12px;background:#000;border:1px solid #232323;display:flex;align-items:center;justify-content:center}
+.adx-ox{min-width:0}
+.adx-lb{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:500;line-height:15px;letter-spacing:.12em;color:#3275b2;white-space:nowrap}
+.adx-lb i{flex:none;width:7px;height:7px;border-radius:50%;background:#3275b2;box-shadow:0 0 8px rgba(50,117,178,.85)}
+.adx-ox h2,.adx-dr1 h2{margin:6px 0 0;font-size:19px;line-height:25px;font-weight:500;color:#fff}
+.adx-rf{margin-top:21px;height:36px;padding:0 16px;border:1px solid #12344f;background:#031018;border-radius:99px;color:#3275b2;display:inline-flex;align-items:center;gap:8px;font:500 13px/1 'IBM Plex Sans Thai',sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.adx-rf b{font-weight:500}
+.adx-rf.spin svg{animation:adxSp .8s linear infinite}
+@keyframes adxSp{to{transform:rotate(360deg)}}
+.adx-g{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:15.5px}
+.adx-sc{position:relative;min-height:122px;padding:17px 17px 14px;background:#080808;border:1px solid #1b1b1b;border-radius:16px;min-width:0}
+.adx-ti2{position:absolute;top:14px;right:14px;width:35px;height:35px;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.adx-ti2.t1{background:#000;border:1px solid #262626}
+.adx-ti2.t2{background:#111828}
+.adx-ti2.t3{background:#1c1328}
+.adx-ti2.t4{background:#271d0b}
+.adx-ti2.t5{background:#0e1f2b}
+.adx-sl{font-size:13px;line-height:17px;color:#6f6f6f;padding-right:44px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adx-sv{margin-top:13.5px;font-size:20px;line-height:26px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adx-sv.sm{font-size:16.5px}
+.adx-ss{margin-top:11.5px;font-size:12px;line-height:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c1 .adx-ss{color:#3275b2}.c2 .adx-ss{color:#70a3f3}
+.c3 .adx-sv,.c3 .adx-ss{color:#b786f5}
+.c4 .adx-sv,.c4 .adx-ss{color:#f2c14b}
+.adx-dp{margin-top:15.5px;padding:17px;background:#080808;border:1px solid #1b4465;border-radius:16px}
+.adx-dr1{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.adx-dr1 .adx-ti2{position:static;flex:none}
+.adx-dv{margin-top:14px;font-size:26px;line-height:32px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adx-dv.sm{font-size:20px}
+.adx-dl{margin-top:16px;border-top:1px solid #1b1b1b;padding-top:6px}
+.adx-dl>div{display:flex;align-items:center;justify-content:space-between;gap:10px;height:38px;font-size:13px}
+.adx-dl>div+div{border-top:1px solid #111}
+.adx-dl span{color:#6f6f6f}
+.adx-dl b{font-weight:600;color:#fff;font-size:13.5px}
+@media (min-width:700px){.adx-g{grid-template-columns:repeat(4,1fr)}}
+@media (prefers-reduced-motion:no-preference){.adx>*{animation:adxIn .4s cubic-bezier(.2,.7,.2,1) both}.adx>*:nth-child(2){animation-delay:.04s}.adx>*:nth-child(3){animation-delay:.08s}.adx>*:nth-child(4){animation-delay:.12s}.adx>*:nth-child(5){animation-delay:.16s}@keyframes adxIn{from{opacity:0;transform:translateY(6px)}}}
+
+/* ===== ADMIN V2: การ์ดแนวโน้มยอดเติมเงิน ===== */
+.adx-tr{margin-top:15.5px;padding:17px 17px 14px;background:#080808;border:1px solid #1b1b1b;border-radius:16px;min-width:0}
+.adx-trh{display:flex;align-items:center;gap:14px}
+.adx-trt{flex:none;width:40px;height:40px;border-radius:12px;background:#0a1a28;display:flex;align-items:center;justify-content:center}
+.adx-trh h2{margin:0;font-size:19px;line-height:25px;font-weight:500;color:#fff}
+.adx-trh p{margin:3px 0 0;font-size:13px;line-height:18px;color:#6f6f6f}
+.adx-tabs{display:flex;gap:2px;margin-top:17px;padding:4px;background:#050505;border:1px solid #1b1b1b;border-radius:14px}
+.adx-tab{flex:1;min-width:0;height:36px;border:0;border-radius:10px;background:transparent;color:#8a8a8a;font:500 14px/1 'IBM Plex Sans Thai','Kanit','Noto Sans Lao',system-ui,sans-serif;white-space:nowrap;cursor:pointer;transition:background .2s,color .2s}
+.adx-tab.on{background:#0a78b4;color:#fff}
+.adx-cv{position:relative;margin-top:16px}
+.adx-cv svg{display:block;overflow:visible}
+.adx-cv .gl{stroke:#151515;stroke-width:.6}
+.adx-cv .ax{fill:#555;font-size:6.5px;font-family:'IBM Plex Sans Thai',system-ui,sans-serif}
+.adx-cv .ln{fill:none;stroke:#1f8fd0;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+.adx-cv .pt{fill:#080808;stroke:#1f8fd0;stroke-width:1.2;cursor:pointer}
+.adx-tip{position:absolute;transform:translate(-50%,calc(-100% - 9px));padding:5px 9px;background:#111;border:1px solid #1f3f55;border-radius:8px;font-size:12px;line-height:16px;color:#fff;white-space:nowrap;pointer-events:none;text-align:center}
+.adx-tip span{display:block;font-size:10.5px;color:#8a8a8a}
+
+/* ===== ADMIN V2: จัดการสินค้า & หมวดหมู่ ===== */
+.pm .adx-st{margin:0}
+.pm-tabs{display:flex;gap:6px;margin-top:22px;padding:0 0 0 1px;overflow-x:auto;scrollbar-width:none}
+.pm-tabs::-webkit-scrollbar{display:none}
+.pm-tab{flex:none;display:inline-flex;align-items:center;gap:9px;height:37px;padding:0 16px;border:0;border-radius:13px;background:transparent;color:#8a8a8a;font:500 15px/1 'IBM Plex Sans Thai','Kanit','Noto Sans Lao',system-ui,sans-serif;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .22s,color .22s,box-shadow .22s}
+.pm-tab svg{flex:none}
+.pm-tab.on{background:#0579bd;color:#fff;box-shadow:0 0 22px rgba(5,121,189,.28)}
+.pm [hidden]{display:none!important}
+.pm-lnk{display:block;margin:19px 0 0;padding:0;border:0;background:none;color:#0579bd;font:500 15px/20px 'IBM Plex Sans Thai','Kanit',system-ui,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pm-sr{display:flex;align-items:center;gap:12px;height:40px;margin-top:15px;padding:0 15px;background:#080808;border:1px solid #1b1b1b;border-radius:15px;color:#8a8a8a}
+.pm-sr input{flex:1;min-width:0;height:100%;border:0;outline:0;background:transparent;color:#f2f2f2;font:400 15px/1 'IBM Plex Sans Thai','Kanit','Noto Sans Lao',system-ui,sans-serif;-webkit-appearance:none}
+.pm-sr input::placeholder{color:#6f6f6f}
+.pm-sr input::-webkit-search-cancel-button{display:none}
+.pm-sr:focus-within{border-color:#0a4a6e}
+.pm-add,.pm-go{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:42px;border:0;border-radius:14px;background:#0579bd;color:#fff;font:500 16px/1 'IBM Plex Sans Thai','Kanit','Noto Sans Lao',system-ui,sans-serif;box-shadow:0 0 30px rgba(5,121,189,.25);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .15s,filter .15s}
+.pm-add{margin-top:13px}
+.pm-add:active,.pm-go:active{transform:scale(.985);filter:brightness(.94)}
+.pm-go:disabled{opacity:.6}
+.pm-chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:13px}
+.pm-chip{display:inline-flex;align-items:center;gap:9px;height:36px;padding:0 15px;border:1px solid #1b1b1b;border-radius:99px;background:#050505;color:#8a8a8a;font:500 15px/1 'IBM Plex Sans Thai','Kanit','Noto Sans Lao',system-ui,sans-serif;white-space:nowrap;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .2s,color .2s,border-color .2s}
+.pm-chip.on{border-color:#0b3a57;background:#04141e;color:#0579bd}
+.pm-em{padding:84px 8px 60px;text-align:center;color:#666667;font-size:15px;line-height:24px}
+.pm-r{margin-top:12px;padding:13px;background:#080808;border:1px solid #1b1b1b;border-radius:16px}
+.pm-rt{display:flex;align-items:flex-start;gap:12px}
+.pm-th{flex:none;width:54px;height:54px;border-radius:12px;background:#0d0d0d;border:1px solid #1b1b1b;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.pm-th img{width:100%;height:100%;object-fit:cover;display:block}
+.pm-ib{flex:1;min-width:0}
+.pm-ib b{display:block;font-size:15.5px;line-height:21px;font-weight:500;color:#fff;overflow-wrap:anywhere}
+.pm-ib small{display:block;margin-top:2px;font-size:13px;line-height:18px;color:#6f6f6f}
+.pm-ib small.pm-ds{color:#8a8a8a;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pm-tg{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.pm-tg:empty{display:none}
+.pm-tg em{font-style:normal;font-size:11.5px;line-height:1;padding:5px 9px;border-radius:99px;background:#04141e;border:1px solid #0b3a57;color:#3a8fc4}
+.pm-tg em.upd{background:#1c1604;border-color:#3d3109;color:#e0b43a}
+.pm-tg em.off{background:#120c0c;border-color:#2e1a1a;color:#a07070}
+.pm-tg em.out{background:#1a0a0a;border-color:#3d1515;color:#d86a6a}
+.pm-ac{flex:none;display:flex;gap:6px}
+.pm-ac button,.pm-mv button{width:36px;height:36px;border:1px solid #1b1b1b;border-radius:11px;background:#0d0d0d;color:#9aa4ab;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pm-ac button:active,.pm-mv button:active{background:#141414}
+.pm-ac .dg,.pm-st.dg{color:#d86a6a}
+.pm-rb{display:flex;align-items:center;flex-wrap:wrap;gap:10px 16px;margin-top:12px;padding-top:12px;border-top:1px solid #141414}
+.pm-rb label{display:inline-flex;align-items:center;gap:9px;font-size:13.5px;color:#8a8a8a}
+.pm-sw{position:relative;flex:none;width:40px;height:23px;padding:0;border:0;border-radius:99px;background:#1c1c1c;cursor:pointer;transition:background .2s;-webkit-tap-highlight-color:transparent}
+.pm-sw i{position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#8a8a8a;transition:transform .22s cubic-bezier(.3,.8,.3,1),background .2s}
+.pm-sw.on{background:#0579bd}
+.pm-sw.on i{transform:translateX(17px);background:#fff}
+.pm-st{margin-left:auto;display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;border:1px solid #0b3a57;border-radius:11px;background:#04141e;color:#0579bd;font:500 13.5px/1 'IBM Plex Sans Thai','Kanit',system-ui,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pm-st.dg{margin-left:0;border-color:#3d1515;background:#140808}
+.pm-rb .pm-st:first-child:nth-last-child(2){margin-left:0}
+.pm-mv{margin-left:auto;display:flex;gap:6px}
+.pm-mv button{width:34px;height:34px}
+.pm-mv button:disabled{opacity:.35}
+/* แท็บหมวดหมู่ */
+.pm-cd{margin-top:16px;padding:18px 17px 18px;background:#000;border:1px solid #0a2233;border-radius:22px;box-shadow:0 0 28px rgba(5,121,189,.07)}
+.pm-cd h2{margin:0 0 17px;font-size:21px;line-height:28px;font-weight:500;color:#fff}
+.pm-cd h2 em{font-style:normal;font-size:17px;color:#6f6f6f;margin-left:4px}
+.pm-lb{display:block;margin:0 0 8px;font-size:14px;line-height:19px;color:#8a8a8a}
+.pm-fi{display:block;width:100%;height:42px;margin:0 0 17px;padding:0 15px;border:1px solid #1b1b1b;border-radius:14px;background:#080808;color:#f2f2f2;font:400 15px/1 'IBM Plex Sans Thai','Kanit','Noto Sans Lao',system-ui,sans-serif;outline:0;-webkit-appearance:none;box-sizing:border-box}
+.pm-fi::placeholder{color:#6f6f6f}
+.pm-fi:focus{border-color:#0a4a6e}
+.pm-ta{height:84px;padding:13px 15px;line-height:21px;resize:none}
+.pm-wn{display:block;margin:-9px 0 15px;font-size:12px;line-height:17px;color:#b98a3a}
+.pm-dz{position:relative;height:119px;margin:0 0 14px;border:1.5px dashed #1f2a33;border-radius:16px;background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.pm-dz:focus-visible{border-color:#0579bd}
+.pm-dt{display:flex;flex-direction:column;align-items:center;gap:15px;color:#6f6f6f;font-size:14px;line-height:19px;text-align:center;padding:0 12px}
+.pm-dz img{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pm-dz.has img{display:block}
+.pm-dz.has .pm-dt{display:none}
+.pm-dx{position:absolute;top:8px;right:8px;width:30px;height:30px;border:0;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;font-size:14px;cursor:pointer}
+.pm-ub{display:inline-flex;align-items:center;gap:9px;height:38px;margin:0 0 14px;padding:0 17px;border:1px solid #0b3a57;border-radius:12px;background:#04141e;color:#0579bd;font:500 15px/1 'IBM Plex Sans Thai','Kanit','Noto Sans Lao',system-ui,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pm-hint{margin:-3px 0 17px;font-size:13px;line-height:18px;color:#6f6f6f}
+.pm-cx{display:block;width:100%;height:40px;margin-top:10px;border:1px solid #1b1b1b;border-radius:13px;background:transparent;color:#8a8a8a;font:500 14.5px/1 'IBM Plex Sans Thai','Kanit',system-ui,sans-serif;cursor:pointer}
+.pm-cd .pm-r:first-of-type{margin-top:0}
+.pm-cd #pmcl .pm-em{padding:34px 8px 22px}
+@media (min-width:700px){.pm-chip,.pm-tab{font-size:15px}}
+
+/* ===== ADMIN V2: การ์ดสินค้า + หน้าต่างเพิ่มสต็อก ===== */
+.pm-pc{padding:0;overflow:hidden;background:#101010;border:1px solid #232323;border-radius:22px;margin-top:16px}
+.pm-pi{position:relative;aspect-ratio:1/1;background:radial-gradient(circle at 50% 50%,#0b1c29 0,#080808 68%);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.pm-pi>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pm-bd{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;gap:8px;height:25px;padding:0 13px 0 10px;border:0;border-radius:99px;background:#2b6cae;color:#fff;font:500 12.5px/1 'IBM Plex Sans Thai','Kanit',system-ui,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pm-bd i{width:9px;height:9px;border-radius:50%;background:#fff}
+.pm-bd.upd{background:#8a6a16}.pm-bd.off{background:#4a4a4a}.pm-bd.out{background:#a33a3a}
+.pm-pb{padding:16px 15px 15px}
+.pm-pb h3{margin:0;font-size:16px;line-height:22px;font-weight:500;color:#fff;overflow-wrap:anywhere}
+.pm-pp{margin-top:9px;font-size:21px;line-height:26px;font-weight:600;color:#3275b2}
+.pm-pb .pm-tg{margin-top:10px;gap:8px}
+.pm-pb .pm-tg em{font-size:13px;padding:7px 14px;color:#3a82c4;background:#04141e;border-color:#0b3a57}
+.pm-pb .pm-tg em.off{color:#a07070;background:#120c0c;border-color:#2e1a1a}
+.pm-sd{margin:10px 0 13px;font-size:14px;line-height:19px;color:#7a7a7a}
+.pm-b{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:34px;margin:0;border:1px solid #262626;border-radius:12px;background:#181818;color:#f2f2f2;font:400 14.5px/1 'IBM Plex Sans Thai','Kanit','Noto Sans Lao',system-ui,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s}
+.pm-b:active{background:#222}
+.pm-b2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.pm-b.dg{border-color:#5a1f1f;background:#2a1010;color:#ff6b6b}
+.pm-b.dg:active{background:#341414}
+.pm-b svg{flex:none}
+/* หน้าต่างป๊อปอัป */
+.pm-ov{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 74px) 22px 22px;background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);opacity:0;transition:opacity .22s;overflow-y:auto;font-family:'IBM Plex Sans Thai','Kanit','Noto Sans Lao',system-ui,sans-serif}
+.pm-ov.on{opacity:1}
+.pm-md{width:100%;max-width:480px;background:#101010;border:1px solid #262626;border-radius:22px;color:#fff;transform:translateY(12px) scale(.98);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.pm-ov.on .pm-md{transform:none}
+.pm-mh{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 16px 16px 19px;border-bottom:1px solid #262626}
+.pm-mh h3{margin:0;min-width:0;font-size:20px;line-height:27px;font-weight:500;color:#fff;overflow-wrap:anywhere}
+.pm-mx{flex:none;height:42px;padding:0 20px;border:1px solid #2a2a2a;border-radius:13px;background:#171717;color:#f2f2f2;font:400 15px/1 'IBM Plex Sans Thai','Kanit',system-ui,sans-serif;cursor:pointer}
+.pm-mbd{padding:19px}
+.pm-mbd .pm-fi{background:#0a0a0a;border-color:#262626}
+.pm-mbd .pm-ta{height:84px;margin-bottom:17px}
+.pm-mbd .pm-go{height:46px}
+.pm-sl{position:relative}
+.pm-sl select{padding-right:40px;-webkit-appearance:none;appearance:none}
+.pm-sl>svg{position:absolute;right:13px;top:13px;color:#8a8a8a;pointer-events:none}
+.pm-sh{margin:22px 0 12px;font-size:17px;line-height:23px;font-weight:600;color:#9a9a9a}
+.pm-si{display:flex;align-items:center;gap:14px;min-height:77px;margin-top:12px;padding:12px 14px 12px 14px;background:#141414;border:1px solid #262626;border-radius:16px}
+.pm-sh+#pmsl .pm-si:first-child{margin-top:0}
+.pm-si>div{min-width:0;margin-left:auto;padding-right:4px}
+.pm-si>div b{display:block;font-size:16px;line-height:23px;font-weight:500;color:#fff;overflow-wrap:anywhere}
+.pm-si>div small{display:block;font-size:14.5px;line-height:21px;color:#777}
+.pm-sx{flex:none;width:34px;height:34px;border:0;border-radius:50%;background:#e11d48;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pm-sr2{min-height:0}
+.pm-sr2>div{margin-left:0;padding:0;flex:1}
+.pm-si .pm-st{margin-left:0}
+#pmov .pm-em{padding:26px 8px}

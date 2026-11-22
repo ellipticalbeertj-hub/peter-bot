@@ -261,7 +261,7 @@ const ADM=[
 ['ຕັ້ງຄ່າ','ຮ້ານ',36,'<path d="M6 22l4-14h38l4 14z"/><path d="M6 22c0 5 4 7 7 7s7-2 7-7c0 5 4 7 7 7s7-2 7-7c0 5 4 7 7 7s7-2 7-7"/><path d="M10 29v21h22M20 50V38h10v12"/><circle cx="46" cy="46" r="9" fill="#2d231b"/><circle cx="46" cy="46" r="3"/>'],
 ['ຈັດການ','ບັນຊີ',30,'<circle cx="26" cy="16" r="10"/><path d="M6 54c0-14 8-22 20-22s20 8 20 22"/><circle cx="46" cy="44" r="9" fill="#2d231b"/><rect x="41.500" y="44" width="9" height="7" rx="1.500"/><path d="M43.500 44v-2.500a2.500 2.500 0 015 0V44"/>'],
 ['ປະຫວັດ','ການຂາຍ',24,'<path d="M6 54h48M12 54V36h9v18M28 54V26h9v28M44 54V14h9v40"/><circle cx="14" cy="16" r="9" fill="#2d231b"/><path d="M14 11v5l4 3"/>']];
-views.admin=()=>`<div class="bc"><a href="#" data-v="home">หน้าหลัก</a> &nbsp;/&nbsp; ห้องแอดมิน</div><h1 class="tp-h">ห้องแอดมิน</h1><div class="btns" id="adm">${ADM.map((c,i)=>`<a href="#" class="bt" data-adm="${i}"><svg viewBox="0 0 60 60">${c[3]}</svg><span class="t"><span class="t1">${c[0]}</span><span class="t2" style="font-size:${c[2]}px">${c[1]}</span></span></a>`).join('')}</div>`; // ADMIN
+views['admin-v1']=()=>`<div class="bc"><a href="#" data-v="home">หน้าหลัก</a> &nbsp;/&nbsp; ห้องแอดมิน</div><h1 class="tp-h">ห้องแอดมิน</h1><div class="btns" id="adm">${ADM.map((c,i)=>`<a href="#" class="bt" data-adm="${i}"><svg viewBox="0 0 60 60">${c[3]}</svg><span class="t"><span class="t1">${c[0]}</span><span class="t2" style="font-size:${c[2]}px">${c[1]}</span></span></a>`).join('')}</div>`; // ADMIN
 // ADMIN: หน้า "จัดการสินค้า" — ดีไซน์การ์ดเดียวกับห้องแอดมิน มี 2 เมนู (เพิ่มสินค้า / แก้ไขสินค้า) หน้าปลายทางยังว่าง
 const ADMP=[
 ['ເພີ່ມ','ສິນຄ້າ',36,'<path d="M6 18l22-10 22 10v22L28 50 6 40z"/><path d="M6 18l22 10 22-10M28 28v22"/><circle cx="46" cy="46" r="9" fill="#2d231b"/><path d="M41 46h10M46 41v10"/>'],
@@ -977,6 +977,500 @@ let HR=null,AUTHREADY=false,SETREADY=false;
 function hashGo(){if(!HR||!AUTHREADY||!SETREADY)return;const r=HR;HR=null;try{history.replaceState(null,'',location.pathname+location.search)}catch(_){}
 if(!USER){PEND=r;show('auth','login');return}if(!isAdm()){tpToast('ສະເພາະແອດມິນ');return}show(r[0],r[1])}
 show=(o=>function(v,m){if(v!=='topup-wait')twStop();if(v!=='admin-topup')adStop();return o(v,m)})(show);
+// ===== ADMIN V2: หน้าแอดมินใหม่ ดีไซน์ตามรูปอ้างอิง (แผงจัดการ V2) — ดึงข้อมูลจริงจาก Supabase PXPSHOP =====
+// หน้าเดิม (การ์ดเมนูสีน้ำเงิน) ยังอยู่ที่ปุ่ม V1 (views['admin-v1']) / ทุกหน้าย่อยของแอดมินใช้เฮดเดอร์+เมนูข้างชุดเดียวกันนี้
+(function(){
+const bd=document.body,root=document.documentElement;
+const SV=(vb,body,w,h,ex)=>`<svg viewBox="${vb}" width="${w}" height="${h}" ${ex||''}>${body}</svg>`;
+const IC={
+ clock:SV('0 0 24 24','<circle cx="12" cy="12" r="10"/><path d="M12 6.5V12l3.6 2.2"/>',25.5,25.5,'fill="none" stroke="#3275b2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"'),
+ pie:SV('0 0 18 17','<path d="M7.6 1.9A7.4 7.4 0 1015.2 9.6H7.6z"/><path d="M9.6.3a7.3 7.3 0 017.1 7.2H9.6z"/>',18,17,'fill="#3275b2"'),
+ users:SV('0 0 20 15','<circle cx="10" cy="3.7" r="2.7"/><path d="M4.7 14.2c0-3.2 2.3-5.2 5.3-5.2s5.3 2 5.3 5.2z"/><circle cx="3.5" cy="4.7" r="1.9"/><path d="M0 13c0-2.2 1.4-3.8 3.5-3.8.6 0 1.1.1 1.6.4-.8.9-1.2 2-1.3 3.4z"/><circle cx="16.5" cy="4.7" r="1.9"/><path d="M20 13c0-2.2-1.4-3.8-3.5-3.8-.6 0-1.1.1-1.6.4.8.9 1.2 2 1.3 3.4z"/>',19,14.3,'fill="#3275b2"'),
+ chart:SV('0 0 24 24','<path d="M3 3v16a2 2 0 002 2h16"/><path d="M7 15l4-4 3 3 6-6"/>',17,17,'fill="none" stroke="#70a3f3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"'),
+ bag:SV('0 0 16 18','<path fill-rule="evenodd" d="M3.6 5.6V4.7a4.4 4.4 0 018.8 0v.9h1.7c.9 0 1.6.8 1.5 1.7l-.8 8.6a2.4 2.4 0 01-2.4 2.2H3.5a2.4 2.4 0 01-2.4-2.2L.3 7.3C.2 6.4.9 5.6 1.9 5.6zm1.8 0h5.2V4.7a2.6 2.6 0 00-5.2 0z"/><circle cx="5.7" cy="9.6" r="1" fill="#1c1328"/><circle cx="10.3" cy="9.6" r="1" fill="#1c1328"/>',14.5,16.3,'fill="#b786f5"'),
+ wallet:SV('0 0 20 17','<path d="M2.5 0h13.2c.9 0 1.6.7 1.6 1.6v1H3.2a.9.9 0 000 1.8H18c1 0 1.7.8 1.7 1.7v8.4c0 1.4-1.1 2.5-2.5 2.5H2.5A2.5 2.5 0 010 14.5V2.5A2.5 2.5 0 012.5 0z"/><circle cx="14.6" cy="10.2" r="1.3" fill="#271d0b"/>',17.5,15,'fill="#f2c14b"'),
+ walletb:SV('0 0 20 17','<path d="M2.5 0h13.2c.9 0 1.6.7 1.6 1.6v1H3.2a.9.9 0 000 1.8H18c1 0 1.7.8 1.7 1.7v8.4c0 1.4-1.1 2.5-2.5 2.5H2.5A2.5 2.5 0 010 14.5V2.5A2.5 2.5 0 012.5 0z"/><circle cx="14.6" cy="10.2" r="1.3" fill="#0e1f2b"/>',17.5,15,'fill="#3275b2"'),
+ trend:SV('0 0 24 24','<path d="M3 3v16a2 2 0 002 2h16"/><path d="M7 15l4-4 3 3 6-6"/>',20,20,'fill="none" stroke="#3275b2" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"'),
+ rf:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 8.5A9 9 0 006 5.8L3 9"/><path d="M3 4v5h5"/><path d="M3.5 15.5A9 9 0 0018 18.2L21 15"/><path d="M21 20v-5h-5"/></svg>',
+ rfw:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 8.5A9 9 0 006 5.8L3 9"/><path d="M3 4v5h5"/><path d="M3.5 15.5A9 9 0 0018 18.2L21 15"/><path d="M21 20v-5h-5"/></svg>',
+ bagl:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6.5a3 3 0 016 0V8"/></svg>'
+};
+// ไอคอนเมนูแถบบน (ดีไซน์ตามรูปอ้างอิง)
+const MI=(b,vb)=>`<svg viewBox="${vb||'0 0 24 24'}" width="19" height="19" aria-hidden="true">${b}</svg>`;
+const MIC={
+ web:MI('<path d="M14 4h6v6M20 4l-9 9M18 14v4.5a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 014 18.5v-11A1.5 1.5 0 015.500 6H10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'),
+ dash:MI('<circle cx="12" cy="12" r="10" fill="currentColor"/><g fill="#06121b"><circle cx="12" cy="6.2" r="1.3"/><circle cx="6.600" cy="9" r="1.3"/><circle cx="17.400" cy="9" r="1.3"/><circle cx="6.800" cy="15" r="1.3"/></g><path d="M12.800 15.200L16 8.800" stroke="#06121b" stroke-width="2.200" stroke-linecap="round"/><circle cx="12" cy="15.500" r="2.200" fill="#06121b"/>'),
+ box:MI('<rect x="7.500" y="2.500" width="9" height="8" rx="1.600" fill="currentColor"/><rect x="2" y="13" width="9" height="8.500" rx="1.600" fill="currentColor"/><rect x="13" y="13" width="9" height="8.500" rx="1.600" fill="currentColor"/>'),
+ users:MI('<circle cx="12" cy="6.200" r="3.200" fill="currentColor"/><path d="M5.800 17.500c0-3.600 2.600-5.800 6.200-5.800s6.200 2.200 6.200 5.800z" fill="currentColor"/><circle cx="4.600" cy="8.200" r="2.200" fill="currentColor"/><path d="M0.600 16.600c0-2.500 1.600-4.400 4-4.400.7 0 1.300.1 1.800.4-.9 1.100-1.400 2.400-1.500 4z" fill="currentColor"/><circle cx="19.400" cy="8.200" r="2.200" fill="currentColor"/><path d="M23.400 16.600c0-2.500-1.600-4.400-4-4.400-.7 0-1.300.1-1.800.4.900 1.100 1.400 2.400 1.500 4z" fill="currentColor"/>'),
+ wallet:MI('<path d="M3.500 4h14c1 0 1.800.8 1.800 1.800V7H4.200a1 1 0 000 2H20c1.100 0 2 .9 2 2v7.500c0 1.400-1.100 2.500-2.500 2.500h-16A2.500 2.500 0 013 16.500v-11A1.500 1.500 0 013.500 4z" fill="currentColor"/><circle cx="17" cy="14.200" r="1.500" fill="#050505"/>'),
+ plug:MI('<path d="M8 2.500v6.500M16 2.500v6.500" stroke="currentColor" stroke-width="2.600" stroke-linecap="round"/><path d="M4.500 9h15v2.500a7.500 7.500 0 01-5.500 7.200V22h-4v-3.300A7.500 7.500 0 014.500 11.500z" fill="currentColor"/>'),
+ sl:MI('<path d="M3 5.500h10M19 5.500h2M3 12h3M12 12h9M3 18.500h11M19 18.500h2" stroke="currentColor" stroke-width="2.200" stroke-linecap="round"/><circle cx="16" cy="5.500" r="2.600" fill="none" stroke="currentColor" stroke-width="2.200"/><circle cx="9" cy="12" r="2.600" fill="none" stroke="currentColor" stroke-width="2.200"/><circle cx="16.500" cy="18.500" r="2.600" fill="none" stroke="currentColor" stroke-width="2.200"/>')
+};
+// เมนู: ['id','ชื่อ',ไอคอนหลัก,[ลูก: [view-id,'ชื่อ',ไอคอน]]]  — ลูกที่ยังไม่มี views[view-id] จะกดแล้วขึ้น "ยังไม่เปิดใช้งาน"
+// ต่อฟังก์ชันใหม่ภายหลัง: แค่เพิ่ม views['admin-coupon']=()=>`...` (ชื่อ id ตามด้านล่าง) เมนูจะลิงก์ให้เองอัตโนมัติ
+const SIC={
+ box:MI('<path d="M3 8.500h18v11.500a1.500 1.500 0 01-1.500 1.500h-15A1.500 1.500 0 013 20zM4.500 3.500h15L21 7.500H3z" fill="currentColor"/><rect x="9.500" y="10.500" width="5" height="2.200" rx="1.100" fill="#050505"/>'),
+ ticket:MI('<path d="M3 7.500A1.500 1.500 0 014.500 6h15A1.500 1.500 0 0121 7.500v2.700a2 2 0 000 3.600v2.700a1.500 1.500 0 01-1.500 1.500h-15A1.500 1.500 0 013 16.500v-2.700a2 2 0 000-3.600z" fill="currentColor"/><rect x="7" y="9.500" width="10" height="5" rx="1.200" fill="none" stroke="#050505" stroke-width="1.800"/>'),
+ bolt:MI('<path d="M13.500 2L4.500 13.500h6L9.500 22l9-12h-6z" fill="currentColor"/>'),
+ pad:MI('<path d="M7 6h10a5.500 5.500 0 015.400 6.300l-.7 4A3.200 3.200 0 0116 17.200l-1-1.200H9l-1 1.200a3.200 3.200 0 01-5.700-.9l-.7-4A5.500 5.500 0 017 6z" fill="currentColor"/><path d="M7.500 9.500v3.600M5.700 11.300h3.600" stroke="#050505" stroke-width="1.700" stroke-linecap="round"/><circle cx="15.500" cy="10.200" r="1.100" fill="#050505"/><circle cx="18" cy="12.600" r="1.100" fill="#050505"/>'),
+ ucog:MI('<circle cx="9.500" cy="7.500" r="4" fill="currentColor"/><path d="M1.500 20.500c0-4.300 3.300-6.800 8-6.800 1 0 1.800.1 2.600.3l-.5 3.500.8 1.600-1.600 1.700z" fill="currentColor"/><circle cx="18" cy="17" r="3.500" fill="none" stroke="currentColor" stroke-width="2.200" stroke-dasharray="2.100 1.100"/><circle cx="18" cy="17" r="1.100" fill="currentColor"/>'),
+ hand:MI('<path d="M1.500 7.500h3.500v9H1.500zM19 7.500h3.500v9H19z" fill="currentColor"/><path d="M6.200 8.500L10 6.600l2 1.200 2-1.200 3.600 1.900v6.800l-3.800 3-1.700-1-1.700 1-3-2.400z" fill="currentColor"/>'),
+ wallet:MI('<path d="M3.500 4h14c1 0 1.800.8 1.800 1.800V7H4.200a1 1 0 000 2H20c1.100 0 2 .9 2 2v7.500c0 1.400-1.100 2.500-2.500 2.500h-16A2.500 2.500 0 013 16.500v-11A1.500 1.500 0 013.500 4z" fill="currentColor"/><circle cx="17" cy="14.200" r="1.500" fill="#050505"/>'),
+ disc:MI('<path d="M5.200 5.800C6.800 4.900 8.400 4.300 10 4l.5 1c.5-.1 1-.1 1.500-.1s1 0 1.500.1l.5-1c1.600.3 3.200.9 4.800 1.800 1.700 2.700 2.500 5.700 2.200 9-1.500 1.100-3.100 1.800-4.600 2.300l-1-1.700c.5-.2 1-.4 1.400-.7l-.3-.2c-2.800 1.300-5.800 1.300-8.600 0l-.3.200c.4.300.9.500 1.400.7l-1 1.700c-1.500-.5-3.100-1.200-4.600-2.300-.3-3.300.5-6.300 2.200-9z" fill="currentColor"/><ellipse cx="8.800" cy="12.300" rx="1.500" ry="1.700" fill="#050505"/><ellipse cx="15.200" cy="12.300" rx="1.500" ry="1.700" fill="#050505"/>'),
+ mon:MI('<rect x="2.500" y="3.500" width="19" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 16.500v3.500M7.500 20.500h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>')
+};
+const MENU=[
+ ['web','หน้าเว็บ',MIC.web,'home','web'],
+ ['admin','Dashboard',MIC.dash,'admin'],
+ ['g-prod','สินค้า & หมวดหมู่',MIC.box,[['admin-prod','จัดการสินค้า & หมวดหมู่',SIC.box],['admin-coupon','คูปอง & โค้ดฟรี',SIC.ticket],['admin-flash','Flash Sale',SIC.bolt],['admin-game','มินิเกม',SIC.pad]]],
+ ['g-mem','สมาชิก & รายการ',MIC.users,[['admin-acc','จัดการสมาชิก',SIC.ucog],['admin-agent','ตัวแทนจำหน่าย',SIC.hand]]],
+ ['g-pay','ระบบชำระเงิน',MIC.wallet,[['admin-topup','จัดการเติมเงิน',SIC.wallet]]],
+ ['g-api','เชื่อมต่อ API',MIC.plug,[['admin-webhook','Webhook Discord',SIC.disc]]],
+ ['g-set','ตั้งค่าทั่วไป',MIC.sl,[['admin-set','ตั้งค่าเว็บไซต์',SIC.mon]]]
+];
+const ACT={'admin-cat':'admin-prod','admin-sales':'admin-acc','admin-add':'admin-prod','admin-edit':'admin-prod','admin-stock':'admin-prod','admin-catf':'admin-cat','admin-accu':'admin-acc','admin-acclog':'admin-acc','admin-agu':'admin-agent','admin-agp':'admin-agent','admin-agkey':'admin-agent','admin-review':'admin-topup'};
+const $=s=>document.querySelector(s);
+const fm=n=>'₭'+tpf(Math.round(+n||0));
+const N=x=>+x||0;
+
+// ---------- หน้า ภาพรวมระบบ ----------
+function stat(cls,lab,key,sub,ico,tile){
+ return `<div class="adx-sc ${cls}"><span class="adx-ti2 ${tile}">${ico}</span><div class="adx-sl">${lab}</div><div class="adx-sv" data-k="${key}">—</div><div class="adx-ss" ${sub[0]}>${sub[1]}</div></div>`;
+}
+views.admin=()=>`<div class="adx" data-nt>
+<section class="adx-st"><div class="adx-sr"><div class="adx-ti">${IC.clock}</div><div class="adx-sx">
+<span class="adx-pl"><i></i><em data-k="wst">WEBSITE STATUS: ACTIVE</em></span>
+<h2 class="adx-sh">ยังไม่นับ</h2>
+<p class="adx-sd" data-k="pkg">แพ็กเกจร้านยังไม่เริ่มนับเวลา · เมื่อกำหนดวันเช่าแล้วระบบจะแสดงเวลาคงเหลือที่นี่</p></div></div>
+<button type="button" class="adx-rn" id="adxrn">${IC.rfw}<span>ต่ออายุเว็บไซต์</span></button></section>
+<nav class="adx-bc" aria-label="breadcrumb">แผงควบคุมระบบ / ภาพรวมระบบ / รายได้สะสม</nav>
+<section class="adx-ov2"><div class="adx-or"><span class="adx-ti3">${IC.pie}</span><div class="adx-ox"><div class="adx-lb"><i></i>ADMIN DASHBOARD</div><h2>ภาพรวมสถิติรายได้</h2></div></div>
+<button type="button" class="adx-rf" id="adxrf">${IC.rf}<span>ยอดวันนี้: <b data-k="today">—</b></span></button></section>
+<div class="adx-g">
+${stat('c1','สมาชิกทั้งหมด','users',['data-k="usub"','วันนี้เพิ่ม +0 คน'],IC.users,'t1')}
+${stat('c2','กำไรทั้งหมด','profit',['data-k="psub"','วันนี้ ₭0'],IC.chart,'t2')}
+${stat('c3','ยอดขายสินค้าสะสม','sales',['','ยอดขายสินค้าทั้งหมด'],IC.bag,'t3')}
+${stat('c4','เครดิตค้างในระบบ','credit',['','ยอดเครดิตกระเป๋าผู้ใช้รวม'],IC.wallet,'t4')}
+</div>
+<section class="adx-dp"><div class="adx-dr1"><div><div class="adx-lb"><i></i>TOTAL DEPOSITS</div><h2>ยอดเติมเงินรวมทั้งหมด</h2></div><span class="adx-ti2 t5">${IC.walletb}</span></div>
+<div class="adx-dv" data-k="dep">—</div>
+<div class="adx-dl"><div><span>รายการที่อนุมัติแล้ว</span><b data-k="dok">—</b></div><div><span>รอตรวจสอบ</span><b data-k="dpe">—</b></div><div><span>เติมเงินวันนี้</span><b data-k="dto">—</b></div></div></section>
+<section class="adx-tr" id="adxtr"><div class="adx-trh"><span class="adx-trt">${IC.trend}</span><div><h2>แนวโน้มยอดเติมเงิน</h2><p>กราฟวิเคราะห์ปริมาณธุรกรรมตามช่วงเวลา</p></div></div>
+<div class="adx-tabs" role="tablist">${[['d','วันนี้'],['w','อาทิตย์นี้'],['m','เดือนนี้'],['y','ปีนี้']].map(t=>`<button type="button" role="tab" class="adx-tab${t[0]==='m'?' on':''}" data-trg="${t[0]}" aria-selected="${t[0]==='m'}">${t[1]}</button>`).join('')}</div>
+<div class="adx-cv" id="adxcv"></div></section>
+</div>`;
+
+// ---------- การ์ด แนวโน้มยอดเติมเงิน (ข้อมูลจริงจาก topup_requests ที่อนุมัติแล้ว) ----------
+let TPD=[],TRG='m';
+const TMO=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const p2=n=>String(n).padStart(2,'0');
+const axf=v=>{const a=Math.abs(v);return a>=1e6?+(v/1e6).toFixed(1)+'M':a>=1e3?+(v/1e3).toFixed(1)+'K':String(Math.round(v))};
+function trBuckets(g){
+ const now=new Date(),b=[];
+ if(g==='d'){const s=new Date(now.getFullYear(),now.getMonth(),now.getDate());for(let h=0;h<24;h++)b.push({s:new Date(s.getFullYear(),s.getMonth(),s.getDate(),h),e:new Date(s.getFullYear(),s.getMonth(),s.getDate(),h+1),l:p2(h)+':00'})}
+ else if(g==='y'){for(let m=0;m<12;m++)b.push({s:new Date(now.getFullYear(),m,1),e:new Date(now.getFullYear(),m+1,1),l:TMO[m]})}
+ else{const n=g==='w'?7:28;for(let i=n-1;i>=0;i--){const s=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i),e=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i+1);b.push({s,e,l:p2(s.getDate())+'/'+p2(s.getMonth()+1)})}}
+ return b;
+}
+function trRender(){
+ const box=$('#adxcv');if(!box)return;
+ const bk=trBuckets(TRG);bk.forEach(x=>x.v=0);
+ for(const r of TPD){const t=new Date(r.reviewed_at||r.created_at);if(isNaN(t))continue;for(const x of bk)if(t>=x.s&&t<x.e){x.v+=N(r.amount);break}}
+ const mx=Math.max(0,...bk.map(x=>x.v));
+ let st=1;if(mx>0){const raw=mx/5,pw=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/pw;st=(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*pw}else st=2;
+ const top=st*5,W=320,H=124,L=30,R=8,T=7,B=18,pw=W-L-R,ph=H-T-B;
+ const X=i=>L+(bk.length===1?pw/2:pw*i/(bk.length-1)),Y=v=>T+ph*(1-v/top);
+ let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="กราฟแนวโน้มยอดเติมเงิน">`;
+ for(let k=0;k<=5;k++){const y=Y(st*k);s+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" class="gl"/><text x="${L-5}" y="${y+2.5}" text-anchor="end" class="ax">₭${axf(st*k)}</text>`}
+ const step=Math.ceil(bk.length/9);
+ bk.forEach((x,i)=>{if(i%step===0||i===bk.length-1){if(i!==bk.length-1&&bk.length-1-i<step)return;s+=`<text x="${X(i)}" y="${H-5}" text-anchor="${i===0?'start':i===bk.length-1?'end':'middle'}" class="ax">${x.l}</text>`}});
+ s+=`<polyline points="${bk.map((x,i)=>X(i)+','+Y(x.v)).join(' ')}" class="ln"/>`;
+ bk.forEach((x,i)=>{s+=`<circle cx="${X(i)}" cy="${Y(x.v)}" r="2.6" class="pt" data-i="${i}"/>`});
+ s+=`</svg><div class="adx-tip" hidden></div>`;
+ box.innerHTML=s;box._bk=bk;box._g={X,Y,W,H};
+}
+document.addEventListener('click',e=>{
+ const t=e.target.closest('.adx-tab');
+ if(t){TRG=t.dataset.trg;document.querySelectorAll('.adx-tab').forEach(x=>{const on=x===t;x.classList.toggle('on',on);x.setAttribute('aria-selected',on)});trRender();return}
+ const c=e.target.closest('#adxcv .pt'),box=$('#adxcv');
+ if(box){const tip=box.querySelector('.adx-tip');if(!tip)return;
+  if(!c){tip.hidden=true;return}
+  const x=box._bk[+c.dataset.i],g=box._g;tip.innerHTML='<b>'+fm(x.v)+'</b><span>'+x.l+'</span>';tip.hidden=false;
+  tip.style.left=Math.min(Math.max(g.X(+c.dataset.i)/g.W*100,16),84)+'%';tip.style.top=(g.Y(x.v)/g.H*100)+'%'}
+});
+
+let TK=0;
+async function all(t,c,f){const o=[];for(let a=0;a<50000;a+=1000){let q=sb.from(t).select(c);if(f)q=f(q);const r=await q.order('id').range(a,a+999);if(r.error)throw r.error;const d=r.data||[];o.push(...d);if(d.length<1000)break}return o}
+const put=(k,v)=>{document.querySelectorAll('[data-k="'+k+'"]').forEach(e=>{e.textContent=v;if(k==='users'||k==='profit'||k==='sales'||k==='credit'||k==='dep')e.classList.toggle('sm',String(v).length>12)})};
+async function load(){
+ if(!sb||CUR!=='admin')return;
+ const id=++TK,rf=$('#adxrf');if(rf)rf.classList.add('spin');
+ put('wst',SET.maintenance?'WEBSITE STATUS: MAINTENANCE':'WEBSITE STATUS: ACTIVE');
+ put('pkg','แพ็กเกจร้าน '+(SET.shop_name||'PXPSHOP')+' ยังไม่เริ่มนับเวลา · เมื่อกำหนดวันเช่าแล้วระบบจะแสดงเวลาคงเหลือที่นี่');
+ try{
+  const d0=new Date();d0.setHours(0,0,0,0);const iso=d0.toISOString();
+  const [uc,ut,pr,od,tp,pc]=await Promise.all([
+   sb.from('profiles').select('id',{count:'exact',head:true}),
+   sb.from('profiles').select('id',{count:'exact',head:true}).gte('created_at',iso),
+   all('profiles','id,balance'),
+   all('orders','id,total,created_at'),
+   all('topup_requests','id,amount,reviewed_at,created_at',q=>q.eq('status','approved')),
+   sb.from('topup_requests').select('id',{count:'exact',head:true}).eq('status','pending')
+  ]);
+  if(id!==TK)return;
+  for(const r of [uc,ut,pc])if(r.error)throw r.error;
+  const sales=od.reduce((s,x)=>s+N(x.total),0),sToday=od.filter(x=>new Date(x.created_at)>=d0).reduce((s,x)=>s+N(x.total),0);
+  const credit=pr.reduce((s,x)=>s+N(x.balance),0);
+  const dep=tp.reduce((s,x)=>s+N(x.amount),0),dToday=tp.filter(x=>x.reviewed_at&&new Date(x.reviewed_at)>=d0).reduce((s,x)=>s+N(x.amount),0);
+  put('users',tpf(uc.count||0)+' คน');put('usub','วันนี้เพิ่ม +'+tpf(ut.count||0)+' คน');
+  // ระบบยังไม่เก็บต้นทุนสินค้า → กำไร = ยอดขายรวม (ยังไม่หักต้นทุน)
+  put('profit',fm(sales));put('psub','วันนี้ '+fm(sToday));
+  put('sales',fm(sales));put('credit',fm(credit));
+  put('today',fm(sToday));
+  TPD=tp;trRender();
+  put('dep',fm(dep));put('dok',tpf(tp.length)+' รายการ');put('dpe',tpf(pc.count||0)+' รายการ');put('dto',fm(dToday));
+ }catch(e){if(id===TK)tpToast('โหลดข้อมูลไม่สำเร็จ')}
+ finally{if(id===TK){const r=$('#adxrf');if(r)r.classList.remove('spin')}}
+}
+
+// ---------- เฮดเดอร์ + เมนูข้าง ----------
+function head(){
+ const n=SET.shop_name||'PXPSHOP',nm=(PROF&&PROF.username)||'A';
+ ['#adxn','#adxn2'].forEach(s=>{const e=$(s);if(e)e.textContent=n});
+ ['#adxlg','#adxlg2'].forEach(s=>{const e=$(s);if(e)e.innerHTML=SET.logo_url?'<img alt="" src="'+esc(SET.logo_url)+'">':IC.bagl});
+ const a=$('#adxav');if(a)a.textContent=(nm.charAt(0)||'A').toUpperCase();
+ const cur=ACT[CUR]||CUR;
+ const m=$('#adxm');if(!m)return;
+ if(!m.firstChild){
+  const ch='<svg class="adx-cv2" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  m.innerHTML=MENU.map((l,i)=>{
+   const st=`style="--i:${i}"`;
+   if(l[4]==='web')return `<a href="#" class="adx-di adx-web" data-v="${l[3]}" ${st}>${l[2]}<span>${l[1]}</span></a>`;
+   if(!Array.isArray(l[3]))return `<a href="#" class="adx-di" data-v="${l[3]}" data-m="${l[0]}" ${st}>${l[2]}<span>${l[1]}</span></a>`;
+   return `<div class="adx-gw" data-g="${l[0]}" ${st}><button type="button" class="adx-di adx-gh" aria-expanded="false">${l[2]}<span>${l[1]}</span>${ch}</button><div class="adx-gp"><div class="adx-gi">${l[3].map(c=>views[c[0]]?`<a href="#" class="adx-sub" data-v="${c[0]}" data-m="${c[0]}">${c[2]}<span>${c[1]}</span></a>`:`<button type="button" class="adx-sub adx-soon" data-m="${c[0]}">${c[2]}<span>${c[1]}</span></button>`).join('')}</div></div></div>`;
+  }).join('');
+ }
+ m.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('on',x.dataset.m===cur));
+ m.querySelectorAll('.adx-gw').forEach(w=>w.classList.toggle('has',!!w.querySelector('.adx-sub.on')));
+}
+function openGrp(){const m=$('#adxm');if(!m)return;m.querySelectorAll('.adx-gw').forEach(w=>{const o=w.classList.contains('has');w.classList.toggle('open',o);w.querySelector('.adx-gh').setAttribute('aria-expanded',o)})}
+function setOpen(o){if(o)openGrp();bd.classList.toggle('adx-open',o);const b=$('#adxmn');if(b)b.setAttribute('aria-expanded',o)}
+let prev=null;
+function mode(on){
+ if(on===bd.classList.contains('adm-mode'))return;
+ bd.classList.toggle('adm-mode',on);
+ const tc=document.getElementById('tc');
+ if(on){prev=root.dataset.theme;root.dataset.theme='dark';if(tc)tc.content='#000000'}
+ else{if(prev){root.dataset.theme=prev;if(tc)tc.content=prev==='dark'?'#000000':'#ffffff'}prev=null;bd.classList.remove('adx-open')}
+}
+$('#adxmn').onclick=()=>setOpen(!bd.classList.contains('adx-open'));
+$('#adxov').onclick=$('#adxcl').onclick=()=>setOpen(false);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false)});
+document.addEventListener('click',e=>{
+ const gh=e.target.closest('.adx-gh');
+ if(gh){const w=gh.parentNode,o=!w.classList.contains('open');w.parentNode.querySelectorAll('.adx-gw.open').forEach(x=>{x.classList.remove('open');x.querySelector('.adx-gh').setAttribute('aria-expanded','false')});if(o){w.classList.add('open');gh.setAttribute('aria-expanded','true')}return}
+ if(e.target.closest('.adx-soon')){tpToast('ยังไม่เปิดใช้งาน');return}
+ if(e.target.closest('.adx-dr [data-v]'))setOpen(false);
+ if(e.target.closest('#adxrn')){tpToast('ยังไม่เปิดใช้งาน');return}
+ if(e.target.closest('#adxrf'))load();
+});
+show=(o=>function(v,m){const r=o(v,m);const on=/^admin/.test(CUR);mode(on);bd.classList.remove('adx-open');if(on){head();if(CUR==='admin')load()}return r})(show);
+})();
+
+// ===== ADMIN V2: จัดการสินค้า & หมวดหมู่ (หน้าเดียว 2 แท็บ ดีไซน์ตามรูปอ้างอิง) — ข้อมูลจริงจาก Supabase: products, categories, bucket product-images =====
+// ฟอร์มเพิ่ม/แก้ไขสินค้า และเติมสต็อก ใช้หน้าเดิม (admin-add / admin-stock) ซึ่งเชื่อมฐานข้อมูลอยู่แล้ว · ถ้ายังไม่มีคอลัมน์ products.deleted_at / categories.description ให้รัน admin-products-categories.sql (หน้านี้ตรวจเองอัตโนมัติ)
+(function(){
+const $=s=>document.querySelector(s);
+let PT='prod',PV='all',PQ='',PC='all'; // แท็บ / มุมมอง (all|del) / คำค้น / หมวดที่เลือก
+let PL=[],CL=[],DEL_OK=true,CDESC=true,BUSY=false;
+let RENT=null; // วันหมดอายุแพ็กเกจร้าน = shop_secrets.rent_expires_at (แอดมินอ่านได้)
+let CE={id:null,f:null,old:''}; // สถานะฟอร์มหมวดหมู่ (id = โหมดแก้ไข)
+const I=(b,w,ex)=>`<svg viewBox="0 0 24 24" width="${w||18}" height="${w||18}" aria-hidden="true" ${ex||'fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"'}>${b}</svg>`;
+const IC={
+ clock:'<svg viewBox="0 0 24 24" width="25.5" height="25.5" fill="none" stroke="#3275b2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6.5V12l3.6 2.2"/></svg>',
+ rf:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 8.5A9 9 0 006 5.8L3 9"/><path d="M3 4v5h5"/><path d="M3.5 15.5A9 9 0 0018 18.2L21 15"/><path d="M21 20v-5h-5"/></svg>',
+ box:I('<path d="M3 8.5h18V20a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 20zM4.5 3.5h15L21 7.5H3z"/><rect x="9.5" y="10.5" width="5" height="2.2" rx="1.1" fill="#000"/>',17,'fill="currentColor"'),
+ org:I('<rect x="9" y="2.5" width="6" height="5.2" rx="1.3"/><rect x="1.5" y="16" width="6" height="5.2" rx="1.3"/><rect x="9" y="16" width="6" height="5.2" rx="1.3"/><rect x="16.5" y="16" width="6" height="5.2" rx="1.3"/><path d="M12 7.5v8.5M4.5 16v-4h15v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',17,'fill="currentColor"'),
+ search:I('<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',20),
+ plus:I('<path d="M12 5v14M5 12h14"/>',19,'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"'),
+ grid:I('<rect x="3.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.2"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.2"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.2"/>',17,'fill="none" stroke="currentColor" stroke-width="2"'),
+ cloud:'<svg viewBox="0 0 24 24" width="38" height="38" aria-hidden="true"><path d="M19.4 10.2A7.5 7.5 0 005 8.6 5.3 5.3 0 006.2 19H18a4.4 4.4 0 001.4-8.8z" fill="#0579bd"/><path d="M12 16.2V9.6M9 12.4l3-3 3 3" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ up:I('<path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/>',18),
+ edit:I('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',17),
+ trash:I('<path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/>',17),
+ undo:I('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/>',16),
+ stock:I('<path d="M12 5v14M5 12h14"/>',14,'fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"'),
+ up2:I('<path d="M6 15l6-6 6 6"/>',16,'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"'),
+ dn2:I('<path d="M6 9l6 6 6-6"/>',16,'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"'),
+ img2:'<svg viewBox="0 0 24 24" width="58" height="58" aria-hidden="true"><path fill="#3b4148" fill-rule="evenodd" d="M5 3h14a3 3 0 013 3v12a3 3 0 01-3 3H5a3 3 0 01-3-3V6a3 3 0 013-3zm3 4.2a1.8 1.8 0 100 3.6 1.8 1.8 0 000-3.600zM4.500 18.500l4.800-5.200 3 3.200 2.700-3L20 18.500z"/></svg>',
+ gear:I('<circle cx="12" cy="12" r="3"/><path d="M12 2.500v3M12 18.500v3M2.500 12h3M18.500 12h3M5.300 5.300l2.100 2.100M16.600 16.600l2.100 2.100M5.300 18.700l2.100-2.100M16.600 7.400l2.100-2.100"/>',16),
+ img:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#3a3a3a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg>'
+};
+const MO=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const p2=n=>String(n).padStart(2,'0');
+const thumb=u=>`<div class="pm-th">${u?`<img src="${esc(u)}" alt="" loading="lazy">`:IC.img}</div>`;
+const oks=p=>Array.isArray(p.options)?p.options:[];
+const pPrice=p=>{const o=oks(p);return o.length?'เริ่ม ₭'+tpf(Math.min(...o.map(x=>+x.p||0))):'₭'+tpf(+p.price||0)};
+const pStat=p=>p.update_mode===true?'upd':p.sales_closed===true?'off':pout(pm(p))?'out':'';
+const SW=(on,k)=>`<button type="button" class="pm-sw${on?' on':''}" data-k="${k}" role="switch" aria-checked="${on}"><i></i></button>`;
+
+// ---------- การ์ดสถานะเว็บไซต์ (ตัวเดียวกับหน้า Dashboard) ----------
+function stCard(){
+ let h='ยังไม่นับ',d='แพ็กเกจร้านยังไม่เริ่มนับเวลา · เมื่อกำหนดวันเช่าแล้วระบบจะแสดงเวลาคงเหลือที่นี่';
+ const ex=(RENT||SET.package_expires_at)?new Date(RENT||SET.package_expires_at):null;
+ if(ex&&!isNaN(ex)){
+  const ms=ex-Date.now(),dt=`${ex.getDate()} ${MO[ex.getMonth()]} ${ex.getFullYear()+543} เวลา ${p2(ex.getHours())}:${p2(ex.getMinutes())} น.`;
+  if(ms<=0){h='แพ็กเกจหมดอายุแล้ว';d=`แพ็กเกจร้าน ${SET.shop_name||'PXPSHOP'} หมดอายุเมื่อ ${dt}`}
+  else{const dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5),t=`${dd} วัน ${hh} ชั่วโมง`;h='เหลือเวลาอีก '+t;d=`แพ็กเกจร้าน ${SET.shop_name||'PXPSHOP'} หมดอายุ ${dt} · คงเหลือ ${t}`}
+ }
+ return `<section class="adx-st"><div class="adx-sr"><div class="adx-ti">${IC.clock}</div><div class="adx-sx"><span class="adx-pl"><i></i><em>WEBSITE STATUS: ${SET.maintenance?'MAINTENANCE':'ACTIVE'}</em></span><h2 class="adx-sh">${esc(h)}</h2><p class="adx-sd">${esc(d)}</p></div></div><button type="button" class="adx-rn" id="adxrn">${IC.rf}<span>ต่ออายุเว็บไซต์</span></button></section>`;
+}
+
+// ---------- หน้า ----------
+views['admin-prod']=()=>{pInit(0);CE={id:null,f:null,old:''};return `<div class="adx pm" data-nt>${stCard()}
+<div class="pm-tabs" role="tablist"><button type="button" role="tab" class="pm-tab${PT==='prod'?' on':''}" data-t="prod">${IC.box}<span>จัดการสินค้า</span></button><button type="button" role="tab" class="pm-tab${PT==='cat'?' on':''}" data-t="cat">${IC.org}<span>จัดการหมวดหมู่</span></button></div>
+<div id="pmp"${PT==='prod'?'':' hidden'}>
+<button type="button" class="pm-lnk" id="pmdl">ลบสินค้าแล้ว</button>
+<label class="pm-sr">${IC.search}<input id="pmq" type="search" placeholder="ค้นหาชื่อสินค้า..." autocomplete="off" value="${esc(PQ)}"></label>
+<button type="button" class="pm-add" id="pmadd">${IC.plus}<span>เพิ่มสินค้า</span></button>
+<div class="pm-chips" id="pmch"></div>
+<div id="pml"><div class="pm-em">กำลังโหลด...</div></div>
+</div>
+<div id="pmc"${PT==='cat'?'':' hidden'}>
+<section class="pm-cd"><h2 id="pmct">เพิ่มหมวดหมู่ใหม่</h2>
+<label class="pm-lb" for="pmcn">ชื่อหมวดหมู่</label><input class="pm-fi" id="pmcn" maxlength="40" autocomplete="off" placeholder="เช่น Digital License Premium">
+<label class="pm-lb" for="pmcd">คำอธิบาย</label><textarea class="pm-fi pm-ta" id="pmcd" maxlength="200" placeholder="เขียนรายละเอียดสั้นๆ..."></textarea>
+<small class="pm-wn" id="pmdh" hidden>ฐานข้อมูลยังไม่มีคอลัมน์คำอธิบาย (categories.description) — รันไฟล์ SQL ที่แนบมาก่อน ไม่งั้นระบบจะบันทึกเฉพาะชื่อและรูป</small>
+<div class="pm-lb">รูปภาพหน้าปกหมวดหมู่</div>
+<div class="pm-dz" id="pmdz" role="button" tabindex="0"><img id="pmpv" alt=""><button type="button" class="pm-dx" id="pmdx" aria-label="ลบรูป" hidden>✕</button><div class="pm-dt">${IC.cloud}<span>คลิกเพื่ออัปโหลดรูปจากเครื่อง</span></div></div>
+<button type="button" class="pm-ub" id="pmub">${IC.up}<span>อัปโหลดจากเครื่อง</span></button>
+<input type="file" id="pmfi" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+<input class="pm-fi" id="pmcu" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="หรือวางลิงก์ URL รูปภาพ">
+<p class="pm-hint">รองรับ JPG / PNG / WEBP / GIF สูงสุด 10MB</p>
+<button type="button" class="pm-go" id="pmcg">${IC.plus}<span>บันทึกและสร้างหมวดหมู่</span></button>
+<button type="button" class="pm-cx" id="pmcc" hidden>ยกเลิกการแก้ไข</button>
+</section>
+<section class="pm-cd"><h2>รายการหมวดหมู่ทั้งหมด <em id="pmcn2">(0)</em></h2><div id="pmcl"><div class="pm-em">กำลังโหลด...</div></div></section>
+</div></div>`};
+
+// ---------- โหลดข้อมูลจริง ----------
+const PHT={pmq:'ค้นหาชื่อสินค้า...',pmcn:'เช่น Digital License Premium',pmcd:'เขียนรายละเอียดสั้นๆ...',pmcu:'หรือวางลิงก์ URL รูปภาพ'};
+function pInit(n){ // รอจนหน้าถูกวางลง DOM แล้วคืน placeholder เป็นภาษาไทยตามดีไซน์ (ระบบแปลลาวอัตโนมัติจะเปลี่ยนให้) แล้วโหลดข้อมูล
+ if(!$('#pml')){if(n<60)setTimeout(()=>pInit(n+1),50);return}
+ setTimeout(()=>{for(const k in PHT){const e=document.getElementById(k);if(e)e.placeholder=PHT[k]}},0);
+ for(const k in PHT){const e=document.getElementById(k);if(e)e.placeholder=PHT[k]}
+ pLoad();
+}
+async function pLoad(){
+ if(!sb||!$('#pml'))return;
+ try{
+  const[p,c,dp,cd,rt]=await Promise.all([
+   sb.from('products').select('*').order('created_at',{ascending:false}),
+   sb.from('categories').select('*').order('sort_order',{ascending:true}).order('created_at',{ascending:true}),
+   sb.from('products').select('id,deleted_at').limit(1),
+   sb.from('categories').select('id,description').limit(1),
+   sb.from('shop_secrets').select('rent_expires_at').eq('id',1).maybeSingle()]);
+  if(p.error)throw p.error;if(c.error)throw c.error;
+  PL=p.data||[];CL=c.data||[];DEL_OK=!dp.error;CDESC=!cd.error;
+  ADL=PL.filter(x=>!x.deleted_at); // ให้ฟอร์มแก้ไขสินค้าเดิม (admin-add) หาสินค้าเจอ
+  const w=$('#pmdh');if(w)w.hidden=CDESC;
+  if(!rt.error&&rt.data)RENT=rt.data.rent_expires_at||null;const sc=document.querySelector('.pm .adx-st');if(sc)sc.outerHTML=stCard();
+  pR();cR();
+ }catch(x){const m='<div class="pm-em">โหลดข้อมูลไม่สำเร็จ'+(x&&x.message?' ['+esc(x.message)+']':'')+'</div>';['#pml','#pmcl'].forEach(s=>{const e=$(s);if(e)e.innerHTML=m})}
+}
+const reload=async()=>{await pLoad();loadProds()};
+
+// ---------- แท็บสินค้า ----------
+const BL={upd:'กำลังอัปเดต',off:'ปิดขาย',out:'สินค้าหมด',ok:'เปิดขาย'};
+function pRow(p){
+ const s=pStat(p)||'ok';
+ return `<div class="pm-r pm-pc" data-id="${esc(p.id)}"><div class="pm-pi">${p.image_url?`<img src="${esc(p.image_url)}" alt="" loading="lazy">`:IC.img2}<button type="button" class="pm-bd ${s}" data-a="status"><i></i><span>${BL[s]}</span></button></div><div class="pm-pb"><h3>${esc(p.name)}</h3><div class="pm-pp">${pPrice(p)}</div><div class="pm-tg"><em>${BL[s]}</em><em>${p.stock|0} ชิ้น</em>${p.is_active===false?'<em class="off">ซ่อนอยู่</em>':''}</div><div class="pm-sd">ขายแล้ว ${p.sold|0}</div><button type="button" class="pm-b" data-a="stock">${IC.stock}<span>เพิ่มสต็อก</span></button><div class="pm-b2"><button type="button" class="pm-b" data-a="opts">${IC.gear}<span>ตัวเลือกสต็อก</span></button><button type="button" class="pm-b" data-a="edit">${IC.edit}<span>แก้ไขสินค้า</span></button></div><button type="button" class="pm-b dg" data-a="del">${IC.trash}<span>ลบสินค้า</span></button></div></div>`;
+}
+function pDRow(p){
+ const d=p.deleted_at?new Date(p.deleted_at):null,ds=d&&!isNaN(d)?`${d.getDate()} ${MO[d.getMonth()].slice(0,3)}. ${d.getFullYear()+543} ${p2(d.getHours())}:${p2(d.getMinutes())} น.`:'';
+ return `<div class="pm-r" data-id="${esc(p.id)}"><div class="pm-rt">${thumb(p.image_url)}<div class="pm-ib"><b>${esc(p.name)}</b><small>${pPrice(p)} · ขายแล้ว ${p.sold|0}</small>${ds?`<span class="pm-tg"><em class="off">ลบเมื่อ ${ds}</em></span>`:''}</div></div><div class="pm-rb"><button type="button" class="pm-st" data-a="restore">${IC.undo}<span>กู้คืน</span></button><button type="button" class="pm-st dg" data-a="purge">${IC.trash}<span>ลบถาวร</span></button></div></div>`;
+}
+function pR(){
+ const ch=$('#pmch'),l=$('#pml');if(!ch||!l)return;
+ const del=PV==='del',q=PQ.trim().toLowerCase();
+ const dl=$('#pmdl'),ad=$('#pmadd');
+ if(dl)dl.textContent=del?'‹ กลับไปสินค้าทั้งหมด':'ลบสินค้าแล้ว';
+ if(ad)ad.hidden=del;
+ if(del){ch.hidden=true;
+  if(!DEL_OK){l.innerHTML='<div class="pm-em">ยังไม่ได้เปิดระบบเก็บสินค้าที่ลบ — รันไฟล์ SQL ที่แนบมา (เพิ่มคอลัมน์ products.deleted_at) แล้วสินค้าที่ลบจะมาอยู่ที่นี่ให้กู้คืนได้</div>';return}
+  const L=PL.filter(p=>p.deleted_at&&(!q||String(p.name||'').toLowerCase().includes(q)));
+  l.innerHTML=L.length?L.map(pDRow).join(''):'<div class="pm-em">— ยังไม่มีสินค้าที่ลบ —</div>';return}
+ ch.hidden=false;
+ const base=PL.filter(p=>!p.deleted_at),none=base.filter(p=>!CL.some(c=>c.id===p.category_id));
+ if(PC!=='all'&&PC!=='none'&&!CL.some(c=>String(c.id)===String(PC)))PC='all';
+ if(PC==='none'&&!none.length)PC='all';
+ const chip=(k,t,n)=>`<button type="button" class="pm-chip${String(PC)===String(k)?' on':''}" data-c="${esc(k)}">${k==='all'?IC.grid:''}<span>${esc(t)} (${n})</span></button>`;
+ ch.innerHTML=chip('all','ทั้งหมด',base.length)+CL.map(c=>chip(c.id,c.name,base.filter(p=>p.category_id===c.id).length)).join('')+(none.length&&CL.length?chip('none','ไม่ระบุหมวดหมู่',none.length):'');
+ const L=base.filter(p=>(PC==='all'||(PC==='none'?!CL.some(c=>c.id===p.category_id):String(p.category_id)===String(PC)))&&(!q||String(p.name||'').toLowerCase().includes(q)));
+ l.innerHTML=L.length?L.map(pRow).join(''):`<div class="pm-em">— ${q?'ไม่พบสินค้าที่ค้นหา':'ยังไม่มีสินค้าในหมวดนี้'} —</div>`;
+}
+const fail=(m,x)=>tpToast(m+(x&&x.message?' ['+x.message+']':''));
+const swOn=(p,k)=>k==='update_mode'?p.update_mode===true:p.sales_closed!==true;
+function stSync(p){document.querySelectorAll('.pm-md .pm-sw[data-pid="'+String(p.id)+'"]').forEach(x=>{const on=swOn(p,x.dataset.k);x.classList.toggle('on',on);x.setAttribute('aria-checked',on)})}
+async function pSw(id,k){
+ const p=PL.find(x=>String(x.id)===String(id));if(!p||BUSY||!isAdm()||!sb)return;
+ const old=p[k]===true,nv=!old;p[k]=nv;BUSY=true;pR();stSync(p);
+ try{const q=await sb.from('products').update({[k]:nv}).eq('id',p.id).select('id');if(q.error||!q.data||!q.data.length)throw q.error||new Error('no_permission');
+  const g=P.find(x=>x[0]===p.id);if(g)g[k==='update_mode'?11:10]=nv;
+  tpToast(k==='update_mode'?(nv?'เปิดโหมดอัปเดตแล้ว':'ปิดโหมดอัปเดตแล้ว'):(nv?'ปิดขายสินค้าแล้ว':'เปิดขายสินค้าแล้ว'))}
+ catch(x){p[k]=old;pR();stSync(p);fail('บันทึกไม่สำเร็จ',x)}finally{BUSY=false}
+}
+// ---------- หน้าต่างป๊อปอัป: เพิ่มสต็อก / ตัวเลือกสต็อก / สถานะสินค้า ----------
+let MS={id:null,o:0,items:null};
+const mClose=()=>{const o=$('#pmov');if(o)o.remove()};
+function mOpen(t,h){mClose();document.body.insertAdjacentHTML('beforeend',`<div class="pm pm-ov" id="pmov"><section class="pm-md" role="dialog" aria-modal="true"><div class="pm-mh"><h3>${esc(t)}</h3><button type="button" class="pm-mx" data-a="mclose">ปิด</button></div><div class="pm-mbd">${h}</div></section></div>`);requestAnimationFrame(()=>{const o=$('#pmov');if(o)o.classList.add('on')})}
+const stOpts=p=>{const o=oks(p);return o.length?o.map((x,i)=>{const b=optLbl(x);return{i,t:`ตัวเลือก ${i+1} · ${b.n} ${b.u} — ₭${tpf(+x.p||0)} (${(p.option_stock||{})[i]|0} ชิ้น)`}}):[{i:0,t:`ตัวเลือก 1 — ₭${tpf(+p.price||0)} (${p.stock|0} ชิ้น)`}]};
+const stAvail=r=>!(r.is_sold===true||r.sold===true||r.sold_at||r.used_at||r.order_id||(r.status&&String(r.status).toLowerCase()!=='available'));
+function sOpen(id,o){
+ const p=PL.find(x=>String(x.id)===String(id));if(!p)return;
+ MS={id:p.id,o:o|0,items:null};
+ mOpen('เพิ่มสต็อก — '+p.name,`<label class="pm-lb" for="pmso">ตัวเลือก</label><div class="pm-sl"><select class="pm-fi" id="pmso">${stOpts(p).map(x=>`<option value="${x.i}"${x.i===MS.o?' selected':''}>${esc(x.t)}</option>`).join('')}</select>${I('<path d="M8 10l4-4 4 4M8 14l4 4 4-4"/>',16)}</div>
+<label class="pm-lb" for="pmst">คีย์ / โค้ด (หนึ่งบรรทัดต่อ 1 ชิ้น)</label><textarea class="pm-fi pm-ta" id="pmst" placeholder="KEY-001&#10;KEY-002" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
+<button type="button" class="pm-go" id="pmsg">${IC.plus}<span>บันทึกสต็อก</span></button>
+<h4 class="pm-sh" id="pmsh">สต็อกคงเหลือ (…)</h4><div id="pmsl"><div class="pm-em">กำลังโหลด...</div></div>`);
+ sLoad();
+}
+async function sLoad(){
+ const id=MS.id;let err='';
+ try{const r=await sb.from('stock_items').select('*').eq('product_id',id);if(r.error)throw r.error;if(MS.id!==id)return;MS.items=(r.data||[]).filter(stAvail).sort((a,b)=>String(a.created_at||'')<String(b.created_at||'')?-1:1)}
+ catch(x){MS.items=null;err=x&&x.message||'error'}
+ const l=$('#pmsl'),h=$('#pmsh');if(!l)return;
+ if(!MS.items){h.textContent='สต็อกคงเหลือ';l.innerHTML='<div class="pm-em">โหลดไม่สำเร็จ'+(err?' ['+esc(err)+']':'')+'</div>';return}
+ h.textContent='สต็อกคงเหลือ ('+MS.items.length+')';
+ l.innerHTML=MS.items.length?MS.items.map(r=>{const c=String(r.content==null?'':r.content);return `<div class="pm-si" data-sid="${esc(r.id)}"><button type="button" class="pm-sx" data-a="sdel" aria-label="ลบ">${IC.trash}</button><div><b>${esc(c.length>40?c.slice(0,40)+'…':c)}</b><small>ตัวเลือก ${(r.option_idx==null?0:+r.option_idx)+1} · available</small></div></div>`}).join(''):'<div class="pm-em">— ยังไม่มีสต็อก —</div>';
+}
+async function sAdd(){
+ const p=PL.find(x=>String(x.id)===String(MS.id)),ta=$('#pmst'),b=$('#pmsg');if(!p||!ta||!sb||!isAdm()||BUSY)return;
+ const ls=adLines(ta.value);if(!ls.length)return tpToast('กรุณาวางคีย์ / โค้ดอย่างน้อย 1 บรรทัด');if(ls.length>500)return tpToast('ครั้งละไม่เกิน 500 ชิ้น');
+ const oi=oks(p).length?MS.o:null;BUSY=true;b.disabled=true;
+ try{const r=await sb.from('stock_items').insert(ls.map(content=>({product_id:p.id,content,option_idx:oi})));if(r.error)throw r.error;
+  const g=await sb.from('products').select('stock,option_stock,sold').eq('id',p.id).single();if(g.data)Object.assign(p,g.data);
+  ta.value='';okPop('เติมสต็อกสำเร็จ +'+ls.length);pR();loadProds();sOptSync(p);sLoad()}
+ catch(x){fail('เติมไม่สำเร็จ',x)}finally{BUSY=false;b.disabled=false}
+}
+function sOptSync(p){const s=$('#pmso');if(!s)return;const v=s.value;s.innerHTML=stOpts(p).map(x=>`<option value="${x.i}">${esc(x.t)}</option>`).join('');s.value=v}
+async function sDel(sid){
+ if(!sb||!isAdm()||BUSY||!confirm(trs('ลบสต็อกชิ้นนี้ใช่ไหม?')))return;
+ const p=PL.find(x=>String(x.id)===String(MS.id));BUSY=true;
+ try{const r=await sb.from('stock_items').delete().eq('id',sid).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');
+  if(p){const g=await sb.from('products').select('stock,option_stock,sold').eq('id',p.id).single();if(g.data)Object.assign(p,g.data);pR();sOptSync(p)}
+  loadProds();tpToast('ลบสต็อกแล้ว');BUSY=false;sLoad()}
+ catch(x){fail('ลบไม่สำเร็จ',x)}finally{BUSY=false}
+}
+function oOpen(id){
+ const p=PL.find(x=>String(x.id)===String(id));if(!p)return;const o=oks(p);
+ mOpen('ตัวเลือกสต็อก — '+p.name,o.length?o.map((x,i)=>{const b=optLbl(x);return `<div class="pm-si"><div><b>ตัวเลือก ${i+1} · ${b.n} ${b.u}</b><small>₭${tpf(+x.p||0)} · เหลือ ${(p.option_stock||{})[i]|0} ชิ้น</small></div><button type="button" class="pm-st" data-a="ofill" data-pid="${esc(p.id)}" data-i="${i}">${IC.stock}<span>เติม</span></button></div>`}).join('')+`<p class="pm-hint" style="margin:14px 0 0">เพิ่ม/แก้ไขราคาและระยะเวลาได้ที่ "แก้ไขสินค้า"</p>`
+ :`<div class="pm-em" style="padding:26px 6px">สินค้านี้ขายแบบชิ้นเดียว ยังไม่มีตัวเลือกระยะเวลา<br>ตั้งแพ็กเกจวัน/ชั่วโมงได้ที่ "แก้ไขสินค้า"</div><button type="button" class="pm-go" data-a="ofill" data-pid="${esc(p.id)}" data-i="0">${IC.plus}<span>เพิ่มสต็อก</span></button>`);
+}
+function bOpen(id){
+ const p=PL.find(x=>String(x.id)===String(id));if(!p)return;
+ mOpen('สถานะสินค้า — '+p.name,`<div class="pm-si pm-sr2"><div><b>โหมดอัปเดต</b><small>แสดง "กำลังอัปเดต" ลูกค้าจะสั่งซื้อไม่ได้</small></div><button type="button" class="pm-sw${swOn(p,'update_mode')?' on':''}" data-k="update_mode" data-pid="${esc(p.id)}" role="switch" aria-checked="${swOn(p,'update_mode')}"><i></i></button></div>
+<div class="pm-si pm-sr2"><div><b>เปิดขาย</b><small>ปิดเพื่อหยุดขายชั่วคราว (ลูกค้าจะเห็น "ปิดขาย")</small></div><button type="button" class="pm-sw${swOn(p,'sales_closed')?' on':''}" data-k="sales_closed" data-pid="${esc(p.id)}" role="switch" aria-checked="${swOn(p,'sales_closed')}"><i></i></button></div>`);
+}
+async function pAct(a,id){
+ const p=PL.find(x=>String(x.id)===String(id));if(!p||!sb||!isAdm()||BUSY)return;
+ if(a==='edit'){show('admin-add',p.id);return}
+ if(a==='stock'){sOpen(p.id,0);return}
+ if(a==='opts'){oOpen(p.id);return}
+ if(a==='status'){bOpen(p.id);return}
+ try{BUSY=true;let r;
+  if(a==='del'){
+   if(DEL_OK){if(!confirm(trs('ย้ายสินค้า "'+p.name+'" ไปที่ "ลบสินค้าแล้ว" ใช่ไหม?')))return;r=await sb.from('products').update({deleted_at:new Date().toISOString(),is_active:false}).eq('id',p.id).select('id')}
+   else{if(!confirm(trs('ลบสินค้า "'+p.name+'" ถาวรใช่ไหม? กู้คืนไม่ได้')))return;r=await sb.from('products').delete().eq('id',p.id).select('id')}
+   if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');tpToast('ลบสินค้าแล้ว')}
+  else if(a==='restore'){r=await sb.from('products').update({deleted_at:null,is_active:true}).eq('id',p.id).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');tpToast('กู้คืนสินค้าแล้ว')}
+  else if(a==='purge'){if(!confirm(trs('ลบสินค้า "'+p.name+'" ถาวรใช่ไหม? กู้คืนไม่ได้')))return;r=await sb.from('products').delete().eq('id',p.id).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');tpToast('ลบถาวรแล้ว')}
+  BUSY=false;await reload();
+ }catch(x){fail('ทำรายการไม่สำเร็จ',x)}finally{BUSY=false}
+}
+
+// ---------- แท็บหมวดหมู่ ----------
+function cR(){
+ const l=$('#pmcl'),n=$('#pmcn2');if(!l)return;if(n)n.textContent='('+CL.length+')';
+ l.innerHTML=CL.length?CL.map((c,i)=>{const k=PL.filter(p=>!p.deleted_at&&p.category_id===c.id).length;
+  return `<div class="pm-r" data-id="${esc(c.id)}"><div class="pm-rt">${thumb(c.image_url)}<div class="pm-ib"><b>${esc(c.name)}</b>${c.description?`<small class="pm-ds">${esc(c.description)}</small>`:''}<small>${k} สินค้า${c.is_active===false?' · ซ่อนอยู่':''}</small></div><div class="pm-ac"><button type="button" data-a="cedit" aria-label="แก้ไข">${IC.edit}</button><button type="button" data-a="cdel" class="dg" aria-label="ลบ">${IC.trash}</button></div></div>
+<div class="pm-rb"><label><span>แสดงในร้าน</span>${SW(c.is_active!==false,'is_active')}</label><span class="pm-mv"><button type="button" data-a="cup" aria-label="ขึ้น"${i?'':' disabled'}>${IC.up2}</button><button type="button" data-a="cdn" aria-label="ลง"${i<CL.length-1?'':' disabled'}>${IC.dn2}</button></span></div></div>`}).join(''):'<div class="pm-em">— ยังไม่มีหมวดหมู่ —</div>';
+}
+function cPrev(src){const im=$('#pmpv'),dz=$('#pmdz'),x=$('#pmdx');if(!im)return;if(src){im.src=src;dz.classList.add('has');x.hidden=false}else{im.removeAttribute('src');dz.classList.remove('has');x.hidden=true}}
+function cForm(c){
+ CE={id:c?c.id:null,f:null,old:c&&c.image_url||''};
+ $('#pmcn').value=c?c.name:'';$('#pmcd').value=c&&c.description||'';$('#pmcu').value='';$('#pmfi').value='';
+ cPrev(CE.old);
+ $('#pmct').textContent=c?'แก้ไขหมวดหมู่':'เพิ่มหมวดหมู่ใหม่';
+ $('#pmcg').lastElementChild.textContent=c?'บันทึกการแก้ไข':'บันทึกและสร้างหมวดหมู่';
+ $('#pmcc').hidden=!c;
+}
+function cFile(f){
+ if(!f)return;
+ if(!/^image\/(jpeg|png|webp|gif)$/.test(f.type))return tpToast('ไฟล์รูปไม่ถูกต้อง');
+ if(f.size>10*1024*1024)return tpToast('ไฟล์ใหญ่เกิน 10MB');
+ CE.f=f;$('#pmcu').value='';cPrev(URL.createObjectURL(f));
+}
+async function cSave(){
+ const g=$('#pmcg'),name=$('#pmcn').value.trim(),desc=$('#pmcd').value.trim(),url=$('#pmcu').value.trim();
+ if(!name)return tpToast('กรุณาใส่ชื่อหมวดหมู่');
+ if(CL.some(c=>c.id!==CE.id&&String(c.name).trim().toLowerCase()===name.toLowerCase()))return tpToast('มีหมวดหมู่ชื่อนี้อยู่แล้ว');
+ if(url&&!CE.f&&!/^https?:\/\/\S+$/i.test(url))return tpToast('ลิงก์รูปภาพไม่ถูกต้อง');
+ if(!sb||!isAdm()||BUSY)return;
+ BUSY=true;g.disabled=true;const lb=g.lastElementChild,old=lb.textContent;lb.textContent='กำลังบันทึก...';
+ try{
+  let img=CE.f?null:(url||CE.old||null);
+  if(CE.f){const ext={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif'}[CE.f.type],path='cat_'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.'+ext,u=await sb.storage.from('product-images').upload(path,CE.f,{contentType:CE.f.type});if(u.error)throw(/size|exceed|too large|payload/i.test(u.error.message||'')?new Error('ไฟล์เกินขีดจำกัดของที่เก็บรูป (ตอนนี้ 5MB) — รันไฟล์ SQL เพื่อขยายเป็น 10MB'):u.error);img=sb.storage.from('product-images').getPublicUrl(path).data.publicUrl}
+  const row={name,image_url:img};if(CDESC)row.description=desc||null;let r;
+  if(CE.id){r=await sb.from('categories').update(row).eq('id',CE.id).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission')}
+  else{row.is_active=true;row.sort_order=CL.length?Math.max(...CL.map(c=>+c.sort_order||0))+1:0;r=await sb.from('categories').insert(row).select('id');if(r.error)throw r.error}
+  okPop(CE.id?'บันทึกหมวดหมู่สำเร็จ':'เพิ่มหมวดหมู่สำเร็จ');cForm(null);BUSY=false;await reload();
+ }catch(x){fail('บันทึกไม่สำเร็จ',x)}finally{BUSY=false;g.disabled=false;if(lb.textContent==='กำลังบันทึก...')lb.textContent=old}
+}
+async function cAct(a,id,b){
+ const i=CL.findIndex(x=>String(x.id)===String(id)),c=CL[i];if(!c||!sb||!isAdm()||BUSY)return;
+ if(a==='cedit'){cForm(c);const t=$('#pmct');if(t)t.scrollIntoView({behavior:'smooth',block:'center'});return}
+ try{BUSY=true;
+  if(a==='cdel'){if(!confirm(trs('ลบหมวดหมู่นี้ใช่ไหม? สินค้าในหมวดจะไม่ถูกลบ')))return;const r=await sb.from('categories').delete().eq('id',c.id).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');if(CE.id===c.id)cForm(null);tpToast('ลบหมวดหมู่แล้ว')}
+  else if(a==='cup'||a==='cdn'){const j=i+(a==='cup'?-1:1);if(j<0||j>=CL.length)return;[CL[i],CL[j]]=[CL[j],CL[i]];cR();
+   const ch=CL.map((x,k)=>[x,k]).filter(([x,k])=>x.sort_order!==k);
+   await Promise.all(ch.map(([x,k])=>sb.from('categories').update({sort_order:k}).eq('id',x.id).then(r=>{if(r.error)throw r.error;x.sort_order=k})))}
+  else if(a==='sw'){const nv=!(c.is_active!==false);c.is_active=nv;cR();const r=await sb.from('categories').update({is_active:nv}).eq('id',c.id).select('id');if(r.error||!r.data||!r.data.length){c.is_active=!nv;cR();throw r.error||new Error('no_permission')}tpToast(nv?'แสดงหมวดหมู่ในร้านแล้ว':'ซ่อนหมวดหมู่จากร้านแล้ว')}
+  BUSY=false;await reload();
+ }catch(x){fail('ทำรายการไม่สำเร็จ',x);BUSY=false;pLoad()}finally{BUSY=false}
+}
+
+// ---------- เหตุการณ์ ----------
+document.addEventListener('click',e=>{
+ const t=e.target;if(!t.closest||!t.closest('.pm'))return;
+ const tab=t.closest('.pm-tab');
+ if(tab){PT=tab.dataset.t;document.querySelectorAll('.pm-tab').forEach(x=>{const on=x===tab;x.classList.toggle('on',on);x.setAttribute('aria-selected',on)});$('#pmp').hidden=PT!=='prod';$('#pmc').hidden=PT!=='cat';return}
+ if(t.closest('#pmdl')){PV=PV==='del'?'all':'del';pR();return}
+ if(t.closest('#pmadd')){ADL=PL.filter(x=>!x.deleted_at);show('admin-add');return}
+ const chip=t.closest('.pm-chip');if(chip){PC=chip.dataset.c;pR();return}
+ if(t.closest('#pmdx')){e.stopPropagation();CE.f=null;CE.old='';$('#pmfi').value='';$('#pmcu').value='';cPrev('');return}
+ if(t.closest('#pmdz')||t.closest('#pmub')){$('#pmfi').click();return}
+ if(t.closest('#pmcg')){cSave();return}
+ if(t.closest('#pmcc')){cForm(null);return}
+ if(t.id==='pmov'||t.closest('[data-a="mclose"]')){mClose();return}
+ if(t.closest('#pmsg')){sAdd();return}
+ const sx=t.closest('[data-a="sdel"]');if(sx){sDel(sx.closest('.pm-si').dataset.sid);return}
+ const of=t.closest('[data-a="ofill"]');if(of){sOpen(of.dataset.pid,of.dataset.i);return}
+ const sw=t.closest('.pm-sw');
+ if(sw){if(sw.dataset.pid){pSw(sw.dataset.pid,sw.dataset.k);return}const row=sw.closest('.pm-r');if(row)cAct('sw',row.dataset.id);return}
+ const b=t.closest('[data-a]');if(!b||b.disabled)return;
+ const row=b.closest('.pm-r'),a=b.dataset.a;if(!row)return;
+ if(a[0]==='c')cAct(a,row.dataset.id,b);else pAct(a,row.dataset.id);
+});
+document.addEventListener('input',e=>{
+ const t=e.target;
+ if(t.id==='pmq'){PQ=t.value;pR();return}
+ if(t.id==='pmcu'){const v=t.value.trim();CE.f=null;$('#pmfi').value='';cPrev(/^https?:\/\/\S+$/i.test(v)?v:CE.old)}
+});
+document.addEventListener('change',e=>{if(e.target.id==='pmfi')cFile(e.target.files[0]);else if(e.target.id==='pmso')MS.o=+e.target.value});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')mClose()});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.id==='pmdz'){e.preventDefault();$('#pmfi').click()}});
+})();
 
 anav();
 tr($('.dr'));loadSettings().then(()=>{show('home');loadProds();SETREADY=true;hashGo()});
