@@ -6,7 +6,11 @@ let AGP=null; // ราคาตัวแทน {productId:{optionIdx:price}} �
 const agPx=r=>{const o=Array.isArray(r.options)?r.options:[],m=AGP&&AGP[r.id];if(!m)return[Number(r.price)||0,o];
 if(o.length){const n=o.map((x,i)=>m[i]!=null&&isFinite(+m[i])?{...x,p:+m[i]}:x);return[Math.min(...n.map(x=>+x.p||0)),n]}
 return[m['-1']!=null&&isFinite(+m['-1'])?+m['-1']:(Number(r.price)||0),o]};
-const pm=r=>{const a=agPx(r);return [r.id,r.name,a[0],r.stock|0,r.sold|0,r.image_url||'',r.description||'',a[1],r.option_stock||{},r.category_id||null,r.sales_closed===true,r.update_mode===true]};
+let FSP=null,FST=null; // ລາຄາ Flash Sale {productId:{optionIdx:price}} (null = ບໍ່ມີໂປຣ) — ການຄິດເງິນຈິງເຮັດຝັ່ງເຊີບເວີ (purchase_product)
+const fxPx=r=>{const a=agPx(r),f=FSP&&FSP[r.id];if(!f)return a;const o=a[1];
+if(o.length){const n=o.map((x,i)=>f[i]!=null&&isFinite(+f[i])?{...x,p:Math.min(+x.p||0,+f[i])}:x);return[Math.min(...n.map(x=>+x.p||0)),n]}
+return f['-1']!=null&&isFinite(+f['-1'])?[Math.min(a[0],+f['-1']),o]:a};
+const pm=r=>{const a=fxPx(r);return [r.id,r.name,a[0],r.stock|0,r.sold|0,r.image_url||'',r.description||'',a[1],r.option_stock||{},r.category_id||null,r.sales_closed===true,r.update_mode===true]};
 const pout=p=>p[7].length?p[7].every((_,i)=>((p[8]||{})[i]|0)<1):p[3]<1; // สินค้าหมดจริง (รองรับแบบแพ็กเกจ)
 const pst=p=>p[11]?'upd':p[10]?'off':pout(p)?'out':'ok'; // สถานะ: upd=กำลังอัปเดต off=ปิดขาย out=สินค้าหมด ok=ขายปกติ
 const PSL={upd:'กำลังอัปเดต',off:'ปิดขาย',out:'สินค้าหมด'};
@@ -14,7 +18,7 @@ const PS1={upd:'UPDATE',off:'CLOSED',out:'SOLD'},PS2={upd:'กำลังอั
 const NOI='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>';
 const ptag=p=>{const s=pst(p);return s==='ok'?'':`<span class="pc-tag ${s}"><b>${PS1[s]}</b><i>${PS2[s]}</i></span>`};
 async function loadCats(){if(!sb)return;try{const r=await sb.from('categories').select('id,name,image_url').eq('is_active',true).order('sort_order',{ascending:true}).order('created_at',{ascending:true});if(!r.error)cats=(r.data||[]).map(c=>[c.id,c.name,'','',c.image_url||''])}catch(_){}}
-async function loadProds(){if(!sb)return;await loadCats();try{const{data}=await sb.from('products').select('*').eq('is_active',true).order('created_at',{ascending:false});P=(data||[]).map(pm)}catch(_){}try{const r=await sb.rpc('recent_orders',{p_limit:10});if(!r.error)ROR=r.data||[]}catch(_){}try{const r=await sb.rpc('shop_stats');if(!r.error&&r.data)ST={u:+r.data.users||0,s:+r.data.stock||0,o:+r.data.orders||0}}catch(_){}if(CUR==='home'||CUR==='list'||CUR==='cat')show(CUR,CURM)}
+async function loadProds(){if(!sb)return;await loadCats();try{const{data}=await sb.from('products').select('*').eq('is_active',true).order('created_at',{ascending:false});try{const fr=await sb.from('flash_sales').select('product_id,option_idx,price,ends_at').gt('ends_at',new Date().toISOString());if(!fr.error){const m={};let nx=0;(fr.data||[]).forEach(x=>{(m[x.product_id]=m[x.product_id]||{})[x.option_idx]=+x.price;const t=new Date(x.ends_at).getTime();if(!nx||t<nx)nx=t});FSP=Object.keys(m).length?m:null;clearTimeout(FST);if(nx)FST=setTimeout(()=>loadProds(),Math.min(Math.max(nx-Date.now(),0)+1500,2000000000))}}catch(_){}P=(data||[]).map(pm)}catch(_){}try{const r=await sb.rpc('recent_orders',{p_limit:10});if(!r.error)ROR=r.data||[]}catch(_){}try{const r=await sb.rpc('shop_stats');if(!r.error&&r.data)ST={u:+r.data.users||0,s:+r.data.stock||0,o:+r.data.orders||0}}catch(_){}if(CUR==='home'||CUR==='list'||CUR==='cat')show(CUR,CURM)}
 const optLbl=o=>o.d&&o.h?{n:o.d,u:'วัน '+o.h+' ชม.'}:o.d?{n:o.d,u:'วัน'}:{n:o.h,u:'ชม.'};
 const optsOf=p=>p[7].length?p[7].map(o=>({...o,...optLbl(o)})):[{n:1,u:'ชิ้น',p:p[2],_:1}];
 const bsl=()=>P.filter(x=>x[4]>0).sort((a,b)=>b[4]-a[4]).slice(0,2);
@@ -206,7 +210,7 @@ g.disabled=true;g.textContent='กำลังสั่งซื้อ...';tr(g)
 (async()=>{try{if(!sb)throw 0;const r=await sb.rpc('purchase_product',{p_product_id:ORP[0],p_option:ORP[7].length?ORO:null,p_qty:ORQ});if(r.error)throw r.error;const d=r.data;BAL=Number(d.balance);anav();DLV[d.order_id]=d;loadProds();lgChime();show('deliver',d.order_id)}
 catch(x){const m=(x&&x.message)||'';g.disabled=false;g.textContent='ยืนยันสั่งซื้อ';tr(g);if(m.includes('insufficient'))lgErr();tpToast(m.includes('insufficient')?'ยอดเงินไม่พอ':m.includes('product_updating')?'สินค้านี้กำลังอัปเดต':m.includes('product_closed')?'สินค้านี้ปิดขายแล้ว':m.includes('out_of_stock')?'สินค้าหมด':'สั่งซื้อไม่สำเร็จ ลองใหม่อีกครั้ง');if(m.includes('out_of_stock')||/product_(closed|updating)/.test(m))loadProds().then(()=>{if(CUR==='order'&&ORP)show('order',ORP[0])})}})()});
 // ===== หน้าเติมเงิน =====
-const TPV=[10000,20000,50000,100000,200000,500000];let TPQR="",TPMIN=10000,TPMAX=5000000;
+const TPV=[10000,20000,50000,100000,200000,500000];let TPQR="",TPMIN=10000,TPMAX=5000000,PQL=[],PQI=0;
 const tpf=n=>n.toLocaleString('en-US');
 let tpA=0,tpT;
 function tpUpd(){const h=$('.tp-hint'),g=$('#tpgo');if(!h)return;const ok=tpA>=TPMIN&&tpA<=TPMAX;
@@ -225,13 +229,16 @@ const x=c.getContext('2d'),N=29;x.fillStyle='#fff';x.fillRect(0,0,N,N);x.fillSty
 for(let i=0;i<N;i++)for(let j=0;j<N;j++){const f=(i<8&&j<8)||(i>N-9&&j<8)||(i<8&&j>N-9);if(!f&&r()>.52)x.fillRect(i,j,1,1)}
 x.fillStyle='#fff';[[0,0],[N-8,0],[0,N-8]].forEach(([a,b])=>x.fillRect(a,b,8,8));x.fillStyle='#0a2a8a';
 [[0,0],[N-7,0],[0,N-7]].forEach(([a,b])=>{x.fillRect(a,b,7,7);x.fillStyle='#fff';x.fillRect(a+1,b+1,5,5);x.fillStyle='#0a2a8a';x.fillRect(a+2,b+2,3,3)})}
+function tpBk(){const b=$('#tpbk');if(!b||!PQL.length)return;if(PQI>=PQL.length)PQI=0;const q=PQL[PQI];TPQR=q.image_url;
+b.innerHTML=(PQL.length>1?'<div class="tp-bkc">'+PQL.map((x,i)=>`<button type="button" class="tp-bkb${i===PQI?' on':''}" data-bk="${i}">${esc(x.bank)}</button>`).join('')+'</div>':'')+`<div class="tp-bki"><b>${esc(q.bank)}</b>${q.account_no?`<button type="button" class="tp-bkn" data-cp="${esc(q.account_no)}">${esc(q.account_no)} · ຄັດລອກ</button>`:''}${q.account_name?`<small>${esc(q.account_name)}</small>`:''}</div>`}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-bk]');if(b){PQI=+b.dataset.bk||0;tpBk();tpQR();return}const c=e.target.closest&&e.target.closest('[data-cp]');if(c){const t=c.dataset.cp;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).catch(()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(_){}a.remove()}).finally(()=>tpToast('ຄັດລອກເລກບັນຊີແລ້ວ'))}});
 function tpOpen(){if(!USER)return;document.querySelectorAll('.tp-ov,.tp-sh').forEach(x=>x.remove());
 document.body.insertAdjacentHTML('beforeend',`<div class="tp-ov"></div><section class="tp-sh"><div class="tp-gr"></div><div class="tp-f1"><h3>สแกนเพื่อโอนเงิน</h3><p class="tp-sub">โอนตามยอดให้ตรง แล้วแนบสลิปด้านล่าง</p>
-<div class="tp-qrw"><div class="tp-fr tp-cut"><div class="tp-in tp-cut"><canvas class="tp-qr" width="29" height="29"></canvas><small>PXPSHOP</small><b>${tpf(tpA)} กีบ</b></div></div></div>
+<div class="tp-qrw"><div class="tp-fr tp-cut"><div class="tp-in tp-cut"><canvas class="tp-qr" width="29" height="29"></canvas><small>PXPSHOP</small><b>${tpf(tpA)} กีบ</b></div></div></div><div class="tp-bk" id="tpbk"></div>
 <label class="tp-up"><input class="tp-fi" type="file" accept="image/*" hidden><img class="tp-pv" alt=""><button class="tp-rm" type="button" aria-label="x">✕</button><span class="tp-t"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg><span>แตะเพื่อแนบสลิปการโอน</span></span></label>
 <button class="tp-cta tp-cf" disabled>ยืนยันการเติมเงิน</button></div>
 <div class="tp-done"><div class="tp-ck"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div><h3>ส่งคำขอเรียบร้อย</h3><p class="tp-sub tp-okt"></p><button class="tp-cta tp-cl">ตกลง</button></div></section>`);
-const sh=$('.tp-sh');tr(sh);tpQR();document.body.style.overflow='hidden';sh.offsetWidth;sh.classList.add('on');$('.tp-ov').classList.add('on')}
+const sh=$('.tp-sh');tr(sh);tpBk();tpQR();document.body.style.overflow='hidden';sh.offsetWidth;sh.classList.add('on');$('.tp-ov').classList.add('on')}
 function tpClose(){const sh=$('.tp-sh'),ov=$('.tp-ov');if(!sh)return;sh.classList.remove('on');ov.classList.remove('on');document.body.style.overflow='';setTimeout(()=>{sh.remove();ov.remove()},600)}
 function tpClr(){const f=$('.tp-fi');if(!f)return;f.value='';$('.tp-pv').removeAttribute('src');$('.tp-up').classList.remove('has');$('.tp-cf').disabled=true}
 document.addEventListener('click',e=>{const t=e.target;
@@ -578,6 +585,7 @@ document.addEventListener('input',e=>{if(e.target.id==='slq'&&isAdm()){clearTime
 let SET={shop_name:'PXPSHOP',logo_url:null,banner_url:null,maintenance:false,maint_title:'',maint_msg:'',announce_on:false,announce_text:'',topup_min:10000,topup_max:5000000,topup_qr_url:null};
 const maint=()=>!!(SET.maintenance&&!isAdm());
 async function loadSettings(){try{if(sb){const r=await sb.rpc('public_settings');if(r.data)SET={...SET,...r.data}}}catch(_){}
+try{if(sb){const q=await sb.from('payment_qrs').select('id,bank,image_url,account_no,account_name').order('created_at');if(!q.error&&Array.isArray(q.data))PQL=q.data}}catch(_){}
 ctsSync();TPMIN=SET.topup_min;TPMAX=SET.topup_max;TPQR=SET.topup_qr_url||'';brand(document)}
 function brand(r){const n=SET.shop_name||'PXPSHOP';document.title=n;document.querySelectorAll('.dh b,.hd .hn').forEach(e=>{e.textContent=n});const w=document.createTreeWalker(r===document?document.body:r,NodeFilter.SHOW_TEXT);let x;while(x=w.nextNode())if(x.nodeValue.includes('PXPSHOP'))x.nodeValue=x.nodeValue.split('PXPSHOP').join(n);
 if(SET.logo_url){document.querySelectorAll('.dh .ph,.alg,.hd .hl').forEach(e=>{if(!e.querySelector('img'))e.innerHTML='<img alt="" src="'+esc(SET.logo_url)+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">'});let l=document.querySelector('link[rel=icon]');if(!l){l=document.createElement('link');l.rel='icon';document.head.appendChild(l)}l.href=SET.logo_url}
@@ -1009,6 +1017,7 @@ const MIC={
 // เมนู: ['id','ชื่อ',ไอคอนหลัก,[ลูก: [view-id,'ชื่อ',ไอคอน]]]  — ลูกที่ยังไม่มี views[view-id] จะกดแล้วขึ้น "ยังไม่เปิดใช้งาน"
 // ต่อฟังก์ชันใหม่ภายหลัง: แค่เพิ่ม views['admin-coupon']=()=>`...` (ชื่อ id ตามด้านล่าง) เมนูจะลิงก์ให้เองอัตโนมัติ
 const SIC={
+ qr:MI('<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M14 14h3v3h-3zM19 14h2v2h-2zM14 19h2v2h-2zM18 18h3v3h-3z" fill="currentColor"/>'),
  box:MI('<path d="M3 8.500h18v11.500a1.500 1.500 0 01-1.500 1.500h-15A1.500 1.500 0 013 20zM4.500 3.500h15L21 7.500H3z" fill="currentColor"/><rect x="9.500" y="10.500" width="5" height="2.200" rx="1.100" fill="#050505"/>'),
  ticket:MI('<path d="M3 7.500A1.500 1.500 0 014.500 6h15A1.500 1.500 0 0121 7.500v2.700a2 2 0 000 3.600v2.700a1.500 1.500 0 01-1.500 1.500h-15A1.500 1.500 0 013 16.500v-2.700a2 2 0 000-3.600z" fill="currentColor"/><rect x="7" y="9.500" width="10" height="5" rx="1.200" fill="none" stroke="#050505" stroke-width="1.800"/>'),
  bolt:MI('<path d="M13.500 2L4.500 13.500h6L9.500 22l9-12h-6z" fill="currentColor"/>'),
@@ -1024,7 +1033,7 @@ const MENU=[
  ['admin','Dashboard',MIC.dash,'admin'],
  ['g-prod','สินค้า & หมวดหมู่',MIC.box,[['admin-prod','จัดการสินค้า & หมวดหมู่',SIC.box],['admin-coupon','คูปอง & โค้ดฟรี',SIC.ticket],['admin-flash','Flash Sale',SIC.bolt],['admin-game','มินิเกม',SIC.pad]]],
  ['g-mem','สมาชิก & รายการ',MIC.users,[['admin-acc','จัดการสมาชิก',SIC.ucog],['admin-agent','ตัวแทนจำหน่าย',SIC.hand]]],
- ['g-pay','ระบบชำระเงิน',MIC.wallet,[['admin-topup','จัดการเติมเงิน',SIC.wallet]]],
+ ['g-pay','ระบบชำระเงิน',MIC.wallet,[['admin-topup','จัดการเติมเงิน',SIC.wallet],['admin-qr','QR ຊຳລະເງິນ',SIC.qr]]],
  ['g-api','เชื่อมต่อ API',MIC.plug,[['admin-webhook','Webhook Discord',SIC.disc]]],
  ['g-set','ตั้งค่าทั่วไป',MIC.sl,[['admin-set','ตั้งค่าเว็บไซต์',SIC.mon]]]
 ];
@@ -1181,6 +1190,19 @@ show=(o=>function(v,m){const r=o(v,m);const on=/^admin/.test(CUR);mode(on);bd.cl
 // ฟอร์มเพิ่ม/แก้ไขสินค้า และเติมสต็อก ใช้หน้าเดิม (admin-add / admin-stock) ซึ่งเชื่อมฐานข้อมูลอยู่แล้ว · ถ้ายังไม่มีคอลัมน์ products.deleted_at / categories.description ให้รัน admin-products-categories.sql (หน้านี้ตรวจเองอัตโนมัติ)
 (function(){
 const $=s=>document.querySelector(s);
+// ---------- ภาษาลาว: หน้านี้แสดงเป็นภาษาลาวทั้งหมด (ข้อความที่ผู้ใช้กรอกเอง เช่น ชื่อสินค้า/หมวดหมู่ ไม่ถูกแปล — ใส่ data-u) ----------
+const LAD={"ยังไม่นับ": "ຍັງບໍ່ທັນນັບ", "แพ็กเกจร้านยังไม่เริ่มนับเวลา · เมื่อกำหนดวันเช่าแล้วระบบจะแสดงเวลาคงเหลือที่นี่": "ແພັກເກດຮ້ານຍັງບໍ່ເລີ່ມນັບເວລາ · ເມື່ອກຳນົດວັນເຊົ່າແລ້ວລະບົບຈະສະແດງເວລາທີ່ເຫຼືອຢູ່ບ່ອນນີ້", "แพ็กเกจหมดอายุแล้ว": "ແພັກເກດໝົດອາຍຸແລ້ວ", "แพ็กเกจร้าน": "ແພັກເກດຮ້ານ", "หมดอายุเมื่อ": "ໝົດອາຍຸເມື່ອ", "หมดอายุ": "ໝົດອາຍຸ", "เหลือเวลาอีก": "ເຫຼືອເວລາອີກ", "ชั่วโมง": "ຊົ່ວໂມງ", "วัน": "ມື້", "เวลา": "ເວລາ", " น.": " ໂມງ", "คงเหลือ": "ຄົງເຫຼືອ", "เหลือ": "ເຫຼືອ", "ต่ออายุเว็บไซต์": "ຕໍ່ອາຍຸເວັບໄຊ", "จัดการสินค้า": "ຈັດການສິນຄ້າ", "จัดการหมวดหมู่": "ຈັດການໝວດໝູ່", "ลบสินค้าแล้ว": "ລຶບສິນຄ້າແລ້ວ", "ค้นหาชื่อสินค้า...": "ຄົ້ນຫາຊື່ສິນຄ້າ...", "เพิ่มสินค้า": "ເພີ່ມສິນຄ້າ", "ทั้งหมด": "ທັງໝົດ", "ไม่ระบุหมวดหมู่": "ບໍ່ລະບຸໝວດໝູ່", "กำลังโหลด...": "ກຳລັງໂຫຼດ...", "โหลดข้อมูลไม่สำเร็จ": "ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ", "ยังไม่มีสินค้าในหมวดนี้": "ຍັງບໍ່ມີສິນຄ້າໃນໝວດນີ້", "ไม่พบสินค้าที่ค้นหา": "ບໍ່ພົບສິນຄ້າທີ່ຄົ້ນຫາ", "เริ่ม ": "ເລີ່ມ ", "ขายแล้ว": "ຂາຍແລ້ວ", "ซ่อนอยู่": "ເຊື່ອງຢູ່", "ปิดขาย": "ປິດຂາຍ", "เปิดขาย": "ເປີດຂາຍ", "กำลังอัปเดต": "ກຳລັງອັບເດດ", "สินค้าหมด": "ສິນຄ້າໝົດ", "เพิ่มสต็อก": "ເພີ່ມສະຕັອກ", "ตัวเลือกสต็อก": "ຕົວເລືອກສະຕັອກ", "แก้ไขสินค้า": "ແກ້ໄຂສິນຄ້າ", "ลบสินค้า": "ລຶບສິນຄ້າ", "ปิด": "ປິດ", "ตัวเลือก": "ຕົວເລືອກ", "คีย์ / โค้ด (หนึ่งบรรทัดต่อ 1 ชิ้น)": "ຄີ / ໂຄ້ດ (ໜຶ່ງແຖວຕໍ່ 1 ຊິ້ນ)", "บันทึกสต็อก": "ບັນທຶກສະຕັອກ", "สต็อกคงเหลือ": "ສະຕັອກຄົງເຫຼືອ", "ยังไม่มีสต็อก": "ຍັງບໍ່ມີສະຕັອກ", "เติม": "ເຕີມ", "เพิ่ม/แก้ไขราคาและระยะเวลาได้ที่ \"แก้ไขสินค้า\"": "ເພີ່ມ/ແກ້ໄຂລາຄາ ແລະ ໄລຍະເວລາໄດ້ທີ່ \"ແກ້ໄຂສິນຄ້າ\"", "สินค้านี้ขายแบบชิ้นเดียว ยังไม่มีตัวเลือกระยะเวลา": "ສິນຄ້ານີ້ຂາຍແບບຊິ້ນດຽວ ຍັງບໍ່ມີຕົວເລືອກໄລຍະເວລາ", "ตั้งแพ็กเกจวัน/ชั่วโมงได้ที่ \"แก้ไขสินค้า\"": "ຕັ້ງແພັກເກດມື້/ຊົ່ວໂມງໄດ້ທີ່ \"ແກ້ໄຂສິນຄ້າ\"", "สถานะสินค้า": "ສະຖານະສິນຄ້າ", "โหมดอัปเดต": "ໂໝດອັບເດດ", "แสดง \"กำลังอัปเดต\" ลูกค้าจะสั่งซื้อไม่ได้": "ສະແດງ \"ກຳລັງອັບເດດ\" ລູກຄ້າຈະສັ່ງຊື້ບໍ່ໄດ້", "ปิดเพื่อหยุดขายชั่วคราว (ลูกค้าจะเห็น \"ปิดขาย\")": "ປິດເພື່ອຢຸດຂາຍຊົ່ວຄາວ (ລູກຄ້າຈະເຫັນ \"ປິດຂາຍ\")", "กลับไปสินค้าทั้งหมด": "ກັບໄປສິນຄ້າທັງໝົດ", "ยังไม่ได้เปิดระบบเก็บสินค้าที่ลบ — รันไฟล์ SQL ที่แนบมา (เพิ่มคอลัมน์ products.deleted_at) แล้วสินค้าที่ลบจะมาอยู่ที่นี่ให้กู้คืนได้": "ຍັງບໍ່ໄດ້ເປີດລະບົບເກັບສິນຄ້າທີ່ລຶບ — ຣັນໄຟລ໌ SQL ທີ່ແນບມາ (ເພີ່ມຄໍລຳ products.deleted_at) ແລ້ວສິນຄ້າທີ່ລຶບຈະມາຢູ່ນີ້ໃຫ້ກູ້ຄືນໄດ້", "ยังไม่มีสินค้าที่ลบ": "ຍັງບໍ່ມີສິນຄ້າທີ່ລຶບ", "ลบเมื่อ": "ລຶບເມື່ອ", "กู้คืน": "ກູ້ຄືນ", "ลบถาวร": "ລຶບຖາວອນ", "เพิ่มหมวดหมู่ใหม่": "ເພີ່ມໝວດໝູ່ໃໝ່", "แก้ไขหมวดหมู่": "ແກ້ໄຂໝວດໝູ່", "ชื่อหมวดหมู่": "ຊື່ໝວດໝູ່", "เช่น Digital License Premium": "ເຊັ່ນ Digital License Premium", "คำอธิบาย": "ຄຳອະທິບາຍ", "เขียนรายละเอียดสั้นๆ...": "ຂຽນລາຍລະອຽດສັ້ນໆ...", "รูปภาพหน้าปกหมวดหมู่": "ຮູບພາບໜ້າປົກໝວດໝູ່", "คลิกเพื่ออัปโหลดรูปจากเครื่อง": "ກົດເພື່ອອັບໂຫຼດຮູບຈາກເຄື່ອງ", "อัปโหลดจากเครื่อง": "ອັບໂຫຼດຈາກເຄື່ອງ", "หรือวางลิงก์ URL รูปภาพ": "ຫຼືວາງລິ້ງ URL ຮູບພາບ", "รองรับ JPG / PNG / WEBP / GIF สูงสุด 10MB": "ຮອງຮັບ JPG / PNG / WEBP / GIF ສູງສຸດ 10MB", "บันทึกและสร้างหมวดหมู่": "ບັນທຶກ ແລະ ສ້າງໝວດໝູ່", "บันทึกการแก้ไข": "ບັນທຶກການແກ້ໄຂ", "ยกเลิกการแก้ไข": "ຍົກເລີກການແກ້ໄຂ", "รายการหมวดหมู่ทั้งหมด": "ລາຍການໝວດໝູ່ທັງໝົດ", "ยังไม่มีหมวดหมู่": "ຍັງບໍ່ມີໝວດໝູ່", "สินค้า": "ສິນຄ້າ", "แสดงในร้าน": "ສະແດງໃນຮ້ານ", "ลบรูป": "ລຶບຮູບ", "ขึ้น": "ຂຶ້ນ", "ลง": "ລົງ", "แก้ไข": "ແກ້ໄຂ", "ลบ": "ລຶບ", "ชิ้น": "ຊິ້ນ", "ชม.": "ຊມ.", "ฐานข้อมูลยังไม่มีคอลัมน์คำอธิบาย (categories.description) — รันไฟล์ SQL ที่แนบมาก่อน ไม่งั้นระบบจะบันทึกเฉพาะชื่อและรูป": "ຖານຂໍ້ມູນຍັງບໍ່ມີຄໍລຳຄຳອະທິບາຍ (categories.description) — ຣັນໄຟລ໌ SQL ທີ່ແນບມາກ່ອນ ບໍ່ດັ່ງນັ້ນລະບົບຈະບັນທຶກສະເພາະຊື່ ແລະ ຮູບ", "กำลังบันทึก...": "ກຳລັງບັນທຶກ...", "กรุณาใส่ชื่อหมวดหมู่": "ກະລຸນາໃສ່ຊື່ໝວດໝູ່", "มีหมวดหมู่ชื่อนี้อยู่แล้ว": "ມີໝວດໝູ່ຊື່ນີ້ຢູ່ແລ້ວ", "ลิงก์รูปภาพไม่ถูกต้อง": "ລິ້ງຮູບພາບບໍ່ຖືກຕ້ອງ", "ไฟล์รูปไม่ถูกต้อง": "ໄຟລ໌ຮູບບໍ່ຖືກຕ້ອງ", "ไฟล์ใหญ่เกิน 10MB": "ໄຟລ໌ໃຫຍ່ເກີນ 10MB", "บันทึกหมวดหมู่สำเร็จ": "ບັນທຶກໝວດໝູ່ສຳເລັດ", "เพิ่มหมวดหมู่สำเร็จ": "ເພີ່ມໝວດໝູ່ສຳເລັດ", "บันทึกไม่สำเร็จ": "ບັນທຶກບໍ່ສຳເລັດ", "ทำรายการไม่สำเร็จ": "ດຳເນີນການບໍ່ສຳເລັດ", "ลบหมวดหมู่แล้ว": "ລຶບໝວດໝູ່ແລ້ວ", "แสดงหมวดหมู่ในร้านแล้ว": "ສະແດງໝວດໝູ່ໃນຮ້ານແລ້ວ", "ซ่อนหมวดหมู่จากร้านแล้ว": "ເຊື່ອງໝວດໝູ່ຈາກຮ້ານແລ້ວ", "ลบหมวดหมู่นี้ใช่ไหม? สินค้าในหมวดจะไม่ถูกลบ": "ລຶບໝວດໝູ່ນີ້ແມ່ນບໍ? ສິນຄ້າໃນໝວດຈະບໍ່ຖືກລຶບ", "เปิดโหมดอัปเดตแล้ว": "ເປີດໂໝດອັບເດດແລ້ວ", "ปิดโหมดอัปเดตแล้ว": "ປິດໂໝດອັບເດດແລ້ວ", "ปิดขายสินค้าแล้ว": "ປິດຂາຍສິນຄ້າແລ້ວ", "เปิดขายสินค้าแล้ว": "ເປີດຂາຍສິນຄ້າແລ້ວ", "กู้คืนสินค้าแล้ว": "ກູ້ຄືນສິນຄ້າແລ້ວ", "ลบถาวรแล้ว": "ລຶບຖາວອນແລ້ວ", "กรุณาวางคีย์ / โค้ดอย่างน้อย 1 บรรทัด": "ກະລຸນາວາງຄີ / ໂຄ້ດຢ່າງໜ້ອຍ 1 ແຖວ", "ครั้งละไม่เกิน 500 ชิ้น": "ເທື່ອລະບໍ່ເກີນ 500 ຊິ້ນ", "เติมสต็อกสำเร็จ +": "ເຕີມສະຕັອກສຳເລັດ +", "เติมไม่สำเร็จ": "ເຕີມບໍ່ສຳເລັດ", "ลบสต็อกชิ้นนี้ใช่ไหม?": "ລຶບສະຕັອກຊິ້ນນີ້ແມ່ນບໍ?", "ลบสต็อกแล้ว": "ລຶບສະຕັອກແລ້ວ", "ลบไม่สำเร็จ": "ລຶບບໍ່ສຳເລັດ", "ไฟล์เกินขีดจำกัดของที่เก็บรูป (ตอนนี้ 5MB) — รันไฟล์ SQL เพื่อขยายเป็น 10MB": "ໄຟລ໌ເກີນຂີດຈຳກັດຂອງບ່ອນເກັບຮູບ (ຕອນນີ້ 5MB) — ຣັນໄຟລ໌ SQL ເພື່ອຂະຫຍາຍເປັນ 10MB", "ย้ายสินค้า": "ຍ້າຍສິນຄ້າ", "ไปที่ \"ลบสินค้าแล้ว\" ใช่ไหม?": "ໄປທີ່ \"ລຶບສິນຄ້າແລ້ວ\" ແມ່ນບໍ?", "ถาวรใช่ไหม? กู้คืนไม่ได้": "ຖາວອນແມ່ນບໍ? ກູ້ຄືນບໍ່ໄດ້"};
+let LAK=Object.keys(LAD).sort((a,c)=>c.length-a.length);
+const TH=/[\u0E00-\u0E7F]/;
+const T=t=>{t=String(t);if(!TH.test(t))return t;for(const k of LAK)if(t.includes(k))t=t.split(k).join(LAD[k]);return t};
+const tpToast=m=>globalThis.tpToast(T(m)),okPop=m=>globalThis.okPop(T(m));
+function laNode(n){
+ if(n.nodeType===3){if(TH.test(n.nodeValue)&&!(n.parentNode.closest&&n.parentNode.closest('[data-u]')))n.nodeValue=T(n.nodeValue);return}
+ if(n.nodeType!==1)return;
+ const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);let x;const L=[];while(x=w.nextNode())L.push(x);L.forEach(laNode);
+ [n,...n.querySelectorAll('[placeholder],[aria-label]')].forEach(e=>{['placeholder','aria-label'].forEach(a=>{const v=e.getAttribute&&e.getAttribute(a);if(v&&TH.test(v))e.setAttribute(a,T(v))})});
+}
+new MutationObserver(ms=>{for(const m of ms)m.addedNodes.forEach(n=>{const e=n.nodeType===1?n:n.parentNode;if(e&&e.closest&&e.closest('.pm'))laNode(n)})}).observe(document.body,{childList:true,subtree:true});
 let PT='prod',PV='all',PQ='',PC='all'; // แท็บ / มุมมอง (all|del) / คำค้น / หมวดที่เลือก
 let PL=[],CL=[],DEL_OK=true,CDESC=true,BUSY=false;
 let RENT=null; // วันหมดอายุแพ็กเกจร้าน = shop_secrets.rent_expires_at (แอดมินอ่านได้)
@@ -1206,7 +1228,7 @@ const IC={
  gear:I('<circle cx="12" cy="12" r="3"/><path d="M12 2.500v3M12 18.500v3M2.500 12h3M18.500 12h3M5.300 5.300l2.100 2.100M16.600 16.600l2.100 2.100M5.300 18.700l2.100-2.100M16.600 7.400l2.100-2.100"/>',16),
  img:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#3a3a3a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg>'
 };
-const MO=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const MO=['ມັງກອນ','ກຸມພາ','ມີນາ','ເມສາ','ພຶດສະພາ','ມິຖຸນາ','ກໍລະກົດ','ສິງຫາ','ກັນຍາ','ຕຸລາ','ພະຈິກ','ທັນວາ'];
 const p2=n=>String(n).padStart(2,'0');
 const thumb=u=>`<div class="pm-th">${u?`<img src="${esc(u)}" alt="" loading="lazy">`:IC.img}</div>`;
 const oks=p=>Array.isArray(p.options)?p.options:[];
@@ -1219,7 +1241,7 @@ function stCard(){
  let h='ยังไม่นับ',d='แพ็กเกจร้านยังไม่เริ่มนับเวลา · เมื่อกำหนดวันเช่าแล้วระบบจะแสดงเวลาคงเหลือที่นี่';
  const ex=(RENT||SET.package_expires_at)?new Date(RENT||SET.package_expires_at):null;
  if(ex&&!isNaN(ex)){
-  const ms=ex-Date.now(),dt=`${ex.getDate()} ${MO[ex.getMonth()]} ${ex.getFullYear()+543} เวลา ${p2(ex.getHours())}:${p2(ex.getMinutes())} น.`;
+  const ms=ex-Date.now(),dt=`${ex.getDate()} ${MO[ex.getMonth()]} ${ex.getFullYear()} เวลา ${p2(ex.getHours())}:${p2(ex.getMinutes())} น.`;
   if(ms<=0){h='แพ็กเกจหมดอายุแล้ว';d=`แพ็กเกจร้าน ${SET.shop_name||'PXPSHOP'} หมดอายุเมื่อ ${dt}`}
   else{const dd=Math.floor(ms/864e5),hh=Math.floor(ms%864e5/36e5),t=`${dd} วัน ${hh} ชั่วโมง`;h='เหลือเวลาอีก '+t;d=`แพ็กเกจร้าน ${SET.shop_name||'PXPSHOP'} หมดอายุ ${dt} · คงเหลือ ${t}`}
  }
@@ -1254,7 +1276,7 @@ views['admin-prod']=()=>{pInit(0);CE={id:null,f:null,old:''};return `<div class=
 </div></div>`};
 
 // ---------- โหลดข้อมูลจริง ----------
-const PHT={pmq:'ค้นหาชื่อสินค้า...',pmcn:'เช่น Digital License Premium',pmcd:'เขียนรายละเอียดสั้นๆ...',pmcu:'หรือวางลิงก์ URL รูปภาพ'};
+const PHT={pmq:T('ค้นหาชื่อสินค้า...'),pmcn:T('เช่น Digital License Premium'),pmcd:T('เขียนรายละเอียดสั้นๆ...'),pmcu:T('หรือวางลิงก์ URL รูปภาพ')};
 function pInit(n){ // รอจนหน้าถูกวางลง DOM แล้วคืน placeholder เป็นภาษาไทยตามดีไซน์ (ระบบแปลลาวอัตโนมัติจะเปลี่ยนให้) แล้วโหลดข้อมูล
  if(!$('#pml')){if(n<60)setTimeout(()=>pInit(n+1),50);return}
  setTimeout(()=>{for(const k in PHT){const e=document.getElementById(k);if(e)e.placeholder=PHT[k]}},0);
@@ -1284,11 +1306,11 @@ const reload=async()=>{await pLoad();loadProds()};
 const BL={upd:'กำลังอัปเดต',off:'ปิดขาย',out:'สินค้าหมด',ok:'เปิดขาย'};
 function pRow(p){
  const s=pStat(p)||'ok';
- return `<div class="pm-r pm-pc" data-id="${esc(p.id)}"><div class="pm-pi">${p.image_url?`<img src="${esc(p.image_url)}" alt="" loading="lazy">`:IC.img2}<button type="button" class="pm-bd ${s}" data-a="status"><i></i><span>${BL[s]}</span></button></div><div class="pm-pb"><h3>${esc(p.name)}</h3><div class="pm-pp">${pPrice(p)}</div><div class="pm-tg"><em>${BL[s]}</em><em>${p.stock|0} ชิ้น</em>${p.is_active===false?'<em class="off">ซ่อนอยู่</em>':''}</div><div class="pm-sd">ขายแล้ว ${p.sold|0}</div><button type="button" class="pm-b" data-a="stock">${IC.stock}<span>เพิ่มสต็อก</span></button><div class="pm-b2"><button type="button" class="pm-b" data-a="opts">${IC.gear}<span>ตัวเลือกสต็อก</span></button><button type="button" class="pm-b" data-a="edit">${IC.edit}<span>แก้ไขสินค้า</span></button></div><button type="button" class="pm-b dg" data-a="del">${IC.trash}<span>ลบสินค้า</span></button></div></div>`;
+ return `<div class="pm-r pm-pc" data-id="${esc(p.id)}"><div class="pm-pi">${p.image_url?`<img src="${esc(p.image_url)}" alt="" loading="lazy">`:IC.img2}<button type="button" class="pm-bd ${s}" data-a="status"><i></i><span>${BL[s]}</span></button></div><div class="pm-pb"><h3 data-u>${esc(p.name)}</h3><div class="pm-pp">${pPrice(p)}</div><div class="pm-tg"><em>${BL[s]}</em><em>${p.stock|0} ชิ้น</em>${p.is_active===false?'<em class="off">ซ่อนอยู่</em>':''}</div><div class="pm-sd">ขายแล้ว ${p.sold|0}</div><button type="button" class="pm-b" data-a="stock">${IC.stock}<span>เพิ่มสต็อก</span></button><div class="pm-b2"><button type="button" class="pm-b" data-a="opts">${IC.gear}<span>ตัวเลือกสต็อก</span></button><button type="button" class="pm-b" data-a="edit">${IC.edit}<span>แก้ไขสินค้า</span></button></div><button type="button" class="pm-b dg" data-a="del">${IC.trash}<span>ลบสินค้า</span></button></div></div>`;
 }
 function pDRow(p){
- const d=p.deleted_at?new Date(p.deleted_at):null,ds=d&&!isNaN(d)?`${d.getDate()} ${MO[d.getMonth()].slice(0,3)}. ${d.getFullYear()+543} ${p2(d.getHours())}:${p2(d.getMinutes())} น.`:'';
- return `<div class="pm-r" data-id="${esc(p.id)}"><div class="pm-rt">${thumb(p.image_url)}<div class="pm-ib"><b>${esc(p.name)}</b><small>${pPrice(p)} · ขายแล้ว ${p.sold|0}</small>${ds?`<span class="pm-tg"><em class="off">ลบเมื่อ ${ds}</em></span>`:''}</div></div><div class="pm-rb"><button type="button" class="pm-st" data-a="restore">${IC.undo}<span>กู้คืน</span></button><button type="button" class="pm-st dg" data-a="purge">${IC.trash}<span>ลบถาวร</span></button></div></div>`;
+ const d=p.deleted_at?new Date(p.deleted_at):null,ds=d&&!isNaN(d)?`${d.getDate()} ${MO[d.getMonth()]} ${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())} น.`:'';
+ return `<div class="pm-r" data-id="${esc(p.id)}"><div class="pm-rt">${thumb(p.image_url)}<div class="pm-ib"><b data-u>${esc(p.name)}</b><small>${pPrice(p)} · ขายแล้ว ${p.sold|0}</small>${ds?`<span class="pm-tg"><em class="off">ลบเมื่อ ${ds}</em></span>`:''}</div></div><div class="pm-rb"><button type="button" class="pm-st" data-a="restore">${IC.undo}<span>กู้คืน</span></button><button type="button" class="pm-st dg" data-a="purge">${IC.trash}<span>ลบถาวร</span></button></div></div>`;
 }
 function pR(){
  const ch=$('#pmch'),l=$('#pml');if(!ch||!l)return;
@@ -1304,8 +1326,8 @@ function pR(){
  const base=PL.filter(p=>!p.deleted_at),none=base.filter(p=>!CL.some(c=>c.id===p.category_id));
  if(PC!=='all'&&PC!=='none'&&!CL.some(c=>String(c.id)===String(PC)))PC='all';
  if(PC==='none'&&!none.length)PC='all';
- const chip=(k,t,n)=>`<button type="button" class="pm-chip${String(PC)===String(k)?' on':''}" data-c="${esc(k)}">${k==='all'?IC.grid:''}<span>${esc(t)} (${n})</span></button>`;
- ch.innerHTML=chip('all','ทั้งหมด',base.length)+CL.map(c=>chip(c.id,c.name,base.filter(p=>p.category_id===c.id).length)).join('')+(none.length&&CL.length?chip('none','ไม่ระบุหมวดหมู่',none.length):'');
+ const chip=(k,t,n,u)=>`<button type="button" class="pm-chip${String(PC)===String(k)?' on':''}" data-c="${esc(k)}">${k==='all'?IC.grid:''}<span${u?' data-u':''}>${esc(t)} (${n})</span></button>`;
+ ch.innerHTML=chip('all','ทั้งหมด',base.length)+CL.map(c=>chip(c.id,c.name,base.filter(p=>p.category_id===c.id).length,1)).join('')+(none.length&&CL.length?chip('none','ไม่ระบุหมวดหมู่',none.length):'');
  const L=base.filter(p=>(PC==='all'||(PC==='none'?!CL.some(c=>c.id===p.category_id):String(p.category_id)===String(PC)))&&(!q||String(p.name||'').toLowerCase().includes(q)));
  l.innerHTML=L.length?L.map(pRow).join(''):`<div class="pm-em">— ${q?'ไม่พบสินค้าที่ค้นหา':'ยังไม่มีสินค้าในหมวดนี้'} —</div>`;
 }
@@ -1323,16 +1345,16 @@ async function pSw(id,k){
 // ---------- หน้าต่างป๊อปอัป: เพิ่มสต็อก / ตัวเลือกสต็อก / สถานะสินค้า ----------
 let MS={id:null,o:0,items:null};
 const mClose=()=>{const o=$('#pmov');if(o)o.remove()};
-function mOpen(t,h){mClose();document.body.insertAdjacentHTML('beforeend',`<div class="pm pm-ov" id="pmov"><section class="pm-md" role="dialog" aria-modal="true"><div class="pm-mh"><h3>${esc(t)}</h3><button type="button" class="pm-mx" data-a="mclose">ปิด</button></div><div class="pm-mbd">${h}</div></section></div>`);requestAnimationFrame(()=>{const o=$('#pmov');if(o)o.classList.add('on')})}
+function mOpen(t,h,nm){mClose();document.body.insertAdjacentHTML('beforeend',`<div class="pm pm-ov" id="pmov"><section class="pm-md" role="dialog" aria-modal="true"><div class="pm-mh"><h3>${esc(t)}${nm?' — <span data-u>'+esc(nm)+'</span>':''}</h3><button type="button" class="pm-mx" data-a="mclose">ปิด</button></div><div class="pm-mbd">${h}</div></section></div>`);requestAnimationFrame(()=>{const o=$('#pmov');if(o)o.classList.add('on')})}
 const stOpts=p=>{const o=oks(p);return o.length?o.map((x,i)=>{const b=optLbl(x);return{i,t:`ตัวเลือก ${i+1} · ${b.n} ${b.u} — ₭${tpf(+x.p||0)} (${(p.option_stock||{})[i]|0} ชิ้น)`}}):[{i:0,t:`ตัวเลือก 1 — ₭${tpf(+p.price||0)} (${p.stock|0} ชิ้น)`}]};
 const stAvail=r=>!(r.is_sold===true||r.sold===true||r.sold_at||r.used_at||r.order_id||(r.status&&String(r.status).toLowerCase()!=='available'));
 function sOpen(id,o){
  const p=PL.find(x=>String(x.id)===String(id));if(!p)return;
  MS={id:p.id,o:o|0,items:null};
- mOpen('เพิ่มสต็อก — '+p.name,`<label class="pm-lb" for="pmso">ตัวเลือก</label><div class="pm-sl"><select class="pm-fi" id="pmso">${stOpts(p).map(x=>`<option value="${x.i}"${x.i===MS.o?' selected':''}>${esc(x.t)}</option>`).join('')}</select>${I('<path d="M8 10l4-4 4 4M8 14l4 4 4-4"/>',16)}</div>
+ mOpen('เพิ่มสต็อก',`<label class="pm-lb" for="pmso">ตัวเลือก</label><div class="pm-sl"><select class="pm-fi" id="pmso">${stOpts(p).map(x=>`<option value="${x.i}"${x.i===MS.o?' selected':''}>${esc(x.t)}</option>`).join('')}</select>${I('<path d="M8 10l4-4 4 4M8 14l4 4 4-4"/>',16)}</div>
 <label class="pm-lb" for="pmst">คีย์ / โค้ด (หนึ่งบรรทัดต่อ 1 ชิ้น)</label><textarea class="pm-fi pm-ta" id="pmst" placeholder="KEY-001&#10;KEY-002" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
 <button type="button" class="pm-go" id="pmsg">${IC.plus}<span>บันทึกสต็อก</span></button>
-<h4 class="pm-sh" id="pmsh">สต็อกคงเหลือ (…)</h4><div id="pmsl"><div class="pm-em">กำลังโหลด...</div></div>`);
+<h4 class="pm-sh" id="pmsh">สต็อกคงเหลือ (…)</h4><div id="pmsl"><div class="pm-em">กำลังโหลด...</div></div>`,p.name);
  sLoad();
 }
 async function sLoad(){
@@ -1342,7 +1364,7 @@ async function sLoad(){
  const l=$('#pmsl'),h=$('#pmsh');if(!l)return;
  if(!MS.items){h.textContent='สต็อกคงเหลือ';l.innerHTML='<div class="pm-em">โหลดไม่สำเร็จ'+(err?' ['+esc(err)+']':'')+'</div>';return}
  h.textContent='สต็อกคงเหลือ ('+MS.items.length+')';
- l.innerHTML=MS.items.length?MS.items.map(r=>{const c=String(r.content==null?'':r.content);return `<div class="pm-si" data-sid="${esc(r.id)}"><button type="button" class="pm-sx" data-a="sdel" aria-label="ลบ">${IC.trash}</button><div><b>${esc(c.length>40?c.slice(0,40)+'…':c)}</b><small>ตัวเลือก ${(r.option_idx==null?0:+r.option_idx)+1} · available</small></div></div>`}).join(''):'<div class="pm-em">— ยังไม่มีสต็อก —</div>';
+ l.innerHTML=MS.items.length?MS.items.map(r=>{const c=String(r.content==null?'':r.content);return `<div class="pm-si" data-sid="${esc(r.id)}"><button type="button" class="pm-sx" data-a="sdel" aria-label="ลบ">${IC.trash}</button><div><b data-u>${esc(c.length>40?c.slice(0,40)+'…':c)}</b><small>ตัวเลือก ${(r.option_idx==null?0:+r.option_idx)+1} · available</small></div></div>`}).join(''):'<div class="pm-em">— ยังไม่มีสต็อก —</div>';
 }
 async function sAdd(){
  const p=PL.find(x=>String(x.id)===String(MS.id)),ta=$('#pmst'),b=$('#pmsg');if(!p||!ta||!sb||!isAdm()||BUSY)return;
@@ -1355,7 +1377,7 @@ async function sAdd(){
 }
 function sOptSync(p){const s=$('#pmso');if(!s)return;const v=s.value;s.innerHTML=stOpts(p).map(x=>`<option value="${x.i}">${esc(x.t)}</option>`).join('');s.value=v}
 async function sDel(sid){
- if(!sb||!isAdm()||BUSY||!confirm(trs('ลบสต็อกชิ้นนี้ใช่ไหม?')))return;
+ if(!sb||!isAdm()||BUSY||!confirm(T('ลบสต็อกชิ้นนี้ใช่ไหม?')))return;
  const p=PL.find(x=>String(x.id)===String(MS.id));BUSY=true;
  try{const r=await sb.from('stock_items').delete().eq('id',sid).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');
   if(p){const g=await sb.from('products').select('stock,option_stock,sold').eq('id',p.id).single();if(g.data)Object.assign(p,g.data);pR();sOptSync(p)}
@@ -1364,13 +1386,13 @@ async function sDel(sid){
 }
 function oOpen(id){
  const p=PL.find(x=>String(x.id)===String(id));if(!p)return;const o=oks(p);
- mOpen('ตัวเลือกสต็อก — '+p.name,o.length?o.map((x,i)=>{const b=optLbl(x);return `<div class="pm-si"><div><b>ตัวเลือก ${i+1} · ${b.n} ${b.u}</b><small>₭${tpf(+x.p||0)} · เหลือ ${(p.option_stock||{})[i]|0} ชิ้น</small></div><button type="button" class="pm-st" data-a="ofill" data-pid="${esc(p.id)}" data-i="${i}">${IC.stock}<span>เติม</span></button></div>`}).join('')+`<p class="pm-hint" style="margin:14px 0 0">เพิ่ม/แก้ไขราคาและระยะเวลาได้ที่ "แก้ไขสินค้า"</p>`
- :`<div class="pm-em" style="padding:26px 6px">สินค้านี้ขายแบบชิ้นเดียว ยังไม่มีตัวเลือกระยะเวลา<br>ตั้งแพ็กเกจวัน/ชั่วโมงได้ที่ "แก้ไขสินค้า"</div><button type="button" class="pm-go" data-a="ofill" data-pid="${esc(p.id)}" data-i="0">${IC.plus}<span>เพิ่มสต็อก</span></button>`);
+ mOpen('ตัวเลือกสต็อก',o.length?o.map((x,i)=>{const b=optLbl(x);return `<div class="pm-si"><div><b>ตัวเลือก ${i+1} · ${b.n} ${b.u}</b><small>₭${tpf(+x.p||0)} · เหลือ ${(p.option_stock||{})[i]|0} ชิ้น</small></div><button type="button" class="pm-st" data-a="ofill" data-pid="${esc(p.id)}" data-i="${i}">${IC.stock}<span>เติม</span></button></div>`}).join('')+`<p class="pm-hint" style="margin:14px 0 0">เพิ่ม/แก้ไขราคาและระยะเวลาได้ที่ "แก้ไขสินค้า"</p>`
+ :`<div class="pm-em" style="padding:26px 6px">สินค้านี้ขายแบบชิ้นเดียว ยังไม่มีตัวเลือกระยะเวลา<br>ตั้งแพ็กเกจวัน/ชั่วโมงได้ที่ "แก้ไขสินค้า"</div><button type="button" class="pm-go" data-a="ofill" data-pid="${esc(p.id)}" data-i="0">${IC.plus}<span>เพิ่มสต็อก</span></button>`,p.name);
 }
 function bOpen(id){
  const p=PL.find(x=>String(x.id)===String(id));if(!p)return;
- mOpen('สถานะสินค้า — '+p.name,`<div class="pm-si pm-sr2"><div><b>โหมดอัปเดต</b><small>แสดง "กำลังอัปเดต" ลูกค้าจะสั่งซื้อไม่ได้</small></div><button type="button" class="pm-sw${swOn(p,'update_mode')?' on':''}" data-k="update_mode" data-pid="${esc(p.id)}" role="switch" aria-checked="${swOn(p,'update_mode')}"><i></i></button></div>
-<div class="pm-si pm-sr2"><div><b>เปิดขาย</b><small>ปิดเพื่อหยุดขายชั่วคราว (ลูกค้าจะเห็น "ปิดขาย")</small></div><button type="button" class="pm-sw${swOn(p,'sales_closed')?' on':''}" data-k="sales_closed" data-pid="${esc(p.id)}" role="switch" aria-checked="${swOn(p,'sales_closed')}"><i></i></button></div>`);
+ mOpen('สถานะสินค้า',`<div class="pm-si pm-sr2"><div><b>โหมดอัปเดต</b><small>แสดง "กำลังอัปเดต" ลูกค้าจะสั่งซื้อไม่ได้</small></div><button type="button" class="pm-sw${swOn(p,'update_mode')?' on':''}" data-k="update_mode" data-pid="${esc(p.id)}" role="switch" aria-checked="${swOn(p,'update_mode')}"><i></i></button></div>
+<div class="pm-si pm-sr2"><div><b>เปิดขาย</b><small>ปิดเพื่อหยุดขายชั่วคราว (ลูกค้าจะเห็น "ปิดขาย")</small></div><button type="button" class="pm-sw${swOn(p,'sales_closed')?' on':''}" data-k="sales_closed" data-pid="${esc(p.id)}" role="switch" aria-checked="${swOn(p,'sales_closed')}"><i></i></button></div>`,p.name);
 }
 async function pAct(a,id){
  const p=PL.find(x=>String(x.id)===String(id));if(!p||!sb||!isAdm()||BUSY)return;
@@ -1380,11 +1402,11 @@ async function pAct(a,id){
  if(a==='status'){bOpen(p.id);return}
  try{BUSY=true;let r;
   if(a==='del'){
-   if(DEL_OK){if(!confirm(trs('ย้ายสินค้า "'+p.name+'" ไปที่ "ลบสินค้าแล้ว" ใช่ไหม?')))return;r=await sb.from('products').update({deleted_at:new Date().toISOString(),is_active:false}).eq('id',p.id).select('id')}
-   else{if(!confirm(trs('ลบสินค้า "'+p.name+'" ถาวรใช่ไหม? กู้คืนไม่ได้')))return;r=await sb.from('products').delete().eq('id',p.id).select('id')}
+   if(DEL_OK){if(!confirm(T('ย้ายสินค้า')+' "'+p.name+'" '+T('ไปที่ "ลบสินค้าแล้ว" ใช่ไหม?')))return;r=await sb.from('products').update({deleted_at:new Date().toISOString(),is_active:false}).eq('id',p.id).select('id')}
+   else{if(!confirm(T('ลบสินค้า')+' "'+p.name+'" '+T('ถาวรใช่ไหม? กู้คืนไม่ได้')))return;r=await sb.from('products').delete().eq('id',p.id).select('id')}
    if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');tpToast('ลบสินค้าแล้ว')}
   else if(a==='restore'){r=await sb.from('products').update({deleted_at:null,is_active:true}).eq('id',p.id).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');tpToast('กู้คืนสินค้าแล้ว')}
-  else if(a==='purge'){if(!confirm(trs('ลบสินค้า "'+p.name+'" ถาวรใช่ไหม? กู้คืนไม่ได้')))return;r=await sb.from('products').delete().eq('id',p.id).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');tpToast('ลบถาวรแล้ว')}
+  else if(a==='purge'){if(!confirm(T('ลบสินค้า')+' "'+p.name+'" '+T('ถาวรใช่ไหม? กู้คืนไม่ได้')))return;r=await sb.from('products').delete().eq('id',p.id).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');tpToast('ลบถาวรแล้ว')}
   BUSY=false;await reload();
  }catch(x){fail('ทำรายการไม่สำเร็จ',x)}finally{BUSY=false}
 }
@@ -1393,7 +1415,7 @@ async function pAct(a,id){
 function cR(){
  const l=$('#pmcl'),n=$('#pmcn2');if(!l)return;if(n)n.textContent='('+CL.length+')';
  l.innerHTML=CL.length?CL.map((c,i)=>{const k=PL.filter(p=>!p.deleted_at&&p.category_id===c.id).length;
-  return `<div class="pm-r" data-id="${esc(c.id)}"><div class="pm-rt">${thumb(c.image_url)}<div class="pm-ib"><b>${esc(c.name)}</b>${c.description?`<small class="pm-ds">${esc(c.description)}</small>`:''}<small>${k} สินค้า${c.is_active===false?' · ซ่อนอยู่':''}</small></div><div class="pm-ac"><button type="button" data-a="cedit" aria-label="แก้ไข">${IC.edit}</button><button type="button" data-a="cdel" class="dg" aria-label="ลบ">${IC.trash}</button></div></div>
+  return `<div class="pm-r" data-id="${esc(c.id)}"><div class="pm-rt">${thumb(c.image_url)}<div class="pm-ib"><b data-u>${esc(c.name)}</b>${c.description?`<small class="pm-ds" data-u>${esc(c.description)}</small>`:''}<small>${k} สินค้า${c.is_active===false?' · ซ่อนอยู่':''}</small></div><div class="pm-ac"><button type="button" data-a="cedit" aria-label="แก้ไข">${IC.edit}</button><button type="button" data-a="cdel" class="dg" aria-label="ลบ">${IC.trash}</button></div></div>
 <div class="pm-rb"><label><span>แสดงในร้าน</span>${SW(c.is_active!==false,'is_active')}</label><span class="pm-mv"><button type="button" data-a="cup" aria-label="ขึ้น"${i?'':' disabled'}>${IC.up2}</button><button type="button" data-a="cdn" aria-label="ลง"${i<CL.length-1?'':' disabled'}>${IC.dn2}</button></span></div></div>`}).join(''):'<div class="pm-em">— ยังไม่มีหมวดหมู่ —</div>';
 }
 function cPrev(src){const im=$('#pmpv'),dz=$('#pmdz'),x=$('#pmdx');if(!im)return;if(src){im.src=src;dz.classList.add('has');x.hidden=false}else{im.removeAttribute('src');dz.classList.remove('has');x.hidden=true}}
@@ -1431,7 +1453,7 @@ async function cAct(a,id,b){
  const i=CL.findIndex(x=>String(x.id)===String(id)),c=CL[i];if(!c||!sb||!isAdm()||BUSY)return;
  if(a==='cedit'){cForm(c);const t=$('#pmct');if(t)t.scrollIntoView({behavior:'smooth',block:'center'});return}
  try{BUSY=true;
-  if(a==='cdel'){if(!confirm(trs('ลบหมวดหมู่นี้ใช่ไหม? สินค้าในหมวดจะไม่ถูกลบ')))return;const r=await sb.from('categories').delete().eq('id',c.id).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');if(CE.id===c.id)cForm(null);tpToast('ลบหมวดหมู่แล้ว')}
+  if(a==='cdel'){if(!confirm(T('ลบหมวดหมู่นี้ใช่ไหม? สินค้าในหมวดจะไม่ถูกลบ')))return;const r=await sb.from('categories').delete().eq('id',c.id).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');if(CE.id===c.id)cForm(null);tpToast('ลบหมวดหมู่แล้ว')}
   else if(a==='cup'||a==='cdn'){const j=i+(a==='cup'?-1:1);if(j<0||j>=CL.length)return;[CL[i],CL[j]]=[CL[j],CL[i]];cR();
    const ch=CL.map((x,k)=>[x,k]).filter(([x,k])=>x.sort_order!==k);
    await Promise.all(ch.map(([x,k])=>sb.from('categories').update({sort_order:k}).eq('id',x.id).then(r=>{if(r.error)throw r.error;x.sort_order=k})))}
@@ -1470,6 +1492,433 @@ document.addEventListener('input',e=>{
 document.addEventListener('change',e=>{if(e.target.id==='pmfi')cFile(e.target.files[0]);else if(e.target.id==='pmso')MS.o=+e.target.value});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')mClose()});
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.id==='pmdz'){e.preventDefault();$('#pmfi').click()}});
+globalThis.PMX={stCard:()=>stCard(),T,MO,setRent:v=>{RENT=v},add:o=>{Object.assign(LAD,o);LAK=Object.keys(LAD).sort((a,c)=>c.length-a.length)}};
+})();
+
+// ===== ADMIN V2: จัดการคูปอง & โค้ดฟรี (ตาราง coupons / free_codes ใน Supabase — สร้างด้วยไฟล์ coupons.sql) =====
+// แท็บ 1 = คูปองส่วนลดซื้อสินค้า · แท็บ 2 = โค้ดฟรีเติมเงิน · หน้านี้เป็นฝั่งแอดมิน (สร้าง/ดู/ลบ) ส่วนฝั่งลูกค้าใช้โค้ดต้องต่อกับระบบสั่งซื้อ/เติมเงินเพิ่มภายหลัง
+(function(){
+const $=s=>document.querySelector(s),X=globalThis.PMX;
+if(!X)return;
+const T=X.T;
+X.add({
+'จัดการคูปอง & โค้ดฟรี':'ຈັດການຄູປອງ & ໂຄ້ດຟຣີ',
+'ตั้งค่าโค้ดส่วนลดสินค้า และโค้ดเครดิตฟรีสำหรับโปรโมทร้านค้า':'ຕັ້ງຄ່າໂຄ້ດສ່ວນຫຼຸດສິນຄ້າ ແລະ ໂຄ້ດເຄຣດິດຟຣີສຳລັບໂປຣໂມດຮ້ານຄ້າ',
+'คูปองส่วนลดซื้อสินค้า':'ຄູປອງສ່ວນຫຼຸດຊື້ສິນຄ້າ','โค้ดฟรีเติมเงิน':'ໂຄ້ດຟຣີເຕີມເງິນ','สร้างคูปองส่วนลดใหม่':'ສ້າງຄູປອງສ່ວນຫຼຸດໃໝ່',
+'รหัสคูปอง (ตัวอักษร/ตัวเลข)':'ລະຫັດຄູປອງ (ຕົວອັກສອນ/ຕົວເລກ)','เช่น SAVE10':'ເຊັ່ນ SAVE10','ประเภทส่วนลด':'ປະເພດສ່ວນຫຼຸດ','เปอร์เซ็นต์ (%)':'ເປີເຊັນ (%)','จำนวนเงิน (₭)':'ຈຳນວນເງິນ (₭)',
+'มูลค่าส่วนลด':'ມູນຄ່າສ່ວນຫຼຸດ','จำกัดจำนวน (ครั้ง)':'ຈຳກັດຈຳນວນ (ຄັ້ງ)','ไม่มีจำกัด':'ບໍ່ມີຈຳກັດ','จำกัดต่อ User (ครั้ง)':'ຈຳກັດຕໍ່ User (ຄັ້ງ)','ใช้ได้กับสินค้า':'ໃຊ້ໄດ້ກັບສິນຄ້າ',
+'ค้นหาชื่อสินค้า / หมวด...':'ຄົ້ນຫາຊື່ສິນຄ້າ / ໝວດ...','ไม่เลือก = ใช้ได้ทุกสินค้า · เลือกแล้วใช้ได้เฉพาะรายการที่ติ๊ก':'ບໍ່ເລືອກ = ໃຊ້ໄດ້ທຸກສິນຄ້າ · ເລືອກແລ້ວໃຊ້ໄດ້ສະເພາະລາຍການທີ່ຕິກ',
+'ขั้นต่ำในการซื้อ (₭)':'ຂັ້ນຕ່ຳໃນການຊື້ (₭)','วันหมดอายุคูปอง':'ວັນໝົດອາຍຸຄູປອງ','จำนวนใช้งาน / จำกัดต่อ User — เว้นว่างหรือ 0 = ไม่จำกัด':'ຈຳນວນໃຊ້ງານ / ຈຳກັດຕໍ່ User — ປ່ອຍວ່າງ ຫຼື 0 = ບໍ່ຈຳກັດ',
+'บันทึกและเปิดใช้งานคูปอง':'ບັນທຶກ ແລະ ເປີດໃຊ້ງານຄູປອງ','คูปองทั้งหมดในระบบ':'ຄູປອງທັງໝົດໃນລະບົບ','รหัสคูปอง':'ລະຫັດຄູປອງ','ส่วนลด':'ສ່ວນຫຼຸດ','ขั้นต่ำ':'ຂັ້ນຕ່ຳ',
+'การใช้งาน (รวม)':'ການໃຊ້ງານ (ລວມ)','จำกัด/USER':'ຈຳກັດ/USER','จัดการ':'ຈັດການ','ครั้ง/คน':'ຄັ້ງ/ຄົນ','ไม่หมดอายุ':'ບໍ່ໝົດອາຍຸ','ยังไม่มีคูปอง':'ຍັງບໍ່ມີຄູປອງ','ยังไม่มีโค้ดฟรี':'ຍັງບໍ່ມີໂຄ້ດຟຣີ',
+'สร้างโค้ดกิจกรรมเติมเงินฟรี':'ສ້າງໂຄ້ດກິດຈະກຳເຕີມເງິນຟຣີ','รหัสโค้ดเติมเงินฟรี':'ລະຫັດໂຄ້ດເຕີມເງິນຟຣີ','เช่น FREE50BAHT':'ເຊັ່ນ FREE50K','จำนวนเครดิต (₭)':'ຈຳນວນເຄຣດິດ (₭)',
+'จำกัดต่อ User':'ຈຳກັດຕໍ່ User','จำกัดเคลมรวม':'ຈຳກັດການເຄລມລວມ','วันหมดอายุ':'ວັນໝົດອາຍຸ','บันทึกและเปิดใช้งานโค้ดฟรี':'ບັນທຶກ ແລະ ເປີດໃຊ້ງານໂຄ້ດຟຣີ','โค้ดฟรีทั้งหมดในระบบ':'ໂຄ້ດຟຣີທັງໝົດໃນລະບົບ',
+'รหัสโค้ด':'ລະຫັດໂຄ້ດ','ยอดเงินรางวัล':'ຍອດເງິນລາງວັນ','เคลมรวม':'ເຄລມລວມ','ต่อ USER':'ຕໍ່ USER',
+'กรุณาใส่รหัสคูปอง':'ກະລຸນາໃສ່ລະຫັດຄູປອງ','กรุณาใส่รหัสโค้ด':'ກະລຸນາໃສ່ລະຫັດໂຄ້ດ','รหัสใช้ได้เฉพาะ A-Z 0-9 _ - (3-32 ตัว)':'ລະຫັດໃຊ້ໄດ້ສະເພາະ A-Z 0-9 _ - (3-32 ຕົວ)','รหัสนี้มีอยู่แล้ว':'ລະຫັດນີ້ມີຢູ່ແລ້ວ',
+'เปอร์เซ็นต์ต้องอยู่ระหว่าง 1-100':'ເປີເຊັນຕ້ອງຢູ່ລະຫວ່າງ 1-100','กรุณาใส่มูลค่าส่วนลด':'ກະລຸນາໃສ່ມູນຄ່າສ່ວນຫຼຸດ','กรุณาใส่จำนวนเครดิต':'ກະລຸນາໃສ່ຈຳນວນເຄຣດິດ',
+'วันหมดอายุต้องเป็นเวลาในอนาคต':'ວັນໝົດອາຍຸຕ້ອງເປັນເວລາໃນອະນາຄົດ','สร้างคูปองสำเร็จ':'ສ້າງຄູປອງສຳເລັດ','สร้างโค้ดฟรีสำเร็จ':'ສ້າງໂຄ້ດຟຣີສຳເລັດ','ลบคูปองแล้ว':'ລຶບຄູປອງແລ້ວ','ลบโค้ดแล้ว':'ລຶບໂຄ້ດແລ້ວ',
+'ลบคูปองนี้ใช่ไหม?':'ລຶບຄູປອງນີ້ແມ່ນບໍ?','ลบโค้ดนี้ใช่ไหม?':'ລຶບໂຄ້ດນີ້ແມ່ນບໍ?','ยังไม่ได้สร้างตารางคูปองในฐานข้อมูล — รันไฟล์ coupons.sql ใน Supabase SQL Editor ก่อน':'ຍັງບໍ່ໄດ້ສ້າງຕາຕະລາງຄູປອງໃນຖານຂໍ້ມູນ — ຣັນໄຟລ໌ coupons.sql ໃນ Supabase SQL Editor ກ່ອນ',
+'ไม่พบสินค้า':'ບໍ່ພົບສິນຄ້າ'
+});
+const NUM=v=>{v=String(v==null?'':v).replace(/\D/g,'');return v===''?null:parseInt(v,10)};
+const I=(b,w,ex)=>`<svg viewBox="0 0 24 24" width="${w||20}" height="${w||20}" aria-hidden="true" ${ex||'fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"'}>${b}</svg>`;
+const IC={
+ ticket:I('<path d="M3 7.5A1.5 1.5 0 014.5 6h15A1.5 1.5 0 0121 7.5v2.7a2 2 0 000 3.6v2.7a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 16.5v-2.7a2 2 0 000-3.6z"/><rect x="7" y="9.5" width="10" height="5" rx="1.2" fill="none" stroke="#000" stroke-width="1.8"/>',21,'fill="currentColor"'),
+ gift:I('<path d="M3 8.5h18V12H3zM4.5 13h15v7a1.5 1.5 0 01-1.5 1.5H6A1.5 1.5 0 014.5 20z"/><path d="M12 8.5v13" stroke="#000" stroke-width="1.6"/><path d="M12 8.5C10 8.500 7.500 7.500 7.500 5.500a2 2 0 013.200-1.600C11.500 4.500 12 6.500 12 8.500zM12 8.500c2 0 4.500-1 4.500-3a2 2 0 00-3.200-1.600C12.500 4.500 12 6.500 12 8.500z" fill="none" stroke="currentColor" stroke-width="1.8"/>',21,'fill="currentColor"'),
+ list:I('<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.500" cy="6" r="1.200" fill="currentColor"/><circle cx="4.500" cy="12" r="1.200" fill="currentColor"/><circle cx="4.500" cy="18" r="1.200" fill="currentColor"/>',21,'fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"'),
+ plus:I('<path d="M12 5v14M5 12h14"/>',19,'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"'),
+ trash:I('<path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/>',16),
+ chev:I('<path d="M8 10l4-4 4 4M8 14l4 4 4-4"/>',16),
+ chk:I('<path d="M5 12.5l4.5 4.5L19 7.5"/>',14,'fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"')
+};
+let CT='cp',CPL=[],FCL=[],PRD=[],CTG=[],SETUP=true,SEL=new Set(),PQ='',BUSY=false;
+const p2=n=>String(n).padStart(2,'0');
+const fdt=v=>{const d=new Date(v);return isNaN(d)?'':`${p2(d.getDate())}/${p2(d.getMonth()+1)}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`};
+const lbl=(t,f)=>`<label class="pm-lb" for="${f}">${t}</label>`;
+const inp=(id,ph,ex)=>`<input class="pm-fi${ex&&ex.n?' cp-num':''}" id="${id}" autocomplete="off" ${ex&&ex.n?'inputmode="numeric"':''} placeholder="${ph}" ${ex&&ex.v!=null?`value="${ex.v}"`:''}>`;
+const exp=(id)=>`<input class="pm-fi cp-dt" id="${id}" type="datetime-local">`;
+
+views['admin-coupon']=()=>{SEL=new Set();PQ='';cInit(0);return `<div class="adx pm cp" data-nt>${X.stCard()}
+<h1 class="cp-h">จัดการคูปอง & โค้ดฟรี</h1>
+<p class="cp-sub">ตั้งค่าโค้ดส่วนลดสินค้า และโค้ดเครดิตฟรีสำหรับโปรโมทร้านค้า</p>
+<div class="cp-tabs" role="tablist"><button type="button" role="tab" class="cp-tab${CT==='cp'?' on':''}" data-t="cp">${IC.ticket}<span>คูปองส่วนลดซื้อสินค้า</span></button><button type="button" role="tab" class="cp-tab${CT==='fc'?' on':''}" data-t="fc">${IC.gift}<span>โค้ดฟรีเติมเงิน</span></button></div>
+<div id="cpa"${CT==='cp'?'':' hidden'}>
+<section class="cp-card"><h2 class="cp-ct">${IC.ticket}<span>สร้างคูปองส่วนลดใหม่</span></h2>
+${lbl('รหัสคูปอง (ตัวอักษร/ตัวเลข)','cpc')}<input class="pm-fi cp-code" id="cpc" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="เช่น SAVE10">
+${lbl('ประเภทส่วนลด','cpt')}<div class="pm-sl"><select class="pm-fi" id="cpt"><option value="percent">เปอร์เซ็นต์ (%)</option><option value="fixed">จำนวนเงิน (₭)</option></select>${IC.chev}</div>
+${lbl('มูลค่าส่วนลด','cpv')}${inp('cpv','0',{n:1,v:0})}
+${lbl('จำกัดจำนวน (ครั้ง)','cpm')}${inp('cpm','ไม่มีจำกัด',{n:1})}
+${lbl('จำกัดต่อ User (ครั้ง)','cpu')}${inp('cpu','ไม่มีจำกัด',{n:1})}
+${lbl('ใช้ได้กับสินค้า','cpq')}<input class="pm-fi" id="cpq" type="search" autocomplete="off" placeholder="ค้นหาชื่อสินค้า / หมวด..." style="margin-bottom:10px">
+<div class="cp-pl" id="cppl"><div class="pm-em">กำลังโหลด...</div></div>
+<p class="cp-hint">ไม่เลือก = ใช้ได้ทุกสินค้า · เลือกแล้วใช้ได้เฉพาะรายการที่ติ๊ก</p>
+${lbl('ขั้นต่ำในการซื้อ (₭)','cpn')}${inp('cpn','0',{n:1,v:0})}
+${lbl('วันหมดอายุคูปอง','cpe')}${exp('cpe')}
+<p class="cp-hint" style="margin-top:-4px">จำนวนใช้งาน / จำกัดต่อ User — เว้นว่างหรือ 0 = ไม่จำกัด</p>
+<button type="button" class="pm-go" id="cps">${IC.plus}<span>บันทึกและเปิดใช้งานคูปอง</span></button></section>
+<section class="cp-card"><h2 class="cp-ct">${IC.list}<span>คูปองทั้งหมดในระบบ</span></h2><div id="cpl"><div class="pm-em">กำลังโหลด...</div></div></section>
+</div>
+<div id="cpb"${CT==='fc'?'':' hidden'}>
+<section class="cp-card"><h2 class="cp-ct">${IC.gift}<span>สร้างโค้ดกิจกรรมเติมเงินฟรี</span></h2>
+${lbl('รหัสโค้ดเติมเงินฟรี','fcc')}<input class="pm-fi cp-code" id="fcc" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="เช่น FREE50BAHT">
+${lbl('จำนวนเครดิต (₭)','fca')}${inp('fca','0',{n:1,v:0})}
+${lbl('จำกัดต่อ User','fcu')}${inp('fcu','0',{n:1,v:1})}
+${lbl('จำกัดเคลมรวม','fcm')}${inp('fcm','ไม่มีจำกัด',{n:1})}
+${lbl('วันหมดอายุ','fce')}${exp('fce')}
+<button type="button" class="pm-go" id="fcs">${IC.plus}<span>บันทึกและเปิดใช้งานโค้ดฟรี</span></button></section>
+<section class="cp-card"><h2 class="cp-ct">${IC.list}<span>โค้ดฟรีทั้งหมดในระบบ</span></h2><div id="fcl"><div class="pm-em">กำลังโหลด...</div></div></section>
+</div></div>`};
+
+function cInit(n){
+ if(!$('#cppl')){if(n<60)setTimeout(()=>cInit(n+1),50);return}
+ const q=$('#cpq');if(q)q.placeholder='ຄົ້ນຫາຊື່ສິນຄ້າ / ໝວດ...';
+ cLoad();
+}
+const miss=e=>e&&(e.code==='42P01'||e.code==='PGRST205'||/could not find the table|does not exist|schema cache/i.test(e.message||''));
+async function cLoad(){
+ if(!sb)return;
+ try{
+  const[p,c,cp,fc,rt]=await Promise.all([
+   sb.from('products').select('id,name,category_id,is_active,deleted_at').order('created_at',{ascending:false}),
+   sb.from('categories').select('id,name'),
+   sb.from('coupons').select('*').order('created_at',{ascending:false}),
+   sb.from('free_codes').select('*').order('created_at',{ascending:false}),
+   sb.from('shop_secrets').select('rent_expires_at').eq('id',1).maybeSingle()]);
+  SETUP=!(miss(cp.error)||miss(fc.error));
+  if(!p.error)PRD=(p.data||[]).filter(x=>!x.deleted_at&&x.is_active!==false);
+  if(!c.error)CTG=c.data||[];
+  if(!rt.error&&rt.data){X.setRent(rt.data.rent_expires_at||null);const sc=document.querySelector('.cp .adx-st');if(sc)sc.outerHTML=X.stCard()}
+  if(SETUP){if(cp.error)throw cp.error;if(fc.error)throw fc.error;CPL=cp.data||[];FCL=fc.data||[]}
+  pkR();cR();
+ }catch(x){const m='<div class="pm-em">โหลดข้อมูลไม่สำเร็จ'+(x&&x.message?' ['+esc(x.message)+']':'')+'</div>';['#cpl','#fcl','#cppl'].forEach(s=>{const e=$(s);if(e)e.innerHTML=m})}
+}
+const catOf=p=>{const c=CTG.find(x=>x.id===p.category_id);return c?c.name:''};
+function pkR(){
+ const l=$('#cppl');if(!l)return;const q=PQ.trim().toLowerCase();
+ const L=PRD.filter(p=>!q||String(p.name).toLowerCase().includes(q)||catOf(p).toLowerCase().includes(q));
+ l.innerHTML=L.length?L.map(p=>{const c=catOf(p);return `<label class="cp-pk"><input type="checkbox" value="${esc(p.id)}"${SEL.has(String(p.id))?' checked':''}><i>${IC.chk}</i><span data-u>${esc(p.name)}</span>${c?`<small data-u>${esc(c)}</small>`:''}</label>`}).join(''):'<div class="pm-em" style="padding:20px 8px">ไม่พบสินค้า</div>';
+}
+const th=(...a)=>'<thead><tr>'+a.map(x=>`<th>${x}</th>`).join('')+'</tr></thead>';
+const exCell=v=>{if(!v)return '<span class="cp-ok">ไม่หมดอายุ</span>';const gone=new Date(v)<new Date();return gone?`<div class="cp-ex"><s>${fdt(v)}</s><em>(หมดอายุ)</em></div>`:`<span class="cp-ok">${fdt(v)}</span>`};
+const lim=n=>n>0?`<span class="cp-bd">${n} ครั้ง/คน</span>`:'<span class="cp-mu">ไม่มีจำกัด</span>';
+const del=(k,id)=>`<button type="button" class="cp-del" data-k="${k}" data-id="${esc(id)}">${IC.trash}<span>ลบ</span></button>`;
+function cR(){
+ const a=$('#cpl'),b=$('#fcl');if(!a||!b)return;
+ if(!SETUP){const n='<div class="cp-wn">ยังไม่ได้สร้างตารางคูปองในฐานข้อมูล — รันไฟล์ coupons.sql ใน Supabase SQL Editor ก่อน</div>';a.innerHTML=n;b.innerHTML=n;return}
+ a.innerHTML=CPL.length?`<div class="cp-tw"><table class="cp-t">${th('รหัสคูปอง','ส่วนลด','ขั้นต่ำ','การใช้งาน (รวม)','จำกัด/USER','หมดอายุ','จัดการ')}<tbody>${CPL.map(c=>`<tr><td class="cp-cd">${esc(c.code)}</td><td>${c.discount_type==='percent'?(+c.discount_value)+'%':'₭'+tpf(+c.discount_value||0)}</td><td>₭${tpf(+c.min_purchase||0)}</td><td>${c.used_count|0} / ${c.max_uses>0?c.max_uses:'∞'}</td><td>${lim(c.per_user_limit)}</td><td>${exCell(c.expires_at)}</td><td>${del('cp',c.id)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="pm-em" style="padding:34px 8px 22px">— ยังไม่มีคูปอง —</div>';
+ b.innerHTML=FCL.length?`<div class="cp-tw"><table class="cp-t">${th('รหัสโค้ด','ยอดเงินรางวัล','เคลมรวม','ต่อ USER','หมดอายุ','จัดการ')}<tbody>${FCL.map(c=>`<tr><td class="cp-cd">${esc(c.code)}</td><td>₭${tpf(+c.credit_amount||0)}</td><td>${c.claimed_count|0} / ${c.max_claims>0?c.max_claims:'∞'}</td><td>${lim(c.per_user_limit)}</td><td>${exCell(c.expires_at)}</td><td>${del('fc',c.id)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="pm-em" style="padding:34px 8px 22px">— ยังไม่มีโค้ดฟรี —</div>';
+}
+const tpToast=m=>globalThis.tpToast(T(m)),okPop=m=>globalThis.okPop(T(m));
+const CODE=/^[A-Z0-9_-]{3,32}$/;
+function chkCommon(code,exv,tbl,list){
+ if(!code){tpToast(tbl==='coupons'?'กรุณาใส่รหัสคูปอง':'กรุณาใส่รหัสโค้ด');return false}
+ if(!CODE.test(code)){tpToast('รหัสใช้ได้เฉพาะ A-Z 0-9 _ - (3-32 ตัว)');return false}
+ if(list.some(x=>String(x.code).toUpperCase()===code)){tpToast('รหัสนี้มีอยู่แล้ว');return false}
+ if(exv&&!(new Date(exv)>new Date())){tpToast('วันหมดอายุต้องเป็นเวลาในอนาคต');return false}
+ return true;
+}
+const dupErr=x=>x&&(x.code==='23505'||/duplicate|unique/i.test(x.message||''));
+async function saveCp(){
+ if(!sb||!isAdm()||BUSY)return;
+ const code=$('#cpc').value.trim().toUpperCase(),type=$('#cpt').value,val=NUM($('#cpv').value)||0,exv=$('#cpe').value;
+ if(!chkCommon(code,exv,'coupons',CPL))return;
+ if(!val)return tpToast('กรุณาใส่มูลค่าส่วนลด');
+ if(type==='percent'&&(val<1||val>100))return tpToast('เปอร์เซ็นต์ต้องอยู่ระหว่าง 1-100');
+ const row={code,discount_type:type,discount_value:val,max_uses:NUM($('#cpm').value)||null,per_user_limit:NUM($('#cpu').value)||null,min_purchase:NUM($('#cpn').value)||0,product_ids:[...SEL],expires_at:exv?new Date(exv).toISOString():null,is_active:true};
+ await save('#cps','coupons',row,'สร้างคูปองสำเร็จ',()=>{['#cpc','#cpm','#cpu','#cpe'].forEach(s=>$(s).value='');$('#cpv').value='0';$('#cpn').value='0';$('#cpt').value='percent';SEL=new Set();PQ='';$('#cpq').value='';pkR()});
+}
+async function saveFc(){
+ if(!sb||!isAdm()||BUSY)return;
+ const code=$('#fcc').value.trim().toUpperCase(),amt=NUM($('#fca').value)||0,exv=$('#fce').value;
+ if(!chkCommon(code,exv,'free_codes',FCL))return;
+ if(!amt)return tpToast('กรุณาใส่จำนวนเครดิต');
+ const row={code,credit_amount:amt,per_user_limit:NUM($('#fcu').value)||null,max_claims:NUM($('#fcm').value)||null,expires_at:exv?new Date(exv).toISOString():null,is_active:true};
+ await save('#fcs','free_codes',row,'สร้างโค้ดฟรีสำเร็จ',()=>{['#fcc','#fcm','#fce'].forEach(s=>$(s).value='');$('#fca').value='0';$('#fcu').value='1'});
+}
+async function save(btn,tbl,row,ok,reset){
+ const b=$(btn),lb=b.lastElementChild,old=lb.textContent;BUSY=true;b.disabled=true;lb.textContent=T('กำลังบันทึก...');
+ try{const r=await sb.from(tbl).insert(row).select('id');if(r.error)throw r.error;okPop(ok);reset();BUSY=false;await cLoad()}
+ catch(x){tpToast(dupErr(x)?'รหัสนี้มีอยู่แล้ว':T('บันทึกไม่สำเร็จ')+(x&&x.message?' ['+x.message+']':''))}
+ finally{BUSY=false;b.disabled=false;lb.textContent=old}
+}
+async function delRow(k,id){
+ const tbl=k==='cp'?'coupons':'free_codes';
+ if(!sb||!isAdm()||BUSY||!confirm(T(k==='cp'?'ลบคูปองนี้ใช่ไหม?':'ลบโค้ดนี้ใช่ไหม?')))return;
+ BUSY=true;
+ try{const r=await sb.from(tbl).delete().eq('id',id).select('id');if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');tpToast(k==='cp'?'ลบคูปองแล้ว':'ลบโค้ดแล้ว');BUSY=false;await cLoad()}
+ catch(x){tpToast(T('ลบไม่สำเร็จ')+(x&&x.message?' ['+x.message+']':''))}finally{BUSY=false}
+}
+document.addEventListener('click',e=>{
+ const t=e.target;if(!t.closest||!t.closest('.cp'))return;
+ const tab=t.closest('.cp-tab');
+ if(tab){CT=tab.dataset.t;document.querySelectorAll('.cp-tab').forEach(x=>{const on=x===tab;x.classList.toggle('on',on);x.setAttribute('aria-selected',on)});$('#cpa').hidden=CT!=='cp';$('#cpb').hidden=CT!=='fc';return}
+ if(t.closest('#cps')){saveCp();return}
+ if(t.closest('#fcs')){saveFc();return}
+ const d=t.closest('.cp-del');if(d)delRow(d.dataset.k,d.dataset.id);
+});
+document.addEventListener('input',e=>{
+ const t=e.target;if(!t.closest||!t.closest('.cp'))return;
+ if(t.id==='cpq'){PQ=t.value;pkR();return}
+ if(t.classList.contains('cp-num'))t.value=t.value.replace(/\D/g,'').slice(0,9);
+ else if(t.classList.contains('cp-code'))t.value=t.value.toUpperCase().replace(/[^A-Z0-9_-]/g,'');
+});
+document.addEventListener('change',e=>{
+ const t=e.target;if(t.closest&&t.closest('#cppl')&&t.type==='checkbox'){t.checked?SEL.add(t.value):SEL.delete(t.value)}
+});
+})();
+
+
+// ===== ADMIN V2: Flash Sale (ຕາຕະລາງ flash_sales ໃນ Supabase — ສ້າງດ້ວຍໄຟລ໌ flash_sales.sql) =====
+// ຕັ້ງລາຄາໂປຣເປັນຈຳນວນເງິນ (₭) ເທື່ອລະສິນຄ້າ/ຕົວເລືອກ ຈາກປຸ່ມສາຍຟ້າ (ບໍ່ມີການລົດເປັນ %) · ການຄິດເງິນຕອນຊື້ເຮັດຝັ່ງເຊີບເວີ (purchase_product)
+(function(){
+const $=s=>document.querySelector(s),X=globalThis.PMX;
+if(!X)return;
+const T=X.T;
+const tpToast=m=>globalThis.tpToast(T(m)),okPop=m=>globalThis.okPop(T(m));
+const NUM=v=>{v=String(v==null?'':v).replace(/\D/g,'');return v===''?null:parseInt(v,10)};
+const p2=n=>String(n).padStart(2,'0');
+const lo=d=>{d=new Date(d);return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`};
+const fdt=v=>{const d=new Date(v);return isNaN(d)?'':`${p2(d.getDate())}/${p2(d.getMonth()+1)} ${p2(d.getHours())}:${p2(d.getMinutes())}`};
+const km=n=>'₭'+tpf(Math.round(+n||0));
+const I=(b,w,ex)=>`<svg viewBox="0 0 24 24" width="${w||20}" height="${w||20}" aria-hidden="true" ${ex||'fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"'}>${b}</svg>`;
+const IC={
+ bolt:I('<path d="M13.500 2L4.500 13.500h6.200L9.500 22l9-11.800h-6.100z"/>',20,'fill="currentColor"'),
+ pct:I('<path d="M19 5L5 19"/><circle cx="7" cy="7" r="2.300"/><circle cx="17" cy="17" r="2.300"/>',20),
+ srch:I('<circle cx="11" cy="11" r="6.500"/><path d="M16 16l4.500 4.500"/>',22,'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"'),
+ img:I('<rect x="3.500" y="4.500" width="17" height="15" rx="2.500" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1.700" fill="currentColor"/><path d="M4 18l5-5 3.500 3.500 3-3L20.500 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',24,'fill="none"'),
+ chk:I('<path d="M5 12.500l4.500 4.500L19 7.500"/>',16,'fill="none" stroke="#fff" stroke-width="3.400" stroke-linecap="round" stroke-linejoin="round"'),
+ x:I('<path d="M6 6l12 12M18 6L6 18"/>',22,'fill="none" stroke="currentColor" stroke-width="2.400" stroke-linecap="round"')
+};
+let PRD=[],FL={},SETUP=true,BUSY=false,NOD=new Set(),Q='',MSG='',MD=null,TM=null;
+const miss=e=>e&&(e.code==='42P01'||e.code==='PGRST205'||e.code==='PGRST202'||/could not find the (table|function)|does not exist|schema cache/i.test(e.message||''));
+const opts=p=>Array.isArray(p.options)?p.options:[];
+const optLb=o=>{const d=+o.d||0,h=+o.h||0;return (d?d+' ມື້ ':'')+(h?h+' ຊົ່ວໂມງ':'')||(o.n?String(o.n):'')};
+// ລາຄາປົກກະຕິຂອງຕົວເລືອກ i (i=-1 = ສິນຄ້າບໍ່ມີຕົວເລືອກ)
+const retail=(p,i)=>i<0?+p.price||0:+((opts(p)[i]||{}).p)||0;
+const idxs=p=>opts(p).length?opts(p).map((_,i)=>i):[-1];
+const prom=p=>FL[p.id]||null;
+
+views['admin-flash']=()=>{NOD=new Set();Q='';MSG='';fInit(0);return `<div class="adx pm cp fs" data-nt>${X.stCard()}
+<div class="fs-hd"><i></i><h1>ຈັດການ Flash Sale <em id="fsn">(0)</em></h1></div>
+<p class="fs-sub">ກົດປຸ່ມສາຍຟ້າຂອງແຕ່ລະສິນຄ້າ ເພື່ອປັບລາຄາສິນຄ້າເປັນຈຳນວນເງິນ (₭) ແລະ ຕັ້ງເວລາສິ້ນສຸດ</p>
+<p class="fs-ms" id="fsm" hidden></p>
+<label class="pm-sr fs-sr">${IC.srch}<input id="fsq" type="search" autocomplete="off" placeholder="ຄົ້ນຫາສິນຄ້າ..."></label>
+<div class="fs-tb"><div class="fs-sc"><div class="fs-in" id="fsl"><div class="pm-em">ກຳລັງໂຫຼດ...</div></div></div></div>
+</div>`};
+
+function fInit(n){
+ if(!$('#fsl')){if(n<60)setTimeout(()=>fInit(n+1),50);return}
+ fLoad();
+ clearInterval(TM);TM=setInterval(()=>{if(!$('#fsl')){clearInterval(TM);return}const t=Date.now();let ch=false;for(const k in FL){if(FL[k].end<=t){delete FL[k];ch=true}}if(ch)fR()},20000);
+}
+async function fLoad(){
+ if(!sb)return;
+ try{
+  const[p,f,rt]=await Promise.all([
+   sb.from('products').select('id,name,image_url,price,options,is_active,deleted_at').order('created_at',{ascending:false}),
+   sb.from('flash_sales').select('product_id,option_idx,price,ends_at'),
+   sb.from('shop_secrets').select('rent_expires_at').eq('id',1).maybeSingle()]);
+  if(p.error)throw p.error;
+  PRD=(p.data||[]).filter(x=>!x.deleted_at&&x.is_active!==false);
+  if(!rt.error&&rt.data){X.setRent(rt.data.rent_expires_at||null);const sc=document.querySelector('.fs .adx-st');if(sc)sc.outerHTML=X.stCard()}
+  SETUP=!miss(f.error);
+  FL={};
+  if(SETUP){
+   if(f.error)throw f.error;
+   const now=Date.now();
+   (f.data||[]).forEach(r=>{const e=new Date(r.ends_at).getTime();if(!(e>now))return;const o=FL[r.product_id]||(FL[r.product_id]={end:e,rows:{}});o.rows[r.option_idx]=+r.price;if(e<o.end)o.end=e});
+  }
+  fR();
+ }catch(x){const l=$('#fsl');if(l)l.innerHTML='<div class="pm-em">ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ'+(x&&x.message?' ['+esc(x.message)+']':'')+'</div>'}
+}
+function fR(){
+ const l=$('#fsl');if(!l)return;
+ const n=$('#fsn');if(n)n.textContent='('+PRD.length+')';
+ const m=$('#fsm');if(m){m.textContent=MSG;m.hidden=!MSG}
+  if(!SETUP){l.innerHTML='<div class="cp-wn" style="margin:16px">ຍັງບໍ່ໄດ້ສ້າງຕາຕະລາງ Flash Sale ໃນຖານຂໍ້ມູນ — ຣັນໄຟລ໌ flash_sales.sql ໃນ Supabase SQL Editor ກ່ອນ</div>';return}
+ const q=Q.trim().toLowerCase(),L=PRD.filter(p=>!q||String(p.name).toLowerCase().includes(q));
+  const hd=`<div class="fs-r fs-rh"><span>ສິນຄ້າ</span><span>ລາຄາປົກກະຕິ</span><span>ລາຄາໂປຣ</span><span></span></div>`;
+ const row=p=>{
+  const ix=idxs(p),rs=ix.map(i=>retail(p,i)),lo_=Math.min(...rs),hi=Math.max(...rs);
+  const nrm=lo_===hi?km(lo_):km(lo_)+' – '+km(hi);
+  const f=prom(p);let fc='<span class="fs-no">—</span>';
+  if(f){const v=ix.map(i=>f.rows[i]!=null?f.rows[i]:retail(p,i));const a=Math.min(...v),b=Math.max(...v);
+   const i0=ix.find(i=>f.rows[i]!=null),pc=i0!=null?Math.max(0,retail(p,i0)-f.rows[i0]):0;
+   fc=`<span class="fs-fp">${a===b?km(a):km(a)+' – '+km(b)}</span>${pc>0?`<em class="fs-bg">-${km(pc)}</em>`:''}<small>ໝົດ ${fdt(f.end)}</small>`}
+  return `<div class="fs-r" data-id="${esc(p.id)}"><div class="fs-pd"><span class="fs-th">${p.image_url?`<img alt="" loading="lazy" src="${esc(p.image_url)}">`:IC.img}</span><b data-u>${esc(p.name)}</b></div><span class="fs-pn">${nrm}</span><div class="fs-fc">${fc}</div><button type="button" class="fs-bt" data-a="fopen" aria-label="Flash Sale">${IC.bolt}</button></div>`};
+ l.innerHTML=hd+(L.length?L.map(row).join(''):'<div class="pm-em" style="padding:46px 8px 40px">ບໍ່ພົບສິນຄ້າ</div>');
+}
+const errMsg=x=>{const m=x&&x.message||'';
+ if(/forbidden/.test(m))return 'ບໍ່ມີສິດແອດມິນ';if(/bad_time/.test(m))return 'ເວລາສິ້ນສຸດຕ້ອງເປັນອະນາຄົດ';
+ if(/price_too_high/.test(m))return 'ລາຄາໂປຣຕ້ອງຕ່ຳກວ່າລາຄາປົກກະຕິ';if(miss(x))return 'ຍັງບໍ່ໄດ້ຣັນ flash_sales.sql ໃນ Supabase';return T('ບັນທຶກບໍ່ສຳເລັດ')+(m?' ['+m+']':'')};
+async function rpc(fn,args){const r=await sb.rpc(fn,args);if(r.error)throw r.error;return r.data}
+function mClose(){const o=$('#fsov');if(o)o.remove();MD=null}
+function mOpen(id){
+ const p=PRD.find(x=>String(x.id)===String(id));if(!p)return;
+ mClose();MD=p.id;
+ const f=prom(p),ix=idxs(p),def=f?lo(f.end):'';
+ const rows=ix.map(i=>{const o=i<0?null:opts(p)[i],lb=i<0?'ຕົວເລືອກ 1':'ຕົວເລືອກ '+(i+1),dur=o?optLb(o):'',v=f&&f.rows[i]!=null?f.rows[i]:0;
+  return `<div class="fs-op"><div><b>${lb}</b><small>ລາຄາປົກກະຕິ: ${km(retail(p,i))}${dur?' · '+dur:''}</small></div><input class="fs-ni" inputmode="numeric" autocomplete="off" data-i="${i}" value="${v}" aria-label="${lb}"></div>`}).join('');
+ const rs=ix.map(i=>retail(p,i));
+ document.body.insertAdjacentHTML('beforeend',`<div class="pm pm-ov fs-ov" id="fsov"><section class="fs-md" role="dialog" aria-modal="true">
+<div class="fs-mh"><span class="fs-mi">${IC.bolt}</span><h3>ຕັ້ງຄ່າ Flash Sale</h3><button type="button" class="fs-mx" data-a="fclose" aria-label="ປິດ">${IC.x}</button></div>
+<div class="fs-mb"><div class="fs-pc"><span class="fs-th fs-tl">${p.image_url?`<img alt="" src="${esc(p.image_url)}">`:IC.img}</span><div><b data-u>${esc(p.name)}</b><small>ລາຄາປົກກະຕິ: ${km(Math.min(...rs))}</small></div></div>
+${rows}
+<label class="pm-lb fs-l1" for="fsme" style="margin:22px 0 10px">ເວລາສິ້ນສຸດໂປຣໂມຊັ່ນ</label><input class="pm-fi cp-dt" id="fsme" type="datetime-local" value="${esc(def)}"></div>
+<div class="fs-mf"><button type="button" class="fs-b2" data-a="fclr">ລ້າງໂປຣ</button><button type="button" class="fs-b2" data-a="fclose">ຍົກເລີກ</button><button type="button" class="pm-go fs-sv" data-a="fsave">${IC.bolt}<span>ບັນທຶກ Flash Sale</span></button></div></section></div>`);
+ requestAnimationFrame(()=>{const o=$('#fsov');if(o)o.classList.add('on')});
+}
+async function mSave(){
+ const p=PRD.find(x=>String(x.id)===String(MD));if(!p||!sb||!isAdm()||BUSY)return;
+ const rows=[];let bad=false;
+ document.querySelectorAll('#fsov .fs-ni').forEach(e=>{const i=+e.dataset.i,v=NUM(e.value)||0;if(v>0){if(v>=retail(p,i))bad=true;rows.push({i,p:v})}});
+ if(!rows.length)return tpToast('ກະລຸນາໃສ່ລາຄາໂປຣຢ່າງໜ້ອຍ 1 ຕົວເລືອກ');
+ if(bad)return tpToast('ລາຄາໂປຣຕ້ອງຕ່ຳກວ່າລາຄາປົກກະຕິ');
+ const ev=$('#fsme').value;if(!ev)return tpToast('ກະລຸນາເລືອກເວລາສິ້ນສຸດ');
+ const end=new Date(ev);if(isNaN(end)||!(end>new Date()))return tpToast('ເວລາສິ້ນສຸດຕ້ອງເປັນອະນາຄົດ');
+ const b=$('#fsov .fs-sv'),lb=b.lastElementChild,old=lb.textContent;BUSY=true;b.disabled=true;lb.textContent='ກຳລັງບັນທຶກ...';
+ try{await rpc('admin_flash_set',{p_product:p.id,p_rows:rows,p_ends:end.toISOString()});mClose();BUSY=false;await fLoad();okPop('ບັນທຶກ Flash Sale ສຳເລັດ')}
+ catch(x){tpToast(errMsg(x))}
+ finally{BUSY=false;if(b.isConnected){b.disabled=false;lb.textContent=old}}
+}
+async function mClear(){
+ const p=PRD.find(x=>String(x.id)===String(MD));if(!p||!sb||!isAdm()||BUSY)return;
+ BUSY=true;
+ try{await rpc('admin_flash_clear',{p_product:p.id});mClose();BUSY=false;await fLoad();tpToast('ລ້າງໂປຣແລ້ວ')}
+ catch(x){tpToast(errMsg(x))}finally{BUSY=false}
+}
+document.addEventListener('click',e=>{
+ const t=e.target;if(!t.closest)return;
+ if(t.id==='fsov'){mClose();return}
+ if(t.closest('#fsov')){
+  const a=t.closest('[data-a]');if(!a)return;
+  if(a.dataset.a==='fclose')mClose();else if(a.dataset.a==='fsave')mSave();else if(a.dataset.a==='fclr')mClear();
+  return}
+ if(!t.closest('.fs'))return;
+ const b=t.closest('[data-a="fopen"]');if(b){const r=b.closest('.fs-r');if(r)mOpen(r.dataset.id)}
+});
+document.addEventListener('input',e=>{
+ const t=e.target;if(!t.closest)return;
+ if(t.id==='fsq'){Q=t.value;fR();return}
+ if(t.classList.contains('fs-ni'))t.value=t.value.replace(/\D/g,'').slice(0,9);
+});
+document.addEventListener('focusin',e=>{if(e.target.classList&&e.target.classList.contains('fs-ni'))setTimeout(()=>{try{e.target.select()}catch(_){}} ,0)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')mClose()});
+})();
+
+// ===== ADMIN V2: Webhook Discord (ແຍກຊ່ອງ) — ອ່ານ/ບັນທຶກຕາຕະລາງ shop_secrets ໃນ Supabase =====
+// ຄໍລຳ: webhook_purchase_admin / webhook_purchase_user / webhook_purchase_fail / webhook_stock_low / webhook_stock_out /
+//       webhook_topup_ok / webhook_admin_add / webhook_summary / stock_low_threshold · ການສົ່ງແຈ້ງເຕືອນຈິງເຮັດຝັ່ງເຊີບເວີ (notify_channel, send_summaries)
+(function(){
+const $=s=>document.querySelector(s),X=globalThis.PMX;
+if(!X)return;
+const tpToast=m=>globalThis.tpToast(m),okPop=m=>globalThis.okPop(m);
+const RX=/^https:\/\/(discord(app)?\.com)\/api\/webhooks\/\d+\/[\w-]+/;
+const I=(b,w)=>`<svg viewBox="0 0 24 24" width="${w||18}" height="${w||18}" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${b}</svg>`;
+const IC={
+ send:I('<path d="M21 3L3 10.5l7 3 3 7z" fill="currentColor"/>',17),
+ bell:I('<path d="M6 16.5V11a6 6 0 0112 0v5.500l1.500 2h-15z" fill="currentColor"/><path d="M10 21h4" stroke-width="2.400"/>',20),
+ save:I('<path d="M5 3h11l4 4v13a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1z" fill="currentColor"/><path d="M8 3v5h7V3M7 21v-7h10v7" stroke="#0579bd" stroke-width="1.800"/>',20)
+};
+const SECS=[
+ ['ການຊື້ສິນຄ້າ',[
+  ['webhook_purchase_admin','✅','ຊື້ສິນຄ້າສຳເລັດສຳລັບແອດມິນ'],
+  ['webhook_purchase_user','✅','ຊື້ສິນຄ້າສຳເລັດ ລູກຄ້າ (ບໍ່ເຫັນຄີ)'],
+  ['webhook_purchase_fail','❌','ຊື້ສິນຄ້າບໍ່ສຳເລັດ'],
+  ['webhook_stock_low','🔥','ສະຕັອກໃກ້ໝົດ'],
+  ['webhook_stock_out','🚫','ສະຕັອກສິນຄ້າໝົດ']]],
+ ['ການເຕີມເງິນ',[
+  ['webhook_topup_ok','💵','ເຕີມເງິນສຳເລັດ (ສລິບ / ຊອງ / ພ້ອມເພ / ໂຄ້ດ)'],
+  ['webhook_admin_add','🔐','ແອດມິນແອດເງິນໃຫ້']]],
+ ['ສະຫຼຸບຍອດ',[
+  ['webhook_summary','📊','ສະຫຼຸບຍອດລາຍວັນ / ອາທິດ / ເດືອນ']]]
+];
+const FIELDS=SECS.flatMap(s=>s[1]);
+const COLS=FIELDS.map(f=>f[0]).concat('stock_low_threshold');
+let LOADED=false,BUSY=false;
+const row=f=>`<div class="wh-f"><div class="wh-lr"><label class="wh-lb" for="${f[0]}"><span class="wh-em">${f[1]}</span><span>${f[2]}</span></label><button type="button" class="wh-t" data-t="${f[0]}">${IC.send}<span>ທົດສອບ</span></button></div><input class="wh-in" id="${f[0]}" type="text" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://discord.com/api/webhooks/..." disabled></div>`;
+views['admin-webhook']=()=>{LOADED=false;BUSY=false;wInit(0);return `<div class="adx pm wh" data-nt>${X.stCard()}
+<div class="wh-hd"><i></i><h1>Webhook Discord</h1></div>
+<p class="wh-sub">ແຍກ Webhook ຕາມຊ່ອງ Discord — ຊື້ສຳເລັດ / ບໍ່ສຳເລັດ / ສະຕັອກ / ເຕີມເງິນ / ແອດມິນແອດເງິນ</p>
+<section class="wh-cd">
+${SECS.map(s=>`<h2 class="wh-sc">${s[0]}</h2>${s[1].map(row).join('')}`).join('')}
+<div class="wh-hr"></div>
+<div class="wh-th"><label class="wh-lb" for="stock_low_threshold"><span class="wh-em">🚨</span><span>ເກນສະຕັອກໃກ້ໝົດ (ຊິ້ນ)</span></label><input class="wh-in wh-num" id="stock_low_threshold" type="text" inputmode="numeric" autocomplete="off" maxlength="4" value="3" disabled></div>
+<p class="wh-ht">ສ້າງ Webhook ໃນ Discord ແຍກຕາມຊ່ອງ ແລ້ວວາງ URL ໃຫ້ກົງກັບຫົວຂໍ້ — ຖ້າເຄີຍໃຊ້ Webhook ຊ່ອງເກົ່າ (\`webhook_url\`) ຍັງໃຊ້ງານໄດ້ຈົນກວ່າຈະບັນທຶກຊ່ອງໃໝ່ຄົບ ສະຫຼຸບຍອດສົ່ງເອງເວລາ 23:50 ນ. ກ່ອນຈົບວັນນັ້ນ (ວັນອາທິດສະຫຼຸບສັບປະດາ ວັນສຸດທ້າຍຂອງເດືອນສະຫຼຸບເດືອນ) ກຳໄລ = ຍອດຂາຍ – ຕົ້ນທຶນ ຖ້າບໍ່ໃສ່ URL ສະຫຼຸບ ຈະໃຊ້ຊ່ອງຊື້ສິນຄ້າສຳເລັດ</p>
+</section>
+<div class="wh-ac"><button type="button" class="wh-ta" id="whta">${IC.bell}<span>ທົດສອບທຸກຊ່ອງທີ່ກອກແລ້ວ</span></button><button type="button" class="wh-sv" id="whsv">${IC.save}<span>ບັນທຶກການຕັ້ງຄ່າ</span></button></div>
+</div>`};
+function wInit(n){
+ if(!$('#whsv')){if(n<60)setTimeout(()=>wInit(n+1),50);return}
+ wLoad();
+}
+async function wLoad(){
+ if(!sb||!isAdm())return;
+ try{
+  const[r,rt]=await Promise.all([
+   sb.from('shop_secrets').select(COLS.join(',')+',rent_expires_at').eq('id',1).maybeSingle(),
+   Promise.resolve(null)]);
+  if(r.error)throw r.error;
+  const d=r.data||{};
+  FIELDS.forEach(f=>{const e=$('#'+f[0]);if(e){e.value=d[f[0]]||'';e.disabled=false}});
+  const t=$('#stock_low_threshold');if(t){t.value=d.stock_low_threshold!=null?d.stock_low_threshold:3;t.disabled=false}
+  X.setRent(d.rent_expires_at||null);const sc=document.querySelector('.wh .adx-st');if(sc)sc.outerHTML=X.stCard();
+  LOADED=true;
+ }catch(x){tpToast('ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ'+(x&&x.message?' ['+x.message+']':''))}
+}
+const val=id=>(($('#'+id)||{}).value||'').trim();
+async function post(url,label){
+ const sn=(typeof SET!=='undefined'&&SET&&SET.shop_name)||'';
+ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({embeds:[{title:'🔔 ທົດສອບ Webhook',description:'ຂໍ້ຄວາມທົດສອບຊ່ອງ: **'+label+'**',color:5793266,footer:{text:sn},timestamp:new Date().toISOString()}]})});
+ return r.ok;
+}
+const lbOf=id=>{const f=FIELDS.find(x=>x[0]===id);return f?f[1]+' '+f[2]:id};
+async function testOne(id,btn){
+ const u=val(id);
+ if(!u)return tpToast('ໃສ່ລິ້ງ Webhook ກ່ອນ');
+ if(!RX.test(u))return tpToast('ລິ້ງ Webhook ບໍ່ຖືກຕ້ອງ');
+ const lb=btn.lastElementChild,old=lb.textContent;btn.disabled=true;lb.textContent='ກຳລັງສົ່ງ...';
+ try{tpToast((await post(u,lbOf(id)))?'ສົ່ງແລ້ວ ເບິ່ງໃນ Discord':'ສົ່ງບໍ່ສຳເລັດ')}catch(_){tpToast('ສົ່ງບໍ່ສຳເລັດ')}
+ finally{btn.disabled=false;lb.textContent=old}
+}
+async function testAll(){
+ if(BUSY)return;
+ const L=FIELDS.map(f=>f[0]).filter(id=>val(id));
+ if(!L.length)return tpToast('ຍັງບໍ່ມີຊ່ອງທີ່ກອກ');
+ if(L.some(id=>!RX.test(val(id))))return tpToast('ມີລິ້ງ Webhook ທີ່ບໍ່ຖືກຕ້ອງ');
+ const b=$('#whta'),lb=b.lastElementChild,old=lb.textContent;BUSY=true;b.disabled=true;
+ let ok=0;
+ for(let i=0;i<L.length;i++){
+  lb.textContent='ກຳລັງສົ່ງ '+(i+1)+'/'+L.length;
+  try{if(await post(val(L[i]),lbOf(L[i])))ok++}catch(_){}
+  if(i<L.length-1)await new Promise(r=>setTimeout(r,700));
+ }
+ BUSY=false;b.disabled=false;lb.textContent=old;
+ tpToast(ok===L.length?'ສົ່ງທົດສອບສຳເລັດ '+ok+' ຊ່ອງ':'ສຳເລັດ '+ok+'/'+L.length+' ຊ່ອງ');
+}
+async function save(){
+ if(!sb||!isAdm()||BUSY)return;
+ if(!LOADED)return tpToast('ກຳລັງໂຫຼດຂໍ້ມູນ ກະລຸນາລໍຖ້າ');
+ const row={};
+ for(const f of FIELDS){const u=val(f[0]);if(u&&!RX.test(u)){const e=$('#'+f[0]);if(e)e.focus();return tpToast('ລິ້ງ Webhook ບໍ່ຖືກຕ້ອງ: '+f[2])}row[f[0]]=u||null}
+ const th=parseInt(val('stock_low_threshold'),10);
+ if(!(th>=1&&th<=9999))return tpToast('ເກນສະຕັອກຕ້ອງເປັນຕົວເລກ 1 ຂຶ້ນໄປ');
+ row.stock_low_threshold=th;
+ const b=$('#whsv'),lb=b.lastElementChild,old=lb.textContent;BUSY=true;b.disabled=true;lb.textContent='ກຳລັງບັນທຶກ...';
+ try{
+  const r=await sb.from('shop_secrets').update(row).eq('id',1).select('id');
+  if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');
+  okPop('ບັນທຶກສຳເລັດ');
+ }catch(x){tpToast('ບັນທຶກບໍ່ສຳເລັດ'+(x&&x.message?' ['+x.message+']':''))}
+ finally{BUSY=false;if(b.isConnected){b.disabled=false;lb.textContent=old}}
+}
+document.addEventListener('click',e=>{
+ const t=e.target;if(!t.closest||!t.closest('.wh'))return;
+ const tb=t.closest('.wh-t');if(tb){testOne(tb.dataset.t,tb);return}
+ if(t.closest('#whta')){testAll();return}
+ if(t.closest('#whsv'))save();
+});
+document.addEventListener('input',e=>{const t=e.target;if(t&&t.id==='stock_low_threshold')t.value=t.value.replace(/\D/g,'').slice(0,4)});
 })();
 
 anav();
@@ -1813,3 +2262,486 @@ else if(t.id==='mgdays'){t.value=String(mgN(t.value)||'').slice(0,4);mgTgUpd()}
 else if(t.id==='mgmax'){t.value=String(mgN(t.value)||'').slice(0,4)}
 else if(t.dataset&&t.dataset.mgp&&MGP){const s=t.value.replace(/\D/g,''),n=s===''?null:Math.min(100000000000,parseInt(s,10));t.value=n==null?'':tpf(n);MGP.ed[t.dataset.mgp]=n;mgPUpd()}}); // ADMIN
 document.addEventListener('change',e=>{if(isAdm()&&e.target.id==='mglist')MGK.list=e.target.value}); // ADMIN
+
+
+// ===== ADMIN V2: ຈັດການຜູ້ໃຊ້ (views['admin-acc']) — ອອກແບບຕາມຮູບອ້າງອີງ peshop · ຂໍ້ມູນຈິງຈາກ Supabase =====
+// ຟັງຊັນຝັ່ງຖານຂໍ້ມູນ: admin_users_list / admin_create_user / admin_update_user / admin_delete_user (ໄຟລ໌ users_admin.sql — ເຊັກ is_admin() ທຸກຕົວ)
+// ກົດຊື່ຜູ້ໃຊ້ໃນຕາຕະລາງ = ໄປໜ້າລາຍລະອຽດເດີມ (admin-accu: ແບນ/ບັນທຶກ/ປະຫວັດ) · ລັອກອິນຂອງເວັບ = ຊື່ຜູ້ໃຊ້ + @gxroz.app ສະນັ້ນ "ອີເມວ" ໃນຟອມເກັບເປັນອີເມວຕິດຕໍ່ເທົ່ານັ້ນ
+(function(){
+const $=s=>document.querySelector(s),X=globalThis.PMX;
+if(!X)return;
+const MON=['ມັງກອນ','ກຸມພາ','ມີນາ','ເມສາ','ພຶດສະພາ','ມິຖຸນາ','ກໍລະກົດ','ສິງຫາ','ກັນຍາ','ຕຸລາ','ພະຈິກ','ທັນວາ'];
+const p2=n=>String(n).padStart(2,'0');
+const fd=v=>{const d=new Date(v);return isNaN(d)?'-':`${p2(d.getDate())}/${p2(d.getMonth()+1)}/${d.getFullYear()}`};
+const tdy=()=>{const d=new Date();return d.getDate()+' '+MON[d.getMonth()]+' '+d.getFullYear()};
+const km=n=>'₭'+tpf(+n||0);
+const I=(b,w,ex)=>`<svg viewBox="0 0 24 24" width="${w||20}" height="${w||20}" aria-hidden="true" ${ex||'fill="currentColor"'}>${b}</svg>`;
+const ST='fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"';
+const IC={
+ srch:I('<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',22,ST),
+ plus:I('<path d="M12 5v14M5 12h14"/>',20,ST),
+ users:I('<circle cx="9" cy="8" r="3.3"/><path d="M2.5 19.5c0-3.6 2.8-5.8 6.5-5.8s6.5 2.2 6.5 5.8z"/><circle cx="17" cy="9" r="2.5"/><path d="M16.2 14.2c3.1-.2 5.3 1.7 5.3 4.6h-4.2c0-1.8-.4-3.3-1.1-4.6z"/>',23),
+ shield:I('<path d="M12 2.5l8 3v6.2c0 4.7-3.2 8.3-8 9.8-4.8-1.5-8-5.1-8-9.8V5.5z" opacity=".5"/><path d="M12 2.5v19c-4.8-1.5-8-5.1-8-9.8V5.5z"/>',23),
+ wallet:I('<path d="M3.5 4h14c1 0 1.8.8 1.8 1.8V7H4.2a1 1 0 000 2H20c1.1 0 2 .9 2 2v7.5c0 1.4-1.1 2.5-2.5 2.5h-16A2.5 2.5 0 013 16.5v-11A1.5 1.5 0 013.5 4z"/><circle cx="17" cy="14.2" r="1.5" fill="#0c2014"/>',23),
+ user:I('<circle cx="12" cy="7.5" r="4.2"/><path d="M4.5 21c0-4.4 3.2-7 7.5-7s7.5 2.6 7.5 7z"/>',23),
+ pen:I('<path d="M16.2 3.8l4 4L8.6 19.4l-5.1 1.1 1.1-5.1z"/>',14),
+ bin:I('<path d="M9 3h6l1 1.6h4V7H4V4.6h4zM5.6 8.6h12.8l-1 11.9a1.5 1.5 0 01-1.5 1.4H8.1a1.5 1.5 0 01-1.5-1.4z"/>',14),
+ save:I('<path fill="#fff" d="M5 3h11.5L21 7.5V19a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/><rect x="7" y="3" width="8" height="5.5" fill="#3275b2"/><rect x="7.5" y="13" width="9" height="8" rx="1" fill="#3275b2"/>',21,'fill="none"'),
+ x:I('<path d="M6 6l12 12M18 6L6 18"/>',22,ST.replace('2.4','2.6')),
+ chev:I('<path d="M8 10l4-4 4 4M8 14l4 4 4-4"/>',19,ST.replace('2.4','2.2')),
+ rl:I('<circle cx="12" cy="7.5" r="3.7"/><path d="M5 20c0-4 3-6.2 7-6.2s7 2.2 7 6.2z"/>',17)
+};
+let UL=[],UQ='',UN=50,BUSY=false,MD=null,SETUP=true;
+const PG=50;
+const EM={forbidden:'ບໍ່ມີສິດດຳເນີນການ',bad_username:'ຊື່ຜູ້ໃຊ້ 3-20 ຕົວ ໃຊ້ a-z 0-9 _ ເທົ່ານັ້ນ',bad_email:'ຮູບແບບອີເມວບໍ່ຖືກຕ້ອງ',bad_password:'ລະຫັດຜ່ານຕ້ອງ 6-72 ຕົວອັກສອນ',bad_role:'ບົດບາດບໍ່ຖືກຕ້ອງ',bad_amount:'ຈຳນວນເງິນບໍ່ຖືກຕ້ອງ',username_taken:'ຊື່ຜູ້ໃຊ້ນີ້ມີຄົນໃຊ້ແລ້ວ',not_found:'ບໍ່ພົບບັນຊີ (ອາດຖືກລຶບແລ້ວ)',cannot_self:'ເຮັດກັບບັນຊີຂອງຕົວເອງບໍ່ໄດ້',target_is_admin:'ລຶບແອັດມິນບໍ່ໄດ້ ຕ້ອງປ່ຽນເປັນຜູ້ໃຊ້ທົ່ວໄປກ່ອນ',has_history:'ລຶບບໍ່ໄດ້ ເພາະມີປະຫວັດການຊື້/ເຕີມເງິນ ແນະນຳໃຫ້ແບນແທນ'};
+const eMsg=x=>{const m=String((x&&x.message)||'');for(const k in EM)if(m.includes(k))return EM[k];return 'ບໍ່ສຳເລັດ'+(m?' ['+m+']':'')};
+const miss=e=>e&&(e.code==='PGRST202'||e.code==='42883'||/could not find the function|does not exist|schema cache/i.test(e.message||''));
+const roleLb=r=>r==='admin'?'ຜູ້ດູແລລະບົບ':'ຜູ້ໃຊ້ທົ່ວໄປ';
+
+views['admin-acc']=()=>{UQ='';UN=PG;uInit(0);return `<div class="adx pm us" data-nt>${X.stCard()}
+<div class="fs-hd"><i></i><h1>ຈັດການຜູ້ໃຊ້</h1></div>
+<p class="us-sub">ຈັດການຂໍ້ມູນຜູ້ໃຊ້ງານໃນລະບົບ • ${tdy()}</p>
+<label class="pm-sr ux-sr">${IC.srch}<input id="uxq" type="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ຄົ້ນຫາດ້ວຍ ຊື່ຜູ້ໃຊ້ ຫຼື ອີເມວ..."></label>
+<button type="button" class="ux-add" id="uxadd">${IC.plus}<span>ເພີ່ມຜູ້ໃຊ້ໃໝ່</span></button>
+<div class="ux-g">
+<div class="ux-sc"><span class="ux-ti b">${IC.users}</span><div class="ux-sx"><b class="ux-sv" id="uxs1">-</b><div class="ux-sl">ຜູ້ໃຊ້ທັງໝົດ</div></div></div>
+<div class="ux-sc"><span class="ux-ti p">${IC.shield}</span><div class="ux-sx"><b class="ux-sv" id="uxs2">-</b><div class="ux-sl">ຜູ້ດູແລລະບົບ</div></div></div>
+<div class="ux-sc"><span class="ux-ti g">${IC.wallet}</span><div class="ux-sx"><b class="ux-sv g" id="uxs3">-</b><div class="ux-sl">ຍອດເງິນລວມ</div></div></div>
+<div class="ux-sc"><span class="ux-ti c">${IC.user}</span><div class="ux-sx"><b class="ux-sv" id="uxs4">-</b><div class="ux-sl">ຜູ້ໃຊ້ທົ່ວໄປ</div></div></div>
+</div>
+<section class="ux-ls"><div class="ux-lh"><h2>${IC.users.replace(/width="23" height="23"/,'width="22" height="22"')}<span>ລາຍຊື່ຜູ້ໃຊ້ງານ</span></h2><em id="uxn">0 ລາຍການ</em></div>
+<div class="ux-tw"><table class="ux-t"><colgroup><col style="width:205px"><col style="width:160px"><col style="width:165px"><col style="width:165px"><col style="width:165px"><col style="width:160px"></colgroup>
+<thead><tr><th class="l">ຜູ້ໃຊ້</th><th>ບົດບາດ</th><th>ຍອດເງິນ</th><th>ຍອດເຕີມລວມ</th><th>ວັນທີສະໝັກ</th><th class="r">ຈັດການ</th></tr></thead>
+<tbody id="uxl"><tr><td colspan="6" class="ux-em">ກຳລັງໂຫຼດ...</td></tr></tbody></table></div></section></div>`};
+
+function uInit(n){
+ if(!$('#uxl')){if(n<60)setTimeout(()=>uInit(n+1),50);return}
+ uLoad();
+}
+async function uLoad(){
+ if(!sb)return;
+ try{
+  const[r,rt]=await Promise.all([sb.rpc('admin_users_list'),sb.from('shop_secrets').select('rent_expires_at').eq('id',1).maybeSingle()]);
+  if(!rt.error&&rt.data){X.setRent(rt.data.rent_expires_at||null);const sc=document.querySelector('.us .adx-st');if(sc)sc.outerHTML=X.stCard()}
+  if(r.error)throw r.error;
+  UL=Array.isArray(r.data)?r.data:[];SETUP=true;uR();
+ }catch(x){
+  const l=$('#uxl');if(!l)return;
+  SETUP=false;
+  l.innerHTML='<tr><td colspan="6" class="ux-em">'+(miss(x)?'ຍັງບໍ່ໄດ້ຕິດຕັ້ງຟັງຊັນໃນຖານຂໍ້ມູນ — ຣັນໄຟລ໌ users_admin.sql ໃນ Supabase SQL Editor ກ່ອນ':'ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ'+(x&&x.message?' ['+esc(x.message)+']':''))+'</td></tr>';
+ }
+}
+function fit(){document.querySelectorAll('.ux-sv').forEach(e=>{e.style.fontSize='';let s=26;while(e.scrollWidth>e.clientWidth&&s>10){s--;e.style.fontSize=s+'px'}})}
+function uR(){
+ const l=$('#uxl');if(!l)return;
+ const adm=UL.filter(u=>u.role==='admin').length,sum=UL.reduce((a,u)=>a+(+u.balance||0),0);
+ const set=(i,v)=>{const e=$('#uxs'+i);if(e)e.textContent=v};
+ set(1,tpf(UL.length));set(2,tpf(adm));set(3,km(sum));set(4,tpf(UL.length-adm));
+ const q=UQ.trim().toLowerCase(),F=UL.filter(u=>!q||String(u.username).toLowerCase().includes(q)||String(u.email||'').toLowerCase().includes(q));
+ const n=$('#uxn');if(n)n.textContent=tpf(F.length)+' ລາຍການ';
+ const now=Date.now();
+ l.innerHTML=F.length?F.slice(0,UN).map(u=>{
+  const bn=u.banned_until&&new Date(u.banned_until).getTime()>now;
+  return `<tr data-id="${esc(u.id)}"><td class="l"><a href="#" class="ux-who" data-v="admin-accu" data-m="${esc(u.id)}"><span class="ux-av${bn?' bn':''}" data-u>${esc((u.username||'?').charAt(0).toUpperCase())}</span><span class="ux-nm"><b data-u>${esc(u.username)}</b><small data-u>${u.email?esc(u.email):'-'}</small></span></a></td>
+<td><span class="ux-role">${IC.rl}<span>${roleLb(u.role)}</span></span></td><td class="ux-mn">${km(u.balance)}</td><td class="ux-mn">${km(u.total_topup)}</td><td class="ux-dt">${fd(u.created_at)}</td>
+<td class="r"><span class="ux-ac"><button type="button" class="ux-b ed" data-a="ed" data-id="${esc(u.id)}">${IC.pen}<span>ແກ້ໄຂ</span></button><button type="button" class="ux-b dl" data-a="dl" data-id="${esc(u.id)}">${IC.bin}<span>ລຶບ</span></button></span></td></tr>`}).join('')
+  +(F.length>UN?`<tr><td colspan="6" class="ux-mr"><button type="button" class="ux-more" id="uxmore">ສະແດງເພີ່ມ (${tpf(F.length-UN)})</button></td></tr>`:'')
+  :'<tr><td colspan="6" class="ux-em">ບໍ່ພົບຜູ້ໃຊ້</td></tr>';
+ requestAnimationFrame(fit);
+}
+
+function uClose(){const o=$('#uxov');if(o)o.remove();MD=null;document.body.style.overflow=''}
+function openMd(mode,id){
+ const u=mode==='edit'?UL.find(x=>x.id===id):null;
+ if(mode==='edit'&&!u)return;
+ if(!SETUP&&mode==='add')return;
+ uClose();
+ const me=!!(u&&typeof USER!=='undefined'&&USER&&USER.id===u.id);
+ MD={mode,id:u?u.id:null};
+ document.body.insertAdjacentHTML('beforeend',`<div class="ux-ov" id="uxov"><section class="ux-md" role="dialog" aria-modal="true">
+<div class="ux-mh"><i></i><h3>${mode==='edit'?'ແກ້ໄຂຜູ້ໃຊ້':'ເພີ່ມຜູ້ໃຊ້ໃໝ່'}</h3><button type="button" class="ux-x" id="uxx" aria-label="ປິດ">${IC.x}</button></div>
+<div class="ux-mb">
+<label for="uxun">ຊື່ຜູ້ໃຊ້</label><input class="ux-fi" id="uxun" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="username">
+<label for="uxem">ອີເມວ</label><input class="ux-fi" id="uxem" type="email" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="email@example.com">
+<label for="uxpw">${mode==='edit'?'<b>ລະຫັດຜ່ານ</b> <small>(ປ່ອຍວ່າງ = ບໍ່ປ່ຽນ)</small>':'ລະຫັດຜ່ານ'}</label><input class="ux-fi" id="uxpw" maxlength="72" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${mode==='edit'?'ໃສ່ລະຫັດໃໝ່ເມື່ອຕ້ອງການປ່ຽນ':'ຢ່າງໜ້ອຍ 6 ຕົວອັກສອນ'}">
+<div class="ux-r2"><div><label for="uxrl">ບົດບາດ</label><div class="ux-sl2"><select class="ux-fi" id="uxrl"${me?' disabled':''}><option value="user">ຜູ້ໃຊ້ທົ່ວໄປ</option><option value="admin">ຜູ້ດູແລລະບົບ</option></select>${IC.chev}</div></div>
+<div><label for="uxbl">ຍອດເງິນ (₭)</label><input class="ux-fi" id="uxbl" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+</div>
+<div class="ux-mf"><button type="button" class="ux-cn" id="uxcn">ຍົກເລີກ</button><button type="button" class="ux-sv2" id="uxsv">${IC.save}<span>ບັນທຶກ</span></button></div>
+</section></div>`);
+ $('#uxun').value=u?u.username:'';
+ $('#uxem').value=u&&u.email?u.email:'';
+ $('#uxrl').value=u?u.role:'user';
+ $('#uxbl').value=u?String(+u.balance||0):'0';
+ document.body.style.overflow='hidden';
+ requestAnimationFrame(()=>{const o=$('#uxov');if(o)o.classList.add('on')});
+}
+async function uSave(){
+ if(!sb||BUSY||!MD||!isAdm())return;
+ const edit=MD.mode==='edit',cur=edit?UL.find(x=>x.id===MD.id):null;
+ if(edit&&!cur)return;
+ const un=$('#uxun').value.trim(),em=$('#uxem').value.trim(),pw=$('#uxpw').value,rl=$('#uxrl').value,bs=$('#uxbl').value.trim().replace(/,/g,'');
+ if((!edit||un!==cur.username)&&!/^[A-Za-z0-9_]{3,20}$/.test(un))return tpToast(EM.bad_username);
+ if(em&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))return tpToast(EM.bad_email);
+ if((!edit||pw)&&(pw.length<6||pw.length>72))return tpToast(EM.bad_password);
+ const bal=bs===''?0:Number(bs);
+ if(!isFinite(bal)||bal<0||bal>1e9)return tpToast(EM.bad_amount);
+ const b=$('#uxsv'),lb=b.lastElementChild,old=lb.textContent;
+ BUSY=true;b.disabled=true;lb.textContent='ກຳລັງບັນທຶກ...';
+ try{
+  const r=edit
+   ?await sb.rpc('admin_update_user',{p_user:cur.id,p_username:un,p_email:em,p_password:pw||null,p_role:rl,p_balance:bal})
+   :await sb.rpc('admin_create_user',{p_username:un,p_email:em,p_password:pw,p_role:rl,p_balance:bal});
+  if(r.error)throw r.error;
+  okPop(edit?'ບັນທຶກການແກ້ໄຂສຳເລັດ':'ເພີ່ມຜູ້ໃຊ້ສຳເລັດ');
+  uClose();BUSY=false;await uLoad();
+ }catch(x){tpToast(eMsg(x))}
+ finally{BUSY=false;const bb=$('#uxsv');if(bb){bb.disabled=false;bb.lastElementChild.textContent=old}}
+}
+async function uDel(id){
+ const u=UL.find(x=>x.id===id);
+ if(!sb||!u||BUSY||!isAdm())return;
+ if(!confirm('ລຶບຜູ້ໃຊ້ "'+u.username+'" ແມ່ນບໍ? ການລຶບບໍ່ສາມາດກູ້ຄືນໄດ້'))return;
+ BUSY=true;
+ try{const r=await sb.rpc('admin_delete_user',{p_user:id});if(r.error)throw r.error;tpToast('ລຶບຜູ້ໃຊ້ແລ້ວ');BUSY=false;await uLoad()}
+ catch(x){tpToast(eMsg(x))}finally{BUSY=false}
+}
+
+document.addEventListener('click',e=>{
+ const t=e.target;if(!t.closest)return;
+ const ov=t.closest('#uxov');
+ if(ov){
+  if(t.id==='uxov'||t.closest('#uxx')||t.closest('#uxcn')){uClose();return}
+  if(t.closest('#uxsv')){uSave();return}
+  return;
+ }
+ if(!t.closest('.us'))return;
+ if(t.closest('#uxadd')){openMd('add');return}
+ if(t.closest('#uxmore')){UN+=PG;uR();return}
+ const b=t.closest('.ux-b');if(!b)return;
+ if(b.dataset.a==='ed')openMd('edit',b.dataset.id);else if(b.dataset.a==='dl')uDel(b.dataset.id);
+});
+document.addEventListener('input',e=>{
+ const t=e.target;
+ if(t.id==='uxq'){UQ=t.value;UN=PG;uR();return}
+ if(t.id==='uxbl')t.value=t.value.replace(/[^\d.]/g,'').replace(/(\..*)\./g,'$1').slice(0,13);
+});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape')uClose();
+ else if(e.key==='Enter'&&MD&&e.target&&e.target.closest&&e.target.closest('#uxov')&&e.target.tagName==='INPUT'){e.preventDefault();uSave()}
+});
+window.addEventListener('resize',()=>{if($('#uxl'))fit()});
+show=(o=>function(v,m){uClose();return o(v,m)})(show);
+})();
+
+
+// ===== ADMIN V2: QR ຊຳລະເງິນ (views['admin-qr']) — ຕາມຮູບອ້າງອີງ · ຕາຕະລາງ payment_qrs ໃນ Supabase (RLS: ແອດມິນເທົ່ານັ້ນທີ່ແກ້ໄດ້) =====
+// ລູກຄ້າເຫັນ QR ເຫຼົ່ານີ້ໃນໜ້າເຕີມເງິນ (ເລືອກທະນາຄານໄດ້) · ຖ້າຍັງບໍ່ມີ QR ໃນຕາຕະລາງນີ້ ຈະໃຊ້ຮູບ QR ເກົ່າຈາກການຕັ້ງຄ່າຮ້ານຕາມເດີມ
+(function(){
+const $=s=>document.querySelector(s);
+const BK='product-images';
+let QL=[],QE=null,QF=null,BUSY=false,SETUP=true;
+const miss=e=>e&&(e.code==='42P01'||e.code==='PGRST205'||/could not find the table|does not exist|schema cache/i.test(e.message||''));
+views['admin-qr']=()=>{QE=null;QF=null;qInit(0);return `<div class="adx pq" data-nt>
+<h1 class="pq-h">QR ຊຳລະເງິນ</h1>
+<section class="pq-c"><h2 id="pqt">ເພີ່ມ / ແກ້ໄຂ QR</h2>
+<label class="pq-l" for="pqb">ທະນາຄານ</label><input class="pq-i" id="pqb" maxlength="40" autocomplete="off" spellcheck="false">
+<label class="pq-l">ຮູບ QR Code</label>
+<div class="pq-dz" id="pqdz" role="button" tabindex="0"><input type="file" id="pqf" accept="image/*" hidden><img id="pqpv" alt=""><span>ແຕະເພື່ອເລືອກຮູບ QR</span></div>
+<label class="pq-l" for="pqn">ເລກບັນຊີ (ບໍ່ບັງຄັບ)</label><input class="pq-i" id="pqn" maxlength="40" autocomplete="off" inputmode="text">
+<label class="pq-l" for="pqm">ຊື່ບັນຊີ (ບໍ່ບັງຄັບ)</label><input class="pq-i" id="pqm" maxlength="80" autocomplete="off">
+<button type="button" class="pq-s" id="pqs">ບັນທຶກ</button>
+<button type="button" class="pq-cx" id="pqx" hidden>ຍົກເລີກການແກ້ໄຂ</button></section>
+<div id="pql"></div></div>`};
+
+function qInit(n){if(!$('#pql')){if(n<60)setTimeout(()=>qInit(n+1),50);return}qLoad()}
+async function qLoad(){
+ if(!sb)return;
+ try{
+  const r=await sb.from('payment_qrs').select('*').order('created_at');
+  if(r.error)throw r.error;
+  QL=r.data||[];PQL=QL.map(x=>({id:x.id,bank:x.bank,image_url:x.image_url,account_no:x.account_no,account_name:x.account_name}));SETUP=true;qR();
+ }catch(x){
+  const l=$('#pql');if(!l)return;SETUP=!miss(x);
+  l.innerHTML='<div class="pq-wn">'+(miss(x)?'ຍັງບໍ່ໄດ້ສ້າງຕາຕະລາງ payment_qrs ໃນຖານຂໍ້ມູນ':'ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ'+(x&&x.message?' ['+esc(x.message)+']':''))+'</div>';
+ }
+}
+function qR(){
+ const l=$('#pql');if(!l)return;
+ l.innerHTML=QL.map(q=>{const sub=[q.account_no,q.account_name].filter(Boolean).join(' • ');
+  return `<div class="pq-r"><span class="pq-th"><img alt="" src="${esc(q.image_url)}" loading="lazy"></span><div class="pq-x"><b data-u>${esc(q.bank)}</b>${sub?`<small data-u>${esc(sub)}</small>`:''}</div><div class="pq-a"><button type="button" class="pq-b" data-q="ed" data-id="${esc(q.id)}">ແກ້ໄຂ</button><button type="button" class="pq-b dl" data-q="dl" data-id="${esc(q.id)}">ລຶບ</button></div></div>`}).join('');
+}
+function qReset(){
+ QE=null;QF=null;
+ ['#pqb','#pqn','#pqm'].forEach(s=>{const e=$(s);if(e)e.value=''});
+ const f=$('#pqf');if(f)f.value='';
+ const pv=$('#pqpv');if(pv){pv.removeAttribute('src');}
+ const dz=$('#pqdz');if(dz)dz.classList.remove('has');
+ const x=$('#pqx');if(x)x.hidden=true;
+}
+function qPrev(u){const pv=$('#pqpv'),dz=$('#pqdz');if(!pv||!dz)return;pv.src=u;dz.classList.add('has')}
+function qEdit(id){
+ const q=QL.find(x=>x.id===id);if(!q)return;
+ QE=q.id;QF=null;
+ $('#pqb').value=q.bank||'';$('#pqn').value=q.account_no||'';$('#pqm').value=q.account_name||'';
+ const f=$('#pqf');if(f)f.value='';
+ qPrev(q.image_url);$('#pqx').hidden=false;
+ try{window.scrollTo({top:0,behavior:'smooth'})}catch(_){}
+}
+async function qUp(f){
+ const ext=((f.type||'image/png').split('/')[1]||'png').replace('jpeg','jpg').replace(/[^a-z0-9]/gi,'')||'png';
+ const pth='qrpay_'+Date.now()+'.'+ext;
+ const u=await sb.storage.from(BK).upload(pth,f,{contentType:f.type||'image/png',cacheControl:'3600'});
+ if(u.error)throw u.error;
+ return sb.storage.from(BK).getPublicUrl(pth).data.publicUrl;
+}
+async function qSave(){
+ if(!sb||BUSY||!isAdm())return;
+ if(!SETUP)return tpToast('ຍັງບໍ່ໄດ້ສ້າງຕາຕະລາງ payment_qrs ໃນຖານຂໍ້ມູນ');
+ const bank=$('#pqb').value.trim(),no=$('#pqn').value.trim(),nm=$('#pqm').value.trim();
+ const old=QE?QL.find(x=>x.id===QE):null;
+ if(!bank)return tpToast('ກະລຸນາໃສ່ຊື່ທະນາຄານ');
+ if(!QF&&!old)return tpToast('ກະລຸນາເລືອກຮູບ QR');
+ const b=$('#pqs'),t0=b.textContent;BUSY=true;b.disabled=true;b.textContent='ກຳລັງບັນທຶກ...';
+ try{
+  const url=QF?await qUp(QF):old.image_url;
+  const row={bank,image_url:url,account_no:no||null,account_name:nm||null};
+  const r=old?await sb.from('payment_qrs').update(row).eq('id',old.id).select('id'):await sb.from('payment_qrs').insert(row).select('id');
+  if(r.error)throw r.error;
+  if(!r.data||!r.data.length)throw new Error('no_permission');
+  if(old&&QF&&/\/qrpay_[^/]+$/.test(old.image_url)){try{await sb.storage.from(BK).remove([old.image_url.split('/').pop()])}catch(_){}}
+  okPop(old?'ບັນທຶກການແກ້ໄຂສຳເລັດ':'ເພີ່ມ QR ສຳເລັດ');
+  qReset();BUSY=false;await qLoad();
+ }catch(x){tpToast('ບັນທຶກບໍ່ສຳເລັດ'+(x&&x.message?' ['+x.message+']':''))}
+ finally{BUSY=false;const bb=$('#pqs');if(bb){bb.disabled=false;bb.textContent=t0}}
+}
+async function qDel(id){
+ const q=QL.find(x=>x.id===id);if(!sb||!q||BUSY||!isAdm())return;
+ if(!confirm('ລຶບ QR "'+q.bank+'" ແມ່ນບໍ?'))return;
+ BUSY=true;
+ try{
+  const r=await sb.from('payment_qrs').delete().eq('id',id).select('id');
+  if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');
+  if(/\/qrpay_[^/]+$/.test(q.image_url)){try{await sb.storage.from(BK).remove([q.image_url.split('/').pop()])}catch(_){}}
+  if(QE===id)qReset();
+  tpToast('ລຶບ QR ແລ້ວ');BUSY=false;await qLoad();
+ }catch(x){tpToast('ລຶບບໍ່ສຳເລັດ'+(x&&x.message?' ['+x.message+']':''))}finally{BUSY=false}
+}
+document.addEventListener('click',e=>{
+ const t=e.target;if(!t.closest||!t.closest('.pq'))return;
+ if(t.closest('#pqdz')){const f=$('#pqf');if(f)f.click();return}
+ if(t.closest('#pqs')){qSave();return}
+ if(t.closest('#pqx')){qReset();return}
+ const b=t.closest('[data-q]');if(!b)return;
+ if(b.dataset.q==='ed')qEdit(b.dataset.id);else qDel(b.dataset.id);
+});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.id==='pqdz'){e.preventDefault();const f=$('#pqf');if(f)f.click()}});
+document.addEventListener('change',e=>{
+ if(!e.target||e.target.id!=='pqf')return;
+ const f=e.target.files&&e.target.files[0];if(!f)return;
+ if(!/^image\//.test(f.type||'')){e.target.value='';return tpToast('ກະລຸນາເລືອກໄຟລ໌ຮູບພາບ')}
+ if(f.size>5*1024*1024){e.target.value='';return tpToast('ຮູບໃຫຍ່ເກີນ 5MB')}
+ QF=f;qPrev(URL.createObjectURL(f));
+});
+})();
+
+
+// ===== ADMIN V2: ຕົວແທນຈຳໜ່າຍ (views['admin-agent']) — ອອກແບບຕາມຮູບອ້າງອີງ · ບໍ່ມີສ່ວນລົດ % (ໃຊ້ "ລາຄາສິນຄ້າຕົວແທນ" ເປັນຈຳນວນເງິນຕໍ່ສິນຄ້າ) =====
+// ຂໍ້ມູນ: admin_agent_keys / admin_agent_lists / admin_agent_members / admin_create_agent_keys(+p_quota) / admin_set_agent_key_active / admin_delete_agent_key / admin_set_prices / admin_create_price_list / admin_delete_list
+// ຫນ້າລາຍລະອຽດຕົວແທນ (admin-agu: ເປົ້າຍອດ/ປົດຕົວແທນ/ລາຄາສະເພາະ) ຍັງເຂົ້າໄດ້ຈາກແທັບ "ຕົວແທນ"
+(function(){
+const $=s=>document.querySelector(s),X=globalThis.PMX;
+if(!X)return;
+const p2=n=>String(n).padStart(2,'0');
+const fdt=v=>{const d=new Date(v);return isNaN(d)?'-':`${p2(d.getDate())}/${p2(d.getMonth()+1)}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}`};
+const km=n=>'₭'+tpf(Math.round(+n||0));
+const I=(b,w,ex)=>`<svg viewBox="0 0 24 24" width="${w||20}" height="${w||20}" aria-hidden="true" ${ex||'fill="currentColor"'}>${b}</svg>`;
+const ST='fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"';
+const IC={
+ key:I('<circle cx="8" cy="15.5" r="4.6"/><circle cx="7" cy="16.5" r="1.4" fill="#000" opacity=".55"/><path d="M11.3 12.2L20.5 3l1.5 1.5-2 2 1.5 1.5-2.2 2.2-1.5-1.5-1.8 1.8z"/>',22),
+ shield:I('<path d="M12 2.5l8 3v6.2c0 4.7-3.2 8.3-8 9.8-4.8-1.5-8-5.1-8-9.8V5.5z" opacity=".5"/><path d="M12 2.5v19c-4.8-1.5-8-5.1-8-9.8V5.5z"/>',23),
+ tags:I('<path d="M3 4.5A1.5 1.5 0 014.5 3h6.2a2 2 0 011.4.6l7.3 7.3a2 2 0 010 2.8l-5.4 5.4a2 2 0 01-2.8 0L3.9 11.8a2 2 0 01-.6-1.4z"/><circle cx="8" cy="8" r="1.6" fill="#0f1a2e"/>',23),
+ wallet:I('<path d="M3.5 4h14c1 0 1.8.8 1.8 1.8V7H4.2a1 1 0 000 2H20c1.1 0 2 .9 2 2v7.5c0 1.4-1.1 2.5-2.5 2.5h-16A2.5 2.5 0 013 16.5v-11A1.5 1.5 0 013.5 4z"/><circle cx="17" cy="14.2" r="1.5" fill="#0c2b20"/>',23),
+ box:I('<path d="M3 8.5h18V20a1.5 1.5 0 01-1.5 1.5h-15A1.5 1.5 0 013 20zM4.5 3.5h15L21 7.5H3z"/><rect x="9.5" y="10.5" width="5" height="2.2" rx="1.1" fill="#050505"/>',18),
+ users:I('<circle cx="9" cy="8" r="3.3"/><path d="M2.5 19.5c0-3.6 2.8-5.8 6.5-5.8s6.5 2.2 6.5 5.8z"/><circle cx="17" cy="9" r="2.5"/><path d="M16.2 14.2c3.1-.2 5.3 1.7 5.3 4.6h-4.2c0-1.8-.4-3.3-1.1-4.6z"/>',19),
+ ok:I('<circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5" fill="none" stroke="#06150d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>',18),
+ bin:I('<path d="M9 3h6l1 1.6h4V7H4V4.6h4zM5.6 8.6h12.8l-1 11.9a1.5 1.5 0 01-1.5 1.4H8.1a1.5 1.5 0 01-1.5-1.4z"/>',17),
+ x:I('<path d="M6 6l12 12M18 6L6 18"/>',20,ST),
+ xs:I('<path d="M6 6l12 12M18 6L6 18"/>',11,ST.replace('2.4','3.2')),
+ plus:I('<path d="M12 5v14M5 12h14"/>',15,ST.replace('2.4','3')),
+ srch:I('<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',20,ST),
+ chev:I('<path d="M8 10l4-4 4 4M8 14l4 4 4-4"/>',19,ST.replace('2.4','2.2'))
+};
+let AG={tab:'keys',keys:[],lists:[],mem:[],prods:[],prices:{},sel:null,ed:{},q:'',ready:false,spent:0},BUSY=false,MD=null;
+const EM={forbidden:'ບໍ່ມີສິດດຳເນີນການ',not_found:'ບໍ່ພົບຂໍ້ມູນ',bad_input:'ຂໍ້ມູນບໍ່ຖືກຕ້ອງ',key_used:'ລຶບບໍ່ໄດ້ ເພາະ Key ຖືກໃຊ້ແລ້ວ (ກົດ "ປິດ" ແທນ)',list_in_use:'ລຶບກຸ່ມບໍ່ໄດ້ ເພາະມີ Key ຫຼື ຕົວແທນໃຊ້ຢູ່',try_again:'ລອງໃໝ່ອີກຄັ້ງ'};
+const eMsg=x=>{const m=String((x&&x.message)||'');for(const k in EM)if(m.includes(k))return EM[k];return 'ບໍ່ສຳເລັດ'+(m?' ['+m+']':'')};
+const rpc=async(fn,a)=>{const r=await sb.rpc(fn,a);if(r.error)throw r.error;return r.data};
+const lists=()=>AG.lists.filter(l=>!l.is_personal);
+const optLb=o=>{const d=+o.d||0,h=+o.h||0;return (d?d+' ມື້ ':'')+(h?h+' ຊົ່ວໂມງ':'')||(o.n?String(o.n):'')};
+const items=()=>{const out=[];AG.prods.forEach(p=>{const o=Array.isArray(p.options)?p.options:[];if(o.length)o.forEach((x,i)=>out.push({pid:p.id,idx:i,name:p.name,label:optLb(x),retail:+x.p||0}));else out.push({pid:p.id,idx:-1,name:p.name,label:'',retail:+p.price||0})});return out};
+const ik=(pid,idx)=>pid+'|'+idx;
+const selList=()=>AG.lists.find(l=>l.id===AG.sel)||null;
+
+views['admin-agent']=()=>{AG.tab='keys';AG.ed={};AG.q='';AG.ready=false;aInit(0);return `<div class="adx pm ag" data-nt>${X.stCard()}
+<div class="fs-hd"><i></i><h1>ຕົວແທນຈຳໜ່າຍ</h1></div>
+<p class="ag-sub">ຈັດການ API Key ແລະ ລາຄາສິນຄ້າຕົວແທນ</p>
+<button type="button" class="ag-add" id="agnew">${IC.key.replace(/width="22" height="22"/,'width="20" height="20"')}<span>ສ້າງ API Key ໃໝ່</span></button>
+<div class="ag-g" id="agst"></div>
+<section class="ag-card"><div class="ag-tabs" id="agtb" role="tablist"></div><div id="agb"><div class="ag-em">ກຳລັງໂຫຼດ...</div></div></section></div>`};
+
+function aInit(n){if(!$('#agb')){if(n<60)setTimeout(()=>aInit(n+1),50);return}aLoad()}
+async function aLoad(keep){
+ if(!sb)return;
+ try{
+  const[k,l,m,pr,rt]=await Promise.all([rpc('admin_agent_keys'),rpc('admin_agent_lists'),rpc('admin_agent_members'),
+   sb.from('products').select('id,name,price,options,is_active,deleted_at,sort_order').order('sort_order',{ascending:true}).order('created_at',{ascending:false}),
+   sb.from('shop_secrets').select('rent_expires_at').eq('id',1).maybeSingle()]);
+  if(!rt.error&&rt.data){X.setRent(rt.data.rent_expires_at||null);const sc=document.querySelector('.ag .adx-st');if(sc)sc.outerHTML=X.stCard()}
+  if(pr.error)throw pr.error;
+  AG.keys=Array.isArray(k)?k:[];AG.lists=Array.isArray(l)?l:[];AG.mem=Array.isArray(m)?m:[];
+  AG.prods=(pr.data||[]).filter(p=>p.is_active&&!p.deleted_at);
+  AG.spent=AG.mem.reduce((a,x)=>a+(+x.spent||0),0);
+  const L=lists();if(!AG.sel||!L.some(x=>x.id===AG.sel))AG.sel=L.length?L[0].id:null;
+  await aPrices();
+  AG.ready=true;aR();
+ }catch(x){const b=$('#agb');if(b)b.innerHTML='<div class="ag-em">ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ'+(x&&x.message?' ['+esc(x.message)+']':'')+'</div>'}
+}
+async function aPrices(){
+ AG.prices={};
+ if(!AG.sel)return;
+ const r=await rpc('admin_agent_prices',{p_list:AG.sel});
+ (Array.isArray(r)?r:[]).forEach(x=>{AG.prices[ik(x.product_id,x.option_idx)]=+x.price});
+}
+function aStats(){
+ const g=$('#agst');if(!g)return;
+ g.innerHTML=`<div class="ag-sc"><span class="ag-ti pu">${IC.key}</span><div class="ag-sx"><b>${tpf(AG.keys.length)}</b><small>Key ທັງໝົດ</small></div></div>
+<div class="ag-sc"><span class="ag-ti gr">${IC.shield}</span><div class="ag-sx"><b>${tpf(AG.mem.length)}</b><small>ຕົວແທນທີ່ໃຊ້ງານ</small></div></div>
+<div class="ag-sc"><span class="ag-ti bl">${IC.tags}</span><div class="ag-sx"><b>${tpf(lists().length)}</b><small>ກຸ່ມລາຄາຕົວແທນ</small></div></div>
+<div class="ag-sc"><span class="ag-ti gn">${IC.wallet}</span><div class="ag-sx"><b class="ag-mn">${km(AG.spent)}</b><small>ຍອດຊື້ຂອງຕົວແທນລວມ</small></div></div>`;
+}
+const stOf=k=>{if(!k.is_active)return['off','ປິດ'];if(k.expires_at&&new Date(k.expires_at)<new Date())return['exp','ໝົດອາຍຸ'];if((+k.used_count||0)>=(+k.max_uses||1))return['used','ໃຊ້ແລ້ວ'];return['ok','ພ້ອມໃຊ້']};
+function aR(){
+ aStats();
+ const its=items(),sl=selList(),ov=Object.keys(AG.prices).length;
+ const tb=$('#agtb');
+ if(tb)tb.innerHTML=`<button type="button" role="tab" class="ag-tab${AG.tab==='keys'?' on':''}" data-t="keys">${IC.key.replace(/width="22" height="22"/,'width="19" height="19"')}<span>API Keys</span><em>${AG.keys.length}</em></button><button type="button" role="tab" class="ag-tab${AG.tab==='prices'?' on':''}" data-t="prices">${IC.box}<span>ລາຄາສິນຄ້າຕົວແທນ</span><em>${ov}/${its.length}</em></button><button type="button" role="tab" class="ag-tab${AG.tab==='mem'?' on':''}" data-t="mem">${IC.users}<span>ຕົວແທນ</span><em>${AG.mem.length}</em></button>`;
+ const b=$('#agb');if(!b)return;
+ if(AG.tab==='keys')b.innerHTML=aKeys();else if(AG.tab==='prices')b.innerHTML=aPr(its,sl);else b.innerHTML=aMem();
+}
+function aKeys(){
+ if(!AG.keys.length)return '<div class="ag-em">— ຍັງບໍ່ມີ API Key —</div>';
+ return `<div class="ag-tw"><table class="ag-t"><colgroup><col style="width:215px"><col style="width:170px"><col style="width:150px"><col style="width:160px"><col style="width:145px"><col style="width:140px"><col style="width:330px"></colgroup>
+<thead><tr><th>API KEY</th><th>ຊື່/ໝາຍເຫດ</th><th>ກຸ່ມລາຄາ</th><th>ໂຄວຕ້າ/ອາທິດ</th><th>ສະຖານະ</th><th>ທີ່ສ້າງ</th><th>ຈັດການ</th></tr></thead><tbody>`+AG.keys.map(k=>{
+  const[s,lb]=stOf(k);
+  return `<tr><td><button type="button" class="ag-kc" data-kcp="${esc(k.key)}" title="ຄັດລອກ">${esc(k.key)}</button></td><td class="ag-nt" data-u>${k.label?esc(k.label):'-'}</td><td class="ag-gp" data-u>${esc(k.list_name||'-')}</td><td class="ag-qt">${km(k.weekly_quota)}</td>
+<td><span class="ag-pl ${s}">${s==='ok'?IC.ok:''}<span>${lb}</span></span></td><td class="ag-dt">${fdt(k.created_at)}</td>
+<td><span class="ag-ac"><button type="button" class="ag-b pr" data-a="kp" data-id="${esc(k.list_id)}">ຈັດການລາຄາ</button><button type="button" class="ag-b ${k.is_active?'cl':'op'}" data-a="kt" data-id="${esc(k.id)}">${k.is_active?IC.xs+'<span>ປິດ</span>':'<span>ເປີດ</span>'}</button><button type="button" class="ag-b dl" data-a="kd" data-id="${esc(k.id)}" aria-label="ລຶບ">${IC.bin}</button></span></td></tr>`}).join('')+'</tbody></table></div>';
+}
+function aPr(its,sl){
+ const L=lists();
+ const chips=`<div class="ag-ch">${L.map(l=>`<button type="button" class="ag-chip${l.id===AG.sel?' on':''}" data-a="ls" data-id="${esc(l.id)}" data-u>${esc(l.name)}</button>`).join('')}<button type="button" class="ag-chip nw" data-a="ln">${IC.plus}<span>ກຸ່ມໃໝ່</span></button></div>`;
+ if(!sl)return chips+'<div class="ag-em">ຍັງບໍ່ມີກຸ່ມລາຄາ — ກົດ "ກຸ່ມໃໝ່" ເພື່ອສ້າງ</div>';
+ const q=AG.q.trim().toLowerCase(),F=its.filter(x=>!q||(x.name+' '+x.label).toLowerCase().includes(q));
+ const pct=+sl.discount_pct||0,ch=Object.keys(AG.ed).length;
+ return chips+`<div class="ag-pb"><label class="pm-sr ag-sr">${IC.srch}<input id="agq" type="search" autocomplete="off" placeholder="ຄົ້ນຫາສິນຄ້າ..." value="${esc(AG.q)}"></label>
+<p class="ag-hn">ໃສ່ລາຄາຕົວແທນເປັນຈຳນວນເງິນ (₭) ຕໍ່ສິນຄ້າ · ປ່ອຍວ່າງ = ໃຊ້ລາຄາປົກກະຕິ${pct>0?` (ກຸ່ມນີ້ຍັງມີສ່ວນລົດເກົ່າ ${pct}% ຄິດໃຫ້ອັດຕະໂນມັດ)`:''}</p>`+
+ (F.length?F.map(x=>{const k=ik(x.pid,x.idx),has=k in AG.prices,ed=k in AG.ed,v=ed?AG.ed[k]:(has?AG.prices[k]:null),eff=Math.max(0,Math.round(x.retail*(1-pct/100)));
+  return `<div class="ag-pr${(ed?v!=null:has)?' set':''}"><div class="ag-pn"><b data-u>${esc(x.name)}</b><small>${x.label?esc(x.label)+' · ':''}ລາຄາປົກກະຕິ ${km(x.retail)}</small></div><div class="ag-pi"><span>₭</span><input class="ag-in" data-k="${esc(k)}" inputmode="numeric" autocomplete="off" placeholder="${tpf(eff)}" value="${v==null?'':tpf(+v)}"></div></div>`}).join(''):'<div class="ag-em" style="padding:30px 8px">ບໍ່ພົບສິນຄ້າ</div>')+
+ `<div class="ag-sv"><button type="button" class="ag-go" id="agsave"${ch?'':' disabled'}><span>${ch?'ບັນທຶກລາຄາ ('+ch+')':'ບັນທຶກລາຄາ'}</span></button><button type="button" class="ag-dg" data-a="ld" data-id="${esc(sl.id)}">ລຶບກຸ່ມນີ້</button></div></div>`;
+}
+function aMem(){
+ if(!AG.mem.length)return '<div class="ag-em">— ຍັງບໍ່ມີຕົວແທນ —</div>';
+ const SL={achieved:['ຄົບເປົ້າ','ok'],failed:['ບໍ່ຄົບເປົ້າ','exp'],running:['ກຳລັງດຳເນີນ','used']};
+ return `<div class="ag-tw"><table class="ag-t"><colgroup><col style="width:200px"><col style="width:170px"><col style="width:165px"><col style="width:110px"><col style="width:260px"></colgroup>
+<thead><tr><th>ຕົວແທນ</th><th>ກຸ່ມລາຄາ</th><th>ຍອດຊື້</th><th>ອໍເດີ</th><th>ໂຄວຕ້າ</th></tr></thead><tbody>`+AG.mem.map(m=>{
+  const t=m.target,s=t?SL[t.status]:null;
+  return `<tr><td><a href="#" class="ag-mu" data-v="admin-agu" data-m="${esc(m.id)}" data-u>${esc(m.username)}</a></td><td class="ag-gp" data-u>${esc(m.is_personal?'ລາຄາສະເພາະ':(m.list_name||'-'))}</td><td class="ag-qt">${km(m.spent)}</td><td class="ag-qt">${tpf(+m.orders||0)}</td><td>${t?`<span class="ag-pl ${s[1]}"><span>${s[0]} · ${km(t.progress)}/${km(t.amount)}</span></span>`:'<span class="ag-mu2">-</span>'}</td></tr>`}).join('')+'</tbody></table></div>';
+}
+
+// ---------- ປ໊ອບອັບ ----------
+function mClose(){const o=$('#agov');if(o)o.remove();MD=null;document.body.style.overflow=''}
+function mOpen(kind,title,body,okLb){
+ mClose();MD=kind;
+ document.body.insertAdjacentHTML('beforeend',`<div class="ag-ov" id="agov"><section class="ag-md" role="dialog" aria-modal="true"><div class="ag-mh"><h3>${title}</h3><button type="button" class="ag-x" id="agx" aria-label="ປິດ">${IC.x}</button></div><div class="ag-mb">${body}<button type="button" class="ag-go" id="agok"><span>${okLb}</span></button></div></section></div>`);
+ document.body.style.overflow='hidden';requestAnimationFrame(()=>{const o=$('#agov');if(o)o.classList.add('on')});
+}
+function keyModal(){
+ const L=lists();
+ if(!L.length){tpToast('ກະລຸນາສ້າງກຸ່ມລາຄາກ່ອນ');AG.tab='prices';aR();return}
+ mOpen('key','ສ້າງ API Key ໃໝ່',`<label for="agnote">ຊື່/ໝາຍເຫດ (Note)</label><input class="ag-fi" id="agnote" maxlength="60" autocomplete="off" placeholder="ເຊັ່ນ ສາຍເຕີມ A, ກຸ່ມລັບ">
+<div class="ag-r2"><div><label for="agcnt">ຈຳນວນ Key ທີ່ຈະສ້າງ</label><input class="ag-fi" id="agcnt" inputmode="numeric" autocomplete="off" value="1"></div>
+<div><label for="aglst">ກຸ່ມລາຄາ</label><div class="ag-sl"><select class="ag-fi hi" id="aglst">${L.map(l=>`<option value="${esc(l.id)}"${l.id===AG.sel?' selected':''}>${esc(l.name)}</option>`).join('')}</select>${IC.chev}</div></div></div>
+<label for="agqt">ໂຄວຕ້າລາຍອາທິດ (ຍອດຊື້ຂັ້ນຕ່ຳ/₭)</label><input class="ag-fi" id="agqt" inputmode="numeric" autocomplete="off" value="0">`,IC.plus+' ຢືນຢັນການສ້າງ API Key');
+ const b=$('#agok');b.innerHTML=IC.plus+'<span>ຢືນຢັນການສ້າງ API Key</span>';
+}
+function listModal(){mOpen('list','ສ້າງກຸ່ມລາຄາໃໝ່',`<label for="agln">ຊື່ກຸ່ມລາຄາ</label><input class="ag-fi" id="agln" maxlength="40" autocomplete="off" placeholder="ເຊັ່ນ ຕົວແທນ VIP">`,'ສ້າງກຸ່ມ')}
+const num=v=>{v=String(v==null?'':v).replace(/\D/g,'');return v===''?0:parseInt(v,10)};
+async function okKey(){
+ const note=$('#agnote').value.trim(),c=num($('#agcnt').value),lid=$('#aglst').value,q=num($('#agqt').value);
+ if(c<1||c>50)return tpToast('ຈຳນວນ Key ຕ້ອງ 1-50');
+ if(q>1e11)return tpToast('ໂຄວຕ້າສູງເກີນໄປ');
+ const g=$('#agok');BUSY=true;g.disabled=true;
+ try{await rpc('admin_create_agent_keys',{p_list:lid,p_count:c,p_label:note||null,p_max_uses:1,p_days:null,p_quota:q});okPop('ສ້າງ API Key ສຳເລັດ');mClose();BUSY=false;AG.tab='keys';await aLoad()}
+ catch(x){tpToast(eMsg(x))}finally{BUSY=false;const gg=$('#agok');if(gg)gg.disabled=false}
+}
+async function okList(){
+ const n=$('#agln').value.trim();if(!n)return tpToast('ກະລຸນາໃສ່ຊື່ກຸ່ມ');
+ const g=$('#agok');BUSY=true;g.disabled=true;
+ try{const r=await rpc('admin_create_price_list',{p_name:n,p_discount:0,p_note:null});AG.sel=r&&r.id||AG.sel;AG.ed={};okPop('ສ້າງກຸ່ມສຳເລັດ');mClose();BUSY=false;AG.tab='prices';await aLoad()}
+ catch(x){tpToast(eMsg(x))}finally{BUSY=false;const gg=$('#agok');if(gg)gg.disabled=false}
+}
+async function savePrices(){
+ if(BUSY||!AG.sel)return;const ks=Object.keys(AG.ed);if(!ks.length)return;
+ const rows=ks.map(k=>{const[pid,idx]=k.split('|');const v=AG.ed[k];return{product_id:pid,option_idx:+idx,price:v==null?null:v}});
+ const b=$('#agsave');BUSY=true;if(b)b.disabled=true;
+ try{await rpc('admin_set_prices',{p_list:AG.sel,p_rows:rows});AG.ed={};okPop('ບັນທຶກລາຄາສຳເລັດ');BUSY=false;await aLoad()}
+ catch(x){tpToast(eMsg(x))}finally{BUSY=false;const bb=$('#agsave');if(bb)bb.disabled=false}
+}
+async function act(a,id){
+ if(BUSY||!isAdm())return;
+ if(a==='kp'){if(Object.keys(AG.ed).length&&!confirm('ມີລາຄາທີ່ຍັງບໍ່ບັນທຶກ ຕ້ອງການຍົກເລີກບໍ?'))return;AG.sel=id;AG.ed={};AG.q='';AG.tab='prices';BUSY=true;try{await aPrices();aR()}catch(x){tpToast(eMsg(x))}finally{BUSY=false}return}
+ if(a==='ls'){if(id===AG.sel)return;if(Object.keys(AG.ed).length&&!confirm('ມີລາຄາທີ່ຍັງບໍ່ບັນທຶກ ຕ້ອງການຍົກເລີກບໍ?'))return;AG.sel=id;AG.ed={};BUSY=true;try{await aPrices();aR()}catch(x){tpToast(eMsg(x))}finally{BUSY=false}return}
+ if(a==='ln'){listModal();return}
+ BUSY=true;
+ try{
+  if(a==='kt'){const k=AG.keys.find(x=>x.id===id);if(!k)return;await rpc('admin_set_agent_key_active',{p_id:id,p_active:!k.is_active});tpToast(k.is_active?'ປິດ Key ແລ້ວ':'ເປີດ Key ແລ້ວ');BUSY=false;await aLoad()}
+  else if(a==='kd'){const k=AG.keys.find(x=>x.id===id);if(!k)return;if(!confirm('ລຶບ Key '+k.key+' ແມ່ນບໍ?')){return}await rpc('admin_delete_agent_key',{p_id:id});tpToast('ລຶບ Key ແລ້ວ');BUSY=false;await aLoad()}
+  else if(a==='ld'){const l=AG.lists.find(x=>x.id===id);if(!l)return;if(!confirm('ລຶບກຸ່ມລາຄາ "'+l.name+'" ແມ່ນບໍ? (ລາຄາທີ່ຕັ້ງໄວ້ໃນກຸ່ມຈະຖືກລຶບ)'))return;
+   await sb.from('agent_prices').delete().eq('list_id',id);await rpc('admin_delete_list',{p_id:id});tpToast('ລຶບກຸ່ມແລ້ວ');AG.sel=null;AG.ed={};BUSY=false;await aLoad()}
+ }catch(x){tpToast(eMsg(x))}finally{BUSY=false}
+}
+function copy(t){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).catch(()=>{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(_){}a.remove()}).finally(()=>tpToast('ຄັດລອກແລ້ວ'))}
+
+document.addEventListener('click',e=>{
+ const t=e.target;if(!t.closest)return;
+ if(t.closest('#agov')){
+  if(t.id==='agov'||t.closest('#agx')){mClose();return}
+  if(t.closest('#agok')){if(MD==='key')okKey();else if(MD==='list')okList()}
+  return;
+ }
+ if(!t.closest('.ag'))return;
+ if(t.closest('#agnew')){keyModal();return}
+ const tab=t.closest('.ag-tab');
+ if(tab){if(tab.dataset.t!==AG.tab){AG.tab=tab.dataset.t;aR()}return}
+ const c=t.closest('[data-kcp]');if(c){copy(c.dataset.kcp);return}
+ if(t.closest('#agsave')){savePrices();return}
+ const b=t.closest('[data-a]');if(b)act(b.dataset.a,b.dataset.id);
+});
+document.addEventListener('input',e=>{
+ const t=e.target;if(!t||!t.classList)return;
+ if(t.id==='agq'){AG.q=t.value;const pos=t.selectionStart;aRP();const n=$('#agq');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}return}
+ if(t.classList.contains('ag-in')){
+  const s=t.value.replace(/\D/g,'').slice(0,12),k=t.dataset.k,n=s===''?null:parseInt(s,10);
+  t.value=n==null?'':tpf(n);
+  const base=(k in AG.prices)?AG.prices[k]:null;
+  if(n===base||(n==null&&base==null))delete AG.ed[k];else AG.ed[k]=n;
+  const row=t.closest('.ag-pr');if(row)row.classList.toggle('set',n!=null);
+  const g=$('#agsave');if(g){const c=Object.keys(AG.ed).length;g.disabled=!c;g.firstElementChild.textContent=c?'ບັນທຶກລາຄາ ('+c+')':'ບັນທຶກລາຄາ'}
+  return;
+ }
+ if(t.id==='agcnt'||t.id==='agqt')t.value=t.value.replace(/\D/g,'').slice(0,t.id==='agcnt'?2:12);
+});
+function aRP(){const b=$('#agb');if(b&&AG.tab==='prices')b.innerHTML=aPr(items(),selList())}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')mClose()});
+show=(o=>function(v,m){mClose();return o(v,m)})(show);
+})();
