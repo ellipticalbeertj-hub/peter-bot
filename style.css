@@ -1851,3 +1851,71 @@ body.adm-mode.adx-open .adx-dm>*{animation:adxIn .46s cubic-bezier(.2,.8,.2,1) b
 .wh-ta:active,.wh-sv:active{transform:scale(.97)}
 .wh-ta:disabled,.wh-sv:disabled{opacity:.6}
 @media(min-width:700px){.wh-ac{flex-direction:row;justify-content:flex-end}}
+
+/* ===== ADMIN V2: ການຕັ້ງຄ່າເວັບໄຊ (.sw) — ແຖບໂລໂກ້ຕາມ --lgs ===== */
+.hd .hl{width:var(--lgs,30px);height:var(--lgs,30px)}
+.sw{font-family:'Noto Sans Lao','IBM Plex Sans Thai','Kanit',system-ui,sans-serif;padding-bottom:104px;color:#fff}
+.sw *{box-sizing:border-box}
+.sw-h{margin:22px 0 0;font-size:22px;line-height:31px;font-weight:700;color:#fff}
+.sw-sub{margin:10px 0 0;font-size:15px;line-height:23px;color:#6b6b6e}
+.sw-tabs{display:flex;gap:10px;margin:22px -17px 0;padding:0 17px 18px;overflow-x:auto;border-bottom:1px solid #1f1f1f;scrollbar-width:none}
+.sw-tabs::-webkit-scrollbar{display:none}
+.sw-tb{flex:none;display:flex;align-items:center;gap:10px;height:39px;padding:0 17px;border:1px solid #232323;border-radius:20px;background:#0a0a0a;color:#8d8d90;font:500 15px/1 'Noto Sans Lao','IBM Plex Sans Thai',system-ui,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sw-tb svg{width:19px;height:19px;fill:currentColor}
+.sw-tb.on{background:#d9302b;border-color:#d9302b;color:#fff;box-shadow:0 4px 18px rgba(217,48,43,.38)}
+.sw-c{margin-top:22px;background:#000;border:1px solid #3a1414;border-radius:24px;overflow:hidden}
+.sw-ch{display:flex;align-items:center;gap:14px;padding:19px 22px;border-bottom:1px solid #1f1f1f}
+.sw-ch svg{width:23px;height:23px;fill:#e0302b;flex:none}
+.sw-ch h2{margin:0;font-size:18px;line-height:26px;font-weight:700;color:#fff}
+.sw-cb{padding:22px 17px 20px}
+.sw-l{display:block;margin:0 0 14px;font-size:17px;line-height:24px;color:#fff}
+.sw-lg{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:131px;height:131px;margin:0 auto 14px;border:1.5px dashed #4a3535;border-radius:50%;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sw-ic{display:flex;align-items:center;justify-content:center;width:43px;height:43px;border-radius:50%;background:#2a0d0d}
+.sw-ic svg{width:22px;height:22px;fill:none;stroke:#ff2a24;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sw-lg span.t{font-size:14px;line-height:20px;color:#e6e6e6}
+.sw-lg img{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111}
+.sw-lg.has img{display:block}
+.sw-lg.has .sw-ic,.sw-lg.has span.t{display:none}
+.sw-bt{display:flex;align-items:center;justify-content:center;gap:10px;height:40px;margin:0 auto;padding:0 22px;border:1px solid #6e1d1d;border-radius:14px;background:#000;color:#ff3b35;font:500 16px/1 'Noto Sans Lao','IBM Plex Sans Thai',system-ui,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sw-bt svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sw-bt:active{transform:scale(.97)}
+.sw-bt.rm{margin-top:10px;height:34px;font-size:14px;border-color:#2a2a2a;color:#9a9a9d}
+.sw-bt[hidden]{display:none}
+.sw-ht{margin:15px 0 0;text-align:center;font-size:14px;line-height:21px;color:#6b6b6e}
+.sw-hr{height:1px;margin:22px 0;background:#1a1a1a;border:0}
+.sw-rg{display:flex;align-items:center;gap:18px;margin-top:6px}
+.sw-rg input{flex:1;min-width:0;height:24px;margin:0;-webkit-appearance:none;appearance:none;background:transparent;outline:0}
+.sw-rg input::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,#8b1114 var(--p,30%),#6c6c70 var(--p,30%))}
+.sw-rg input::-webkit-slider-thumb{-webkit-appearance:none;width:23px;height:23px;margin-top:-8.5px;border-radius:50%;background:#9b9ba0;border:0}
+.sw-rg input::-moz-range-track{height:6px;border-radius:3px;background:#6c6c70}
+.sw-rg input::-moz-range-progress{height:6px;border-radius:3px;background:#8b1114}
+.sw-rg input::-moz-range-thumb{width:23px;height:23px;border-radius:50%;background:#9b9ba0;border:0}
+.sw-rv{flex:none;min-width:48px;text-align:right;font-size:19px;font-weight:700;color:#8b1114}
+.sw-pt{margin:20px 0 10px;font-size:14px;line-height:20px;color:#5c5c5f}
+.sw-pb{display:flex;align-items:center;gap:10px;height:52px;padding:0 6px 0 9px;border:1px solid #1f1f1f;border-radius:26px;background:#0a0a0a;overflow:hidden}
+.sw-pa{flex:none;display:flex;align-items:center;justify-content:center;border-radius:50%;overflow:hidden;background:linear-gradient(140deg,#e0302b,#8b1114);color:#fff;font-weight:700;opacity:.85}
+.sw-pa img{width:100%;height:100%;object-fit:cover}
+.sw-pn{flex:1;min-width:0;font-size:19px;font-weight:700;color:#6f6f72;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sw-pd{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid #2b2b2b;background:#0e0e0e}
+.sw-pd.r{background:#2a0d0d;border-color:#3a1414}
+.sw-i,.sw-ta{display:block;width:100%;margin:0;padding:0 18px;border:1px solid #333;border-radius:22px;background:#000;color:#fff;font:400 18px/1 'Noto Sans Lao','IBM Plex Sans Thai',system-ui,sans-serif;outline:0;-webkit-appearance:none;appearance:none}
+.sw-i{height:44px}
+.sw-ta{height:91px;padding:14px 18px;line-height:26px;resize:none}
+.sw-i:focus,.sw-ta:focus{border-color:#7a2323}
+.sw-ta::placeholder{color:#555558}
+.sw-bn{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;height:150px;margin:0 0 14px;border:1.5px dashed #4a3535;border-radius:22px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sw-bn .sw-ic{width:50px;height:50px}
+.sw-bn .sw-ic svg{width:26px;height:26px}
+.sw-bn b{font-size:17px;line-height:24px;font-weight:600;color:#fff}
+.sw-bn small{font-size:14px;color:#6b6b6e}
+.sw-bn img{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sw-bn.has img{display:block}
+.sw-bn.has .sw-ic,.sw-bn.has b,.sw-bn.has small{display:none}
+.sw-bnr{display:flex;flex-direction:column;align-items:flex-start}
+.sw-bnr .sw-bt{margin:0}
+.sw-bnr .sw-bt.rm{margin-top:10px}
+.sw-wn{margin:22px 0 0;padding:34px 18px;border:1px dashed #3a1414;border-radius:20px;text-align:center;font-size:15px;line-height:23px;color:#8d8d90}
+.sw-sv{position:fixed;left:14px;right:14px;bottom:14px;z-index:60;max-width:732px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:14px;height:48px;border:1px solid #a31a1f;border-radius:24px;background:linear-gradient(180deg,#8a1217,#6e0d11);color:#ffd9d9;font:700 18px/1 'Noto Sans Lao','IBM Plex Sans Thai',system-ui,sans-serif;box-shadow:0 0 34px rgba(190,20,25,.45);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sw-sv svg{width:22px;height:22px;fill:currentColor}
+.sw-sv:active{transform:scale(.985)}
+.sw-sv:disabled{opacity:.6}

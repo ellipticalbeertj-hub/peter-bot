@@ -585,11 +585,12 @@ document.addEventListener('input',e=>{if(e.target.id==='slq'&&isAdm()){clearTime
 let SET={shop_name:'PXPSHOP',logo_url:null,banner_url:null,maintenance:false,maint_title:'',maint_msg:'',announce_on:false,announce_text:'',topup_min:10000,topup_max:5000000,topup_qr_url:null};
 const maint=()=>!!(SET.maintenance&&!isAdm());
 async function loadSettings(){try{if(sb){const r=await sb.rpc('public_settings');if(r.data)SET={...SET,...r.data}}}catch(_){}
+try{if(sb){const x=await sb.rpc('public_site_extra');if(x.data)SET={...SET,...x.data}}}catch(_){}
 try{if(sb){const q=await sb.from('payment_qrs').select('id,bank,image_url,account_no,account_name').order('created_at');if(!q.error&&Array.isArray(q.data))PQL=q.data}}catch(_){}
 ctsSync();TPMIN=SET.topup_min;TPMAX=SET.topup_max;TPQR=SET.topup_qr_url||'';brand(document)}
 function brand(r){const n=SET.shop_name||'PXPSHOP';document.title=n;document.querySelectorAll('.dh b,.hd .hn').forEach(e=>{e.textContent=n});const w=document.createTreeWalker(r===document?document.body:r,NodeFilter.SHOW_TEXT);let x;while(x=w.nextNode())if(x.nodeValue.includes('PXPSHOP'))x.nodeValue=x.nodeValue.split('PXPSHOP').join(n);
 if(SET.logo_url){document.querySelectorAll('.dh .ph,.alg,.hd .hl').forEach(e=>{if(!e.querySelector('img'))e.innerHTML='<img alt="" src="'+esc(SET.logo_url)+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">'});let l=document.querySelector('link[rel=icon]');if(!l){l=document.createElement('link');l.rel='icon';document.head.appendChild(l)}l.href=SET.logo_url}
-let a=$('#ann');if(!a){a=document.createElement('div');a.id='ann';a.className='ann';app.parentNode.insertBefore(a,app)}a.textContent=SET.announce_text||'';a.hidden=!(SET.announce_on&&SET.announce_text&&!maint())}
+let a=$('#ann');if(!a){a=document.createElement('div');a.id='ann';a.className='ann';app.parentNode.insertBefore(a,app)}a.textContent=SET.announce_text||'';a.hidden=!(SET.announce_on&&SET.announce_text&&!maint());if(SET.logo_size)document.documentElement.style.setProperty('--lgs',SET.logo_size+'px');if(SET.site_desc){let m=document.querySelector('meta[name=description]');if(!m){m=document.createElement('meta');m.name='description';document.head.appendChild(m)}m.content=SET.site_desc}}
 views.maint=()=>`<div class="mt"><div class="mt-ic">${SET.logo_url?`<img alt="" src="${esc(SET.logo_url)}">`:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>'}</div><h1>${esc(SET.maint_title||'ປິດປັບປຸງຊົ່ວຄາວ')}</h1><p>${esc(SET.maint_msg||'').replace(/\n/g,'<br>')}</p><a href="#" class="mt-ad" data-v="auth" data-m="login">ແອດມິນເຂົ້າສູ່ລະບົບ</a></div>`;
 async function tpSend(){if(!sb)throw 0;const f=$('.tp-fi').files[0];let su=null;if(f){const pth=USER.id+'/'+Date.now()+'.jpg',u=await sb.storage.from('slips').upload(pth,f,{contentType:f.type||'image/jpeg'});if(u.error)throw u.error;su=sb.storage.from('slips').getPublicUrl(pth).data.publicUrl}
 let h=null;try{if(f&&window.crypto&&crypto.subtle){const bf=await f.arrayBuffer();h=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bf))].map(x=>x.toString(16).padStart(2,'0')).join('')}}catch(_){}
@@ -2744,4 +2745,91 @@ document.addEventListener('input',e=>{
 function aRP(){const b=$('#agb');if(b&&AG.tab==='prices')b.innerHTML=aPr(items(),selList())}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')mClose()});
 show=(o=>function(v,m){mClose();return o(v,m)})(show);
+})();
+
+// ===== ADMIN V2: ການຕັ້ງຄ່າເວັບໄຊ › ຂໍ້ມູນພື້ນຖານ (views['admin-set']) — ຕາຕະລາງ shop_settings ໃນ Supabase (ເພີ່ມຄໍລຳ logo_size, site_desc ດ້ວຍ site_settings.sql) =====
+(function(){
+const $=s=>document.querySelector(s);
+const BK='product-images';
+let W={logo:null,logoDel:false,bn:null,bnDel:false,size:36,tab:'basic',busy:false};
+const IC={
+ card:'<svg viewBox="0 0 24 24"><path d="M3 5h18a1 1 0 011 1v12a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1zm5 3.500a2 2 0 100 4 2 2 0 000-4zM4.500 16.500h7v-.5c0-1.400-2.300-2.100-3.500-2.100s-3.500.7-3.500 2.100zM14 9v1.500h5V9zm0 3v1.500h5V12z"/></svg>',
+ a:'<svg viewBox="0 0 24 24"><path d="M10.500 4h3l6 16h-2.700l-1.300-3.600H8.500L7.200 20H4.500zm1.500 3.600L9.300 14.800h5.400z"/></svg>',
+ mega:'<svg viewBox="0 0 24 24"><path d="M3 10v4a1 1 0 001 1h2l1 5h2.500l-1-5H10l8 4V5l-8 4H4a1 1 0 00-1 1zm17-2v8a3 3 0 000-8z"/></svg>',
+ cloud:'<svg viewBox="0 0 24 24"><path d="M7 18a4 4 0 01-.6-7.950A5.500 5.500 0 0117 8.500 4.500 4.500 0 0117.500 18M12 11v8M9 14l3-3 3 3"/></svg>',
+ up:'<svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/></svg>',
+ save:'<svg viewBox="0 0 24 24"><path d="M5 3h11l4 4v13a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1zm2 1v5h8V4zm5 8a3 3 0 100 6 3 3 0 000-6z"/></svg>'
+};
+const toast=t=>{let p=$('.tp-toast');if(!p){p=document.createElement('div');p.className='tp-toast';document.body.appendChild(p)}p.textContent=t;p.classList.add('on');setTimeout(()=>p.classList.remove('on'),2600)};
+const ini=()=>{const n=($('#swn')?$('#swn').value:SET.shop_name)||'';return n.trim().slice(0,2).toUpperCase()||'PX'};
+const logoSrc=()=>W.logoDel?'':(W.logo?W.logo.url:(SET.logo_url||''));
+const bnSrc=()=>W.bnDel?'':(W.bn?W.bn.url:(SET.banner_url||''));
+const rm=(a,b)=>`<button type="button" class="sw-bt rm" id="${a}"${b?'':' hidden'}>ລຶບຮູບ</button>`;
+function body(){
+ if(W.tab!=='basic')return `<div class="sw-wn">${W.tab==='font'?'ຟອນເວັບໄຊ':'ຈັດການປະກາດ'} — ຈະເພີ່ມໃນຂັ້ນຕອນຕໍ່ໄປ</div>`;
+ const ls=logoSrc(),bs=bnSrc();
+ return `<div class="sw-c"><div class="sw-ch">${IC.card}<h2>ຂໍ້ມູນພື້ນຖານເວັບໄຊ</h2></div><div class="sw-cb">
+<label class="sw-l">ໂລໂກ້ຮ້ານ</label>
+<div class="sw-lg${ls?' has':''}" id="swlg" role="button" tabindex="0"><input type="file" id="swlf" accept="image/jpeg,image/png,image/webp" hidden><img alt=""${ls?` src="${esc(ls)}"`:''}><span class="sw-ic">${IC.cloud}</span><span class="t">ໂລໂກ້</span></div>
+<div style="display:flex;flex-direction:column;align-items:center"><button type="button" class="sw-bt" id="swlb">${IC.up}ອັບໂຫຼດໂລໂກ້</button>${rm('swlr',ls)}</div>
+<p class="sw-ht">ແນະນຳຮູບສີ່ຫຼ່ຽມຈັດຕຸລັດ 256 × 256 px · JPG, PNG, WEBP · ບໍ່ໃສ່ = ໃຊ້ຕົວອັກສອນຊື່ຮ້ານ</p>
+<hr class="sw-hr"><label class="sw-l">ຂະໜາດໂລໂກ້ໃນໜ້າເວັບ</label>
+<div class="sw-rg"><input type="range" id="swsz" min="20" max="64" step="1" value="${W.size}"><span class="sw-rv" id="swsv">${W.size}px</span></div>
+<p class="sw-pt">ຕົວຢ່າງແຖບເທິງຂອງເວັບ (ຂະໜາດຈິງ)</p>
+<div class="sw-pb"><span class="sw-pa" id="swpa"></span><span class="sw-pn" id="swpn"></span><i class="sw-pd r"></i><i class="sw-pd"></i></div>
+<p class="sw-ht">ອັບໂຫຼດໂລໂກ້ກ່ອນ ຈຶ່ງປັບຂະໜາດໄດ້ · ກົດ "ບັນທຶກ" ເພື່ອໃຊ້ຈິງ</p>
+<hr class="sw-hr"><label class="sw-l" for="swn">ຊື່ເວັບໄຊ (Site Name)</label><input class="sw-i" id="swn" maxlength="40" autocomplete="off" value="${esc(SET.shop_name||'')}">
+<hr class="sw-hr"><label class="sw-l">ແບນເນີໜ້າທຳອິດ</label>
+<div class="sw-bn${bs?' has':''}" id="swbn" role="button" tabindex="0"><input type="file" id="swbf" accept="image/jpeg,image/png,image/webp" hidden><img alt=""${bs?` src="${esc(bs)}"`:''}><span class="sw-ic">${IC.cloud}</span><b>ຍັງບໍ່ໄດ້ອັບໂຫຼດແບນເນີ</b><small>ຂະໜາດແນະນຳ 1500 × 512 px · JPG, PNG, WEBP</small></div>
+<div class="sw-bnr"><button type="button" class="sw-bt" id="swbb">${IC.up}ອັບໂຫຼດຈາກເຄື່ອງ</button>${rm('swbr',bs)}</div>
+<hr class="sw-hr"><label class="sw-l" for="swd">ຄຳອະທິບາຍເວັບໄຊ</label><textarea class="sw-ta" id="swd" maxlength="300" placeholder="ຂຽນຄຳອະທິບາຍສັ້ນໆກ່ຽວກັບຮ້ານຂອງທ່ານ...">${esc(SET.site_desc||'')}</textarea>
+</div></div>`}
+views['admin-set']=()=>{W={logo:null,logoDel:false,bn:null,bnDel:false,size:+SET.logo_size||36,tab:'basic',busy:false};
+ const tb=(k,i,t)=>`<button type="button" class="sw-tb${k==='basic'?' on':''}" data-swt="${k}">${IC[i]}${t}</button>`;
+ setTimeout(()=>{pv()},0);
+ return `<div class="adx sw" data-nt><h1 class="sw-h">ການຕັ້ງຄ່າເວັບໄຊ (Website Customization)</h1>
+<p class="sw-sub">ຈັດການເນື້ອຫາຫຼັກ ແບນເນີ ສີ ທິມ ສະຖິຕິ ແລະ ຊ່ອງທາງຕິດຕໍ່ຂອງຮ້ານຄ້າ</p>
+<div class="sw-tabs">${tb('basic','card','ຂໍ້ມູນພື້ນຖານ')}${tb('font','a','ຟອນເວັບໄຊ')}${tb('ann','mega','ຈັດການປະກາດ')}</div>
+<div id="swb">${body()}</div>
+<button type="button" class="sw-sv" id="swsave">${IC.save}ບັນທຶກການຕັ້ງຄ່າ</button></div>`};
+function pv(){const a=$('#swpa'),n=$('#swpn');if(!a||!n)return;const s=+W.size||36,u=logoSrc();
+ a.style.cssText=`width:${s}px;height:${s}px;font-size:${Math.round(s*.4)}px`;a.innerHTML=u?`<img alt="" src="${esc(u)}">`:esc(ini());
+ n.textContent=($('#swn')&&$('#swn').value.trim())||SET.shop_name||'';
+ const r=$('#swsz');if(r)r.style.setProperty('--p',((s-20)/44*100)+'%')}
+function crop(f,w,h,type,q){return new Promise((ok,no)=>{const im=new Image(),u=URL.createObjectURL(f);
+ im.onload=()=>{URL.revokeObjectURL(u);const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
+  if(type==='image/jpeg'){x.fillStyle='#fff';x.fillRect(0,0,w,h)}
+  const k=Math.max(w/im.width,h/im.height),sw=w/k,sh=h/k;x.drawImage(im,(im.width-sw)/2,(im.height-sh)/2,sw,sh,0,0,w,h);
+  c.toBlob(b=>b?ok(b):no(new Error('bad')),type,q)};
+ im.onerror=()=>{URL.revokeObjectURL(u);no(new Error('bad'))};im.src=u})}
+function pick(f,kind){if(!f)return;if(!/^image\/(jpeg|png|webp)$/.test(f.type)||f.size>10*1048576)return toast('ໄຟລ໌ຮູບບໍ່ຖືກຕ້ອງ (JPG, PNG, WEBP ບໍ່ເກີນ 10MB)');
+ (kind==='logo'?crop(f,256,256,'image/png'):crop(f,1500,512,'image/jpeg',.88)).then(b=>{const o=kind==='logo'?W.logo:W.bn;if(o)URL.revokeObjectURL(o.url);const v={blob:b,url:URL.createObjectURL(b)};
+  if(kind==='logo'){W.logo=v;W.logoDel=false}else{W.bn=v;W.bnDel=false}draw()}).catch(()=>toast('ໄຟລ໌ຮູບບໍ່ຖືກຕ້ອງ'))}
+function draw(){const keep={n:$('#swn')?$('#swn').value:null,d:$('#swd')?$('#swd').value:null};const b=$('#swb');if(!b)return;b.innerHTML=body();
+ if(keep.n!==null&&$('#swn'))$('#swn').value=keep.n;if(keep.d!==null&&$('#swd'))$('#swd').value=keep.d;pv()}
+async function up(blob,pre,ext,ct){const p=pre+'_'+Date.now()+'.'+ext,u=await sb.storage.from(BK).upload(p,blob,{contentType:ct});if(u.error)throw u.error;return sb.storage.from(BK).getPublicUrl(p).data.publicUrl}
+async function save(){const g=$('#swsave');if(!g||W.busy||!sb||!isAdm())return;
+ if(W.tab!=='basic')return;
+ const nm=($('#swn')||{}).value.trim();if(!nm)return toast('ກະລຸນາໃສ່ຊື່ເວັບໄຊ');
+ W.busy=true;g.disabled=true;g.lastChild.textContent='ກຳລັງບັນທຶກ...';
+ try{let lg=SET.logo_url||null,bn=SET.banner_url||null;
+  if(W.logoDel)lg=null;if(W.logo)lg=await up(W.logo.blob,'logo','png','image/png');
+  if(W.bnDel)bn=null;if(W.bn)bn=await up(W.bn.blob,'banner','jpg','image/jpeg');
+  const row={shop_name:nm,logo_url:lg,banner_url:bn,logo_size:+W.size||36,site_desc:($('#swd').value.trim()||null),updated_at:new Date().toISOString()};
+  const r=await sb.from('shop_settings').update(row).eq('id',1).select('id');
+  if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');
+  Object.assign(SET,row);W.logo=null;W.bn=null;W.logoDel=false;W.bnDel=false;brand(document);draw();okPop('ບັນທຶກສຳເລັດ')}
+ catch(x){const m=x&&x.message||'';toast('ບັນທຶກບໍ່ສຳເລັດ'+(/logo_size|site_desc|column/i.test(m)?' — ຍັງບໍ່ໄດ້ຣັນ site_settings.sql ໃນ Supabase':(m?' ['+m+']':'')))}
+ W.busy=false;g.disabled=false;g.lastChild.textContent='ບັນທຶກການຕັ້ງຄ່າ'}
+document.addEventListener('click',e=>{const t=e.target;if(!t.closest||!t.closest('.sw')||!isAdm())return;
+ const tb=t.closest('[data-swt]');
+ if(tb){W.tab=tb.dataset.swt;document.querySelectorAll('.sw-tb').forEach(x=>x.classList.toggle('on',x===tb));draw();return}
+ if(t.closest('#swlg')||t.closest('#swlb')){if(!t.closest('input'))$('#swlf').click()}
+ else if(t.closest('#swbn')||t.closest('#swbb')){if(!t.closest('input'))$('#swbf').click()}
+ else if(t.closest('#swlr')){if(W.logo)URL.revokeObjectURL(W.logo.url);W.logo=null;W.logoDel=true;draw()}
+ else if(t.closest('#swbr')){if(W.bn)URL.revokeObjectURL(W.bn.url);W.bn=null;W.bnDel=true;draw()}
+ else if(t.closest('#swsave'))save()});
+document.addEventListener('change',e=>{const t=e.target;if(t.id==='swlf'){pick(t.files[0],'logo');t.value=''}else if(t.id==='swbf'){pick(t.files[0],'bn');t.value=''}});
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='swsz'){W.size=+t.value;$('#swsv').textContent=W.size+'px';pv()}else if(t.id==='swn')pv()});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&(e.target.id==='swlg'||e.target.id==='swbn')){e.preventDefault();e.target.click()}});
 })();
