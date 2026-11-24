@@ -27,13 +27,13 @@ const CHK='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="c
 const CART='<svg viewBox="0 0 24 24" width="15" height="15" style="vertical-align:-3px;margin-left:3px" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h3l2.5 12h11L21 7H6"/><circle cx="9" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/></svg>';
 const box='<svg viewBox="0 0 24 24" width="14" height="14" style="vertical-align:-2px;margin-right:4px" fill="#9a918b"><path d="M3 5h14v4H3zM4 10h12v8H4z"/><circle cx="18" cy="18" r="4" fill="#7a7370"/></svg>';
 const IAR=(()=>{try{return JSON.parse(localStorage.getItem('px_iar')||'{}')||{}}catch(_){return{}}})();
-const iarSt=src=>IAR[src]?` style="aspect-ratio:${IAR[src]}"`:'';
+const iarSt=src=>IAR[src]&&(!window.sxFit||window.sxFit('prod'))?` style="aspect-ratio:${IAR[src]}"`:'';
 const HOTB='<svg class="hotb" viewBox="56 83 1329 750" aria-label="HOT" role="img"><use href="#hotbg"/></svg>';
 const isHot=p=>bsl().some(x=>x[0]===p[0]);
 const card=p=>`<div class="card pc${pst(p)!=='ok'?' pc-'+pst(p):''}"><div class="pi"${iarSt(p[5])}><div class="ph">${p[5]?`<img src="${esc(p[5])}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover">`:PH}</div>${ptag(p)}</div>${isHot(p)?HOTB:''}<h3>${esc(p[1])}</h3><div class="pr">${p[7].length?'เริ่ม ':''}${tpf(p[2])} กีบ</div><button class="buy${pst(p)!=='ok'?' buy-'+pst(p):''}" ${pst(p)==='out'?'disabled aria-disabled="true"':`data-v="order" data-m="${p[0]}"`}>${pst(p)==='ok'?'สั่งซื้อ '+CART:NOI+PSB[pst(p)]}</button><div class="sk"><span>${CHK}ขายแล้ว <b>${p[4]}</b></span><span>${box}เหลือ <b>${p[3]}</b></span></div>${p[4]+p[3]>0?`<div class="bar"><i style="width:${Math.round(p[4]/(p[4]+p[3])*100)}%"></i></div>`:''}</div>`;
 let cats=[]; // [id,name,'','',image_url] — โหลดจากตาราง categories ใน Supabase PXPSHOP (จัดการได้ที่ ห้องแอดมิน > จัดการหมวดหมู่)
 const homeSecs=()=>{const row=ps=>ps.length?`<div class="hs-row">${ps.map(card).join('')}</div>`:'';let h=cats.map(c=>{const ps=P.filter(p=>p[9]===c[0]);return `<section class="cs"><div class="cs-h"><i class="cs-bar"></i><h3>${esc(c[1])}</h3><a href="#" class="cs-more" data-v="cat" data-m="${c[0]}">${ps.length} รายการ ›</a></div>${c[4]?`<a href="#" class="cs-bn" data-v="cat" data-m="${c[0]}" aria-label="${esc(c[1])}"><img src="${esc(c[4])}" alt="" loading="lazy"></a>`:''}${row(ps)}</section>`}).join('');const o=P.filter(p=>!cats.some(c=>c[0]===p[9]));if(o.length)h+=`<section class="cs"><div class="cs-h"><i class="cs-bar"></i><h3>สินค้าอื่น ๆ</h3><span class="cs-more">${o.length} รายการ</span></div>${row(o)}</section>`;return h||hsEmpty};
-const cat=(c,i)=>{const n=P.filter(p=>p[9]===c[0]).length;return `<a href="#" class="card cat" data-v="cat" data-m="${c[0]}" data-n="${esc(c[1]).toLowerCase()}" data-i="${i}"><div class="ph">${c[4]?`<img src="${esc(c[4])}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:PH}</div><div class="ct"><h3>${esc(c[1])}</h3><span class="cn">${n?n+' สินค้า':''}</span><span class="pr2">${c[3]}</span></div></a>`};
+const cat=(c,i)=>{const n=P.filter(p=>p[9]===c[0]).length;return `<a href="#" class="card cat" data-v="cat" data-m="${c[0]}" data-n="${esc(c[1]).toLowerCase()}" data-i="${i}"><div class="ph"${window.sxCatSt?window.sxCatSt(c[4]):''}>${c[4]?`<img src="${esc(c[4])}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:PH}</div><div class="ct"><h3>${esc(c[1])}</h3><span class="cn">${n?n+' สินค้า':''}</span><span class="pr2">${c[3]}</span></div></a>`};
 let ST={u:0,s:0,o:0}; // สถิติหน้าหลักจริง: ผู้ใช้งาน / สต็อก / ยอดขาย (ฟังก์ชัน shop_stats)
 const SXI={u:'<circle cx="12" cy="8" r="3.6"/><path d="M4.8 20c0-4 3.2-6.4 7.2-6.4s7.2 2.4 7.2 6.4"/>',s:'<circle cx="12" cy="12" r="8.5"/><path d="M8.2 12.4l2.8 2.8 5-5.6"/>',o:'<path d="M3.5 17l5.5-5.5 3.5 3.5 8-8"/><path d="M15 7h5.5v5.5"/>'};
 const sxCard=(k,label,val,unit,w)=>`<div class="sx${w?' w':''}"><svg class="sx-wm" viewBox="0 0 24 24" aria-hidden="true">${SXI[k]}</svg><span class="sx-ic"><svg viewBox="0 0 24 24" aria-hidden="true">${SXI[k]}</svg></span><span class="sx-tx"><small class="sx-lb">${label}</small><b class="sx-nm">${tpf(val)}<i>${unit}</i></b></span></div>`;
@@ -55,8 +55,9 @@ ${rg?'<div class="ar"><label class="ck"><input type="checkbox" name="t">ฉั�
 <div class="dv">หรือ</div><div class="sw">${rg?'มีบัญชีอยู่แล้ว?':'ยังไม่มีบัญชี?'}<a href="#" class="lk" data-a="${rg?'login':'register'}">${rg?'เข้าสู่ระบบ':'สมัครสมาชิก'}</a></div>`};
 const views={
 home:()=>`<div class="ph hero${SET.banner_url?' has-bn':''}" role="img" aria-label="PXPSHOP">${SET.banner_url?`<img alt="" src="${esc(SET.banner_url)}" decoding="async">`:PH}</div>
-<div class="stats">${sxCard('u','ผู้ใช้งาน',ST.u,'คน')}${sxCard('s','คลังสินค้า',ST.s,'ชิ้น')}${sxCard('o','ขายแล้ว',ST.o,'ครั้ง',1)}</div>
+${window.sxBar?window.sxBar():''}<div class="stats">${(window.sxSt&&window.sxSt())||`${sxCard('u','ผู้ใช้งาน',ST.u,'คน')}${sxCard('s','คลังสินค้า',ST.s,'ชิ้น')}${sxCard('o','ขายแล้ว',ST.o,'ครั้ง',1)}`}</div>
 <div class="btns">${btns()}</div>
+${window.sxWhy?window.sxWhy():''}
 ${ROR.length?`<div class="sec"><h2>รายการสั่งซื้อล่าสุด</h2><p>รายการสินค้าที่เพิ่งถูกสั่งซื้อ</p></div>
 <div class="row"><div class="trk">${(h=>[...h,...h])(Array.from({length:Math.max(4,ROR.length)},(_,i)=>ROR[i%ROR.length])).map(o=>`<div class="card od"><div class="ph">${o.image_url?`<img src="${esc(o.image_url)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`:PH}</div><div><b>${esc(o.buyer)}</b><span>${esc(o.product_name)}</span><em>${fdt(o.created_at)}</em></div></div>`).join('')}</div></div>`:''}
 ${bsl().length?`<div class="sh"><svg viewBox="0 0 24 24"><path d="M4 5h16v16H4zM7 2h2v4H7zM15 2h2v4h-2z"/></svg><div><h2>ขายดีประจำสัปดาห์</h2><p>สินค้าขายดีที่ลูกค้าเลือกมากที่สุด</p></div><button class="pill" data-v="list">ดูทั้งหมด</button></div>
@@ -133,7 +134,7 @@ function trs(t){for(const k of K)t=t.split(k).join(LO[k]);return t}
 function tr(r){const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){let t=n.nodeValue;if(!/[\u0E00-\u0E7F]/.test(t))continue;if(n.parentNode.closest&&n.parentNode.closest('[data-nt]'))continue;for(const k of K)t=t.split(k).join(LO[k]);n.nodeValue=t}}
 let raf;function mq(){cancelAnimationFrame(raf);const r=document.querySelector('.row');if(!r||matchMedia('(prefers-reduced-motion:reduce)').matches)return;let hold=false,pos=0,tm;const half=()=>r.scrollWidth/2;const stop=()=>{hold=true;clearTimeout(tm)},go=()=>{clearTimeout(tm);tm=setTimeout(()=>{pos=r.scrollLeft;hold=false},1500)};
 ['touchstart','pointerdown','mouseenter'].forEach(e=>r.addEventListener(e,stop,{passive:true}));['touchend','pointerup','touchcancel','mouseleave'].forEach(e=>r.addEventListener(e,go));
-(function t(){if(hold){if(r.scrollLeft>=half())r.scrollLeft-=half()}else{pos+=.6;if(pos>=half())pos-=half();r.scrollLeft=pos}raf=requestAnimationFrame(t)})()}
+let lt=performance.now();(function t(){const nw=performance.now(),dt=Math.min(50,nw-lt);lt=nw;if(hold){if(r.scrollLeft>=half())r.scrollLeft-=half()}else{pos+=(+SET.recent_speed||36)*dt/1000;if(pos>=half())pos-=half();r.scrollLeft=pos}raf=requestAnimationFrame(t)})()}
 const $=s=>document.querySelector(s),app=$('#app');
 function show(v,m){if(maint()&&v!=='auth'&&v!=='maint')v='maint';if(v==='auth'&&maint())m='login';if(NEED.has(v)&&!USER){PEND=[v,m];v='auth';m='login';tpToast('กรุณาเข้าสู่ระบบก่อน')}else if(v==='auth'&&USER){v='home';m=undefined}else if(/^admin/.test(v)&&!isAdm()){v='home';m=undefined}if(v!=='auth')PEND=null;CUR=v;CURM=m;document.querySelectorAll('.pop').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.tp-ov,.tp-sh').forEach(x=>x.remove());document.body.style.overflow='';app.innerHTML=views[v](m);tr(app);brand(app);app.querySelectorAll('[placeholder]').forEach(i=>{i.placeholder=trs(i.placeholder)});document.querySelectorAll('.dr a[data-v]').forEach(a=>a.classList.toggle('on',a.dataset.v===v&&(!a.dataset.m||a.dataset.m===m)));document.body.classList.remove('open');scrollTo(0,0)}
 document.addEventListener('click',e=>{const t=e.target.closest('[data-v]');if(t){e.preventDefault();show(t.dataset.v,t.dataset.m)}});
@@ -590,7 +591,7 @@ try{if(sb){const q=await sb.from('payment_qrs').select('id,bank,image_url,accoun
 ctsSync();TPMIN=SET.topup_min;TPMAX=SET.topup_max;TPQR=SET.topup_qr_url||'';brand(document)}
 function brand(r){const n=SET.shop_name||'PXPSHOP';document.title=n;document.querySelectorAll('.dh b,.hd .hn').forEach(e=>{e.textContent=n});const w=document.createTreeWalker(r===document?document.body:r,NodeFilter.SHOW_TEXT);let x;while(x=w.nextNode())if(x.nodeValue.includes('PXPSHOP'))x.nodeValue=x.nodeValue.split('PXPSHOP').join(n);
 if(SET.logo_url){document.querySelectorAll('.dh .ph,.alg,.hd .hl').forEach(e=>{if(!e.querySelector('img'))e.innerHTML='<img alt="" src="'+esc(SET.logo_url)+'" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">'});let l=document.querySelector('link[rel=icon]');if(!l){l=document.createElement('link');l.rel='icon';document.head.appendChild(l)}l.href=SET.logo_url}
-let a=$('#ann');if(!a){a=document.createElement('div');a.id='ann';a.className='ann';app.parentNode.insertBefore(a,app)}a.textContent=SET.announce_text||'';a.hidden=!(SET.announce_on&&SET.announce_text&&!maint());if(SET.logo_size)document.documentElement.style.setProperty('--lgs',SET.logo_size+'px');if(SET.site_desc){let m=document.querySelector('meta[name=description]');if(!m){m=document.createElement('meta');m.name='description';document.head.appendChild(m)}m.content=SET.site_desc}}
+let a=$('#ann');if(!a){a=document.createElement('div');a.id='ann';a.className='ann';app.parentNode.insertBefore(a,app)}a.textContent=SET.announce_text||'';a.hidden=!(SET.announce_on&&SET.announce_text&&!maint());if(SET.logo_size)document.documentElement.style.setProperty('--lgs',SET.logo_size+'px');if(SET.site_desc){let m=document.querySelector('meta[name=description]');if(!m){m=document.createElement('meta');m.name='description';document.head.appendChild(m)}m.content=SET.site_desc};window.applySiteFont&&window.applySiteFont();window.sxTop&&window.sxTop();window.sxTheme&&window.sxTheme()}
 views.maint=()=>`<div class="mt"><div class="mt-ic">${SET.logo_url?`<img alt="" src="${esc(SET.logo_url)}">`:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg>'}</div><h1>${esc(SET.maint_title||'ປິດປັບປຸງຊົ່ວຄາວ')}</h1><p>${esc(SET.maint_msg||'').replace(/\n/g,'<br>')}</p><a href="#" class="mt-ad" data-v="auth" data-m="login">ແອດມິນເຂົ້າສູ່ລະບົບ</a></div>`;
 async function tpSend(){if(!sb)throw 0;const f=$('.tp-fi').files[0];let su=null;if(f){const pth=USER.id+'/'+Date.now()+'.jpg',u=await sb.storage.from('slips').upload(pth,f,{contentType:f.type||'image/jpeg'});if(u.error)throw u.error;su=sb.storage.from('slips').getPublicUrl(pth).data.publicUrl}
 let h=null;try{if(f&&window.crypto&&crypto.subtle){const bf=await f.arrayBuffer();h=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bf))].map(x=>x.toString(16).padStart(2,'0')).join('')}}catch(_){}
@@ -2116,10 +2117,12 @@ show=async function(v,m){
   var saveT;
   function save(){clearTimeout(saveT);saveT=setTimeout(function(){try{localStorage.setItem('px_iar',JSON.stringify(IAR))}catch(e){}},600)}
   function fit(img){
-    var box=img.closest('.pi,.or-img');
+    var box=img.closest('.pi,.or-img,.cat .ph');
     if(!box||!img.naturalWidth||!img.naturalHeight)return;
+    var ct=box.matches('.cat .ph');
+    if(!(window.sxFit?window.sxFit(ct?'cat':'prod'):!ct)){if(box.style.aspectRatio)box.style.aspectRatio='';return}
     var r=img.naturalWidth/img.naturalHeight;
-    r=Math.min(2.2,Math.max(.6,r));
+    r=Math.min(ct?4:2.2,Math.max(.6,r));
     var v=+r.toFixed(4);
     box.style.aspectRatio=v;
     var src=img.getAttribute('src');
@@ -2130,7 +2133,7 @@ show=async function(v,m){
   new MutationObserver(function(ms){
     ms.forEach(function(m){m.addedNodes.forEach(function(n){
       if(n.nodeType!==1)return;
-      var l=n.matches&&n.matches('img')?[n]:(n.querySelectorAll?n.querySelectorAll('.pi img,.or-img img'):[]);
+      var l=n.matches&&n.matches('img')?[n]:(n.querySelectorAll?n.querySelectorAll('.pi img,.or-img img,.cat img'):[]);
       l.forEach(function(i){if(i.complete)fit(i)});
     })});
   }).observe(document.getElementById('app')||document.body,{childList:true,subtree:true});
@@ -2753,6 +2756,14 @@ const $=s=>document.querySelector(s);
 const BK='product-images';
 let W={logo:null,logoDel:false,bn:null,bnDel:false,size:36,tab:'basic',busy:false};
 const IC={
+ list:'<svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>',
+ phone:'<svg viewBox="0 0 24 24"><path d="M6.600 10.800a15 15 0 006.600 6.600l2.200-2.200a1 1 0 011-.25c1.100.37 2.300.57 3.600.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.500a1 1 0 011 1c0 1.300.2 2.500.57 3.600a1 1 0 01-.25 1z"/></svg>',
+ fitI:'<svg class="o" viewBox="0 0 24 24"><path d="M4 8V6a2 2 0 012-2h2M16 4h2a2 2 0 012 2v2M20 16v2a2 2 0 01-2 2h-2M8 20H6a2 2 0 01-2-2v-2"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>',
+ pal:'<svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 000 18c1.100 0 1.800-.9 1.500-1.900-.3-1 .3-2.100 1.400-2.100H17a4 4 0 004-4c0-5-4-10-9-10zM7.500 11a1.300 1.300 0 110-2.600 1.300 1.300 0 010 2.600zm3-4a1.300 1.300 0 110-2.600 1.300 1.300 0 010 2.600zm4.500 0a1.300 1.300 0 110-2.600 1.300 1.300 0 010 2.600zm3 4a1.300 1.300 0 110-2.600 1.300 1.300 0 010 2.600z"/></svg>',
+ shield:'<svg class="o" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.500-3.200 8-8 9-4.800-1-8-4.500-8-9V6z"/></svg>',
+ bag:'<svg class="o" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6zM9 8V6.500a3 3 0 016 0V8M9.500 12.500a2.500 2.500 0 005 0"/></svg>',
+ bars:'<svg class="o" viewBox="0 0 24 24"><path d="M3 20h18M6 20V10M11 20V4M16 20v-8M20 20v-5"/></svg>',
+ headset:'<svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0116 0v2M4 14h3v5H5.500A1.500 1.500 0 014 17.500zM20 14h-3v5h1.500a1.500 1.500 0 001.500-1.500z"/></svg>',
  card:'<svg viewBox="0 0 24 24"><path d="M3 5h18a1 1 0 011 1v12a1 1 0 01-1 1H3a1 1 0 01-1-1V6a1 1 0 011-1zm5 3.500a2 2 0 100 4 2 2 0 000-4zM4.500 16.500h7v-.5c0-1.400-2.300-2.100-3.500-2.100s-3.500.7-3.500 2.100zM14 9v1.500h5V9zm0 3v1.500h5V12z"/></svg>',
  a:'<svg viewBox="0 0 24 24"><path d="M10.500 4h3l6 16h-2.700l-1.300-3.600H8.500L7.200 20H4.500zm1.500 3.600L9.300 14.800h5.400z"/></svg>',
  mega:'<svg viewBox="0 0 24 24"><path d="M3 10v4a1 1 0 001 1h2l1 5h2.500l-1-5H10l8 4V5l-8 4H4a1 1 0 00-1 1zm17-2v8a3 3 0 000-8z"/></svg>',
@@ -2760,13 +2771,115 @@ const IC={
  up:'<svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 15v4a1 1 0 001 1h14a1 1 0 001-1v-4"/></svg>',
  save:'<svg viewBox="0 0 24 24"><path d="M5 3h11l4 4v13a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1zm2 1v5h8V4zm5 8a3 3 0 100 6 3 3 0 000-6z"/></svg>'
 };
+const FN=['Outfit','Noto Sans Lao Looped','Noto Sans Lao','Noto Serif Lao','IBM Plex Sans Thai','Sarabun','Kanit','Prompt','Mitr','Bai Jamjuree'];
+const st=f=>`'${f}','Noto Sans Lao Looped','Noto Sans Lao',system-ui,sans-serif`;
+const LF=new Set();
+function loadFonts(a){const n=a.filter(f=>!LF.has(f));if(!n.length)return;n.forEach(f=>LF.add(f));const l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?'+n.map(f=>'family='+f.replace(/ /g,'+')+':wght@400;500;600;700').join('&')+'&display=swap';document.head.appendChild(l)}
+window.applySiteFont=function(){const f=SET.site_font;let e=document.getElementById('sitefont');if(!f||FN.indexOf(f)<0){if(e)e.remove();return}
+ loadFonts([f,'Noto Sans Lao Looped']);if(!e){e=document.createElement('style');e.id='sitefont';document.head.appendChild(e)}
+ const x=st(f),nx=':not(.adx *,.adx-hd *,.adx-dr *)';
+ e.textContent=`html,body{font-family:${x}}body :is(button,input,textarea,select)${nx}{font-family:inherit}:is(h2,.cat h3,.bt .t1,.bt .t2,.cs-t h3,.cs-h h3)${nx}{font-family:${x}}`};
+if(SET.site_font)window.applySiteFont();
+const mqB=el=>{const t=el.dataset.t||'',sp=+el.dataset.s||40,dot=el.dataset.d==='1',cw=el.clientWidth;if(!t||!cw)return;
+ el.innerHTML='';const mt=document.createElement('div');mt.className='sx-mt';const g=document.createElement('div');g.className='sx-mg';
+ const it=()=>{const x=document.createElement('span');x.className='sx-mi';x.appendChild(document.createTextNode(t));const i=document.createElement('i');i.className=dot?'sx-md':'sx-mx';x.appendChild(i);return x};
+ const f=it();g.appendChild(f);mt.appendChild(g);el.appendChild(mt);const w=f.offsetWidth||1,k=Math.max(1,Math.ceil(cw/w)),gw=k*w;
+ for(let i=1;i<k;i++)g.appendChild(it());mt.appendChild(g.cloneNode(true));
+ el._u=()=>{mt.style.animationDuration=(gw/(+el.dataset.s||40))+'s'};el._u();el.dataset.b='1'};
+let mqT=0;const mqS=()=>{cancelAnimationFrame(mqT);mqT=requestAnimationFrame(()=>{document.querySelectorAll('.sx-mq:not([data-b])').forEach(mqB);document.querySelectorAll('.sx-wy:not([data-wd])').forEach(wyI)})};
+new MutationObserver(()=>{if(document.querySelector('.sx-mq:not([data-b]),.sx-wy:not([data-wd])'))mqS()}).observe(document.body,{childList:true,subtree:true});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{document.querySelectorAll('.sx-mq[data-b]').forEach(e=>{delete e.dataset.b});mqS()});
+const mqH=(t,sp,d)=>`<div class="sx-mq" data-t="${esc(t)}" data-s="${sp}" data-d="${d}"></div>`;
+window.sxBar=()=>SET.bar_text&&!maint()?`<div class="sx-bar">${mqH(SET.bar_text,+SET.bar_speed||40,0)}</div>`:'';
+window.sxTop=()=>{let a=document.getElementById('sxt');const app=document.getElementById('app')||document.querySelector('main');if(!app)return;
+ if(!a){a=document.createElement('div');a.id='sxt';a.className='sx-top';app.parentNode.insertBefore(a,app)}
+ const k=SET.top_text&&!maint()?(SET.top_text+'|'+(+SET.top_speed||55)):'';if(a.dataset.k===k)return;a.dataset.k=k;a.hidden=!k;a.innerHTML=k?mqH(SET.top_text,+SET.top_speed||55,1):''};
+const SH={u:'<svg viewBox="0 0 24 24"><path d="M9 11a3 3 0 100-6 3 3 0 000 6zm7 0a2.500 2.500 0 100-5 2.500 2.500 0 000 5zM2 19c0-3 3-5 7-5s7 2 7 5zM16 14c3 0 6 1.500 6 4.500V19h-4.500z"/></svg>',p:'<svg viewBox="0 0 24 24"><path d="M5.500 8h13l.9 12.500H4.600zM9 8a3 3 0 016 0" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',o:'<svg viewBox="0 0 24 24"><rect x="3" y="13" width="8" height="8" rx="1.500"/><rect x="13" y="13" width="8" height="8" rx="1.500"/><rect x="8" y="3" width="8" height="8" rx="1.500"/></svg>',s:'<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1.500 14.500L6 12l1.400-1.400 3.100 3.100 6.100-6.100L18 9.100z"/></svg>'};
+const STL=[['u','ຜູ້ໃຊ້ງານ','ຄົນ'],['p','ສິນຄ້າ','ລາຍການ'],['o','ຄຳສັ່ງຊື້','ລາຍການ'],['s','ຂາຍແລ້ວ','ຊິ້ນ']];
+const WD=[['ບໍລິການລູກຄ້າ','ທີມງານມືອາຊີບພ້ອມໃຫ້ຄຳປຶກສາ ແລະ ແກ້ໄຂບັນຫາຕະຫຼອດ 24 ຊົ່ວໂມງ',IC.headset],['ປອດໄພ ໜ້າເຊື່ອຖື','ຂໍ້ມູນ ແລະ ທຸລະກຳຂອງທ່ານຖືກປົກປ້ອງຢ່າງໂປ່ງໃສ ແລະ ປອດໄພ',IC.shield]];
+const WY=()=>W.wy||(W.wy=Object.assign({t1:'',x1:'',t2:'',x2:'',mode:1,hold:5,blur:.9},SET.why||{}));
+const FS=()=>W.fs||(W.fs=Object.assign({},SET.fake_stats||{}));
+const rl=()=>{const a=typeof P!=='undefined'&&Array.isArray(P)?P:[];return{u:ST.u,p:a.length,o:ST.o,s:a.reduce((n,x)=>n+(+x[4]||0),0)}};
+const sld=(i,v,vi,mn,mx,sp,tx,cl)=>`<div class="sw-rg b ${cl||''}"><input type="range" id="${i}" min="${mn}" max="${mx}" step="${sp}" value="${v}" style="--p:${(v-mn)/(mx-mn)*100}%"><span class="sw-rv" id="${vi}">${tx}</span></div>`;
+function wyL(y,pv){const o=[];[1,2].forEach(n=>{const t=String(y['t'+n]||'').trim(),x=String(y['x'+n]||'').trim();if(t||x)o.push({t:t||WD[n-1][0],x:x||WD[n-1][1],i:WD[n-1][2]})});if(!o.length&&pv)o.push({t:WD[0][0],x:WD[0][1],i:WD[0][2]});return o}
+function wyH(y,pv){const c=wyL(y,pv);if(!c.length)return'';const m=(+y.mode===2||c.length<2)?2:1;
+ return `<div class="sx-wy m${m}" data-h="${+y.hold||5}" data-bt="${+y.blur||.9}">${c.map(k=>`<div class="sx-wc"><span class="sx-wi">${k.i}</span><div><b>${esc(k.t)}</b><p>${esc(k.x)}</p></div></div>`).join('')}</div>`}
+function wyI(el){el.dataset.wd='1';const cs=[...el.children];if(!el.classList.contains('m1')||cs.length<2)return;const hd=Math.max(2,+el.dataset.h||5)*1000,bt=+el.dataset.bt||.9;el.style.setProperty('--bt',bt+'s');let i=0;cs[0].classList.add('on');
+ const tm=setInterval(()=>{if(!el.isConnected){clearInterval(tm);return}cs[i].classList.remove('on');i=(i+1)%cs.length;cs[i].classList.add('on')},hd+bt*1000)}
+window.sxWhy=()=>{const y=SET.why;if(!y)return'';const h=wyH(y,0);return h?`<div class="sec"><h2>ເປັນຫຍັງຕ້ອງເລືອກເຮົາ</h2></div>${h}`:''};
+SXI.p='<path d="M5.500 8h13l.9 12H4.600z"/><path d="M9 8a3 3 0 016 0"/>';SXI.g='<rect x="3.500" y="13" width="7" height="7" rx="1.500"/><rect x="13.500" y="13" width="7" height="7" rx="1.500"/><rect x="8.500" y="4" width="7" height="7" rx="1.500"/>';
+window.sxSt=()=>{const f=SET.fake_stats;if(!f||!['u','p','o','s'].some(k=>f[k]!=null&&f[k]!==''))return'';const r=rl(),v=k=>f[k]!=null&&f[k]!==''?+f[k]:r[k];
+ return sxCard('u','ຜູ້ໃຊ້ງານ',v('u'),'ຄົນ')+sxCard('p','ສິນຄ້າ',v('p'),'ລາຍການ')+sxCard('g','ຄຳສັ່ງຊື້',v('o'),'ລາຍການ')+sxCard('s','ຂາຍແລ້ວ',v('s'),'ຊິ້ນ')};
+const hx=v=>/^#[0-9a-f]{6}$/i.test(v||'');
+const h2r=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const r2h=a=>'#'+a.map(v=>Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join('');
+const r2l=a=>{const r=a[0]/255,g=a[1]/255,b=a[2]/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;let h=0,s=0;if(mx!==mn){const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4;h*=60}return[h,s*100,l*100]};
+const l2h=(h,s,l)=>{s/=100;l/=100;const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return r2h([f(0)*255,f(8)*255,f(4)*255])};
+const lum=x=>{const a=h2r(x);return(.299*a[0]+.587*a[1]+.114*a[2])/255};
+const thBg=(c,b,m)=>{const a=h2r(hx(c)?c:'#0053ff'),q=a.join(',');return m==='gradient'?`linear-gradient(180deg,rgba(${q},0),rgba(${q},.22)) fixed,${b}`:m==='glow'?`radial-gradient(120% 70% at 50% 0%,rgba(${q},.32),rgba(${q},0) 70%) fixed,${b}`:b};
+function thCss(c,bg,m){let o='';
+ if(hx(c)){const t=r2l(h2r(c)),h=t[0],sa=t[1],l=t[2];o+=`:root{--pri:${c};--sec:${l2h(h,sa,Math.min(88,l+8))};--ice:${c}}:root:not([data-theme=dark]){--text:${l2h(h,86,29)};--sub:${l2h(h,48,52)};--muted:${l2h(h,77,77)};--border:${l2h(h,100,88)};--btn:${l2h(h,100,94)}}[data-theme=dark]{--ice:${l2h(h,sa,Math.min(80,l+22))}}`}
+ const d=hx(bg)&&bg.toLowerCase()!=='#000000'&&bg.toLowerCase()!=='#ffffff';
+ if(d){if(lum(bg)<.5){const t=r2l(h2r(bg));o+=`[data-theme=dark]{--bg:${bg};--surface:${l2h(t[0],t[1],Math.min(100,t[2]+5))}}`}else o+=`:root:not([data-theme=dark]){--bg:${bg}}`}
+ if(m==='gradient'||m==='glow'){o+=`body:not(.adm-mode){min-height:100vh;min-height:100dvh;background:${thBg(c,'var(--bg)',m)}}`}
+ return o}
+(function(){try{const x=localStorage.getItem('px_th');if(x){const e=document.createElement('style');e.id='sxth';e.textContent=x;document.head.appendChild(e)}}catch(_){}})();
+window.sxTheme=()=>{const css=thCss(SET.theme_color,SET.theme_bg,SET.theme_mode);let e=document.getElementById('sxth');try{if(css)localStorage.setItem('px_th',css);else localStorage.removeItem('px_th')}catch(_){}
+ if(!css){if(e)e.remove();return}if(!e){e=document.createElement('style');e.id='sxth';document.head.appendChild(e)}if(e.textContent!==css)e.textContent=css};
+window.sxFit=k=>{const f=SET.fit;if(!f)return k==='prod';return!!(f.on&&f[k])};
+window.sxCatSt=src=>window.sxFit('cat')&&IAR[src]?` style="aspect-ratio:${IAR[src]}"`:'';
+const FT=()=>W.ft||(W.ft=Object.assign(SET.fit?{}:{on:true,prod:true,cat:false},SET.fit||{}));
+const thDef=()=>{let v='';try{v=getComputedStyle(document.documentElement).getPropertyValue('--pri').trim()}catch(_){}return hx(v)?v.toLowerCase():'#ff0b16'};
+const THM={solid:['Solid','ພື້ນຫຼັງສີດຽວທັງໜ້າ'],gradient:['Gradient','ພື້ນຫຼັງໄລ່ສີຈາກສີຫຼັກລົງດ້ານລຸ່ມ'],glow:['Glow','ແສງສີຫຼັກຈາງໆດ້ານເທິງໜ້າ']};
+function thP(c,bg,m){const cc=hx(c)?c:'#ff0b16',b=hx(bg)?bg:'#000000',q=h2r(cc).join(','),lt=lum(b)>.5;
+ return `<div class="sw-tp" style="background:${thBg(cc,b,m)};--tx:${lt?'#111':'#fff'};--cb:${lt?'#fff':'#121212'};--sb:${lt?'#6b6b6e':'#8d8d90'}"><div class="sw-th"><b>${esc((SET.shop_name||'').toUpperCase())}</b><span style="color:${cc};background:rgba(${q},.18)">ໃໝ່</span></div><div class="sw-tc"><b>ຕົວຢ່າງສິນຄ້າ</b><strong style="color:${cc}">99,000 ₭</strong><p>ສົ່ງທັນທີຫຼັງຊຳລະເງິນ</p><i style="background:${cc}">ຊື້ເລີຍ</i></div></div>`}
+function thR(){const e=$('#swthp');if(e)e.innerHTML=thP(W.tc!=null?W.tc:(SET.theme_color||thDef()),W.tb!=null?W.tb:(SET.theme_bg||'#000000'),W.tm||SET.theme_mode||'solid')}
 const toast=t=>{let p=$('.tp-toast');if(!p){p=document.createElement('div');p.className='tp-toast';document.body.appendChild(p)}p.textContent=t;p.classList.add('on');setTimeout(()=>p.classList.remove('on'),2600)};
 const ini=()=>{const n=($('#swn')?$('#swn').value:SET.shop_name)||'';return n.trim().slice(0,2).toUpperCase()||'PX'};
 const logoSrc=()=>W.logoDel?'':(W.logo?W.logo.url:(SET.logo_url||''));
 const bnSrc=()=>W.bnDel?'':(W.bn?W.bn.url:(SET.banner_url||''));
 const rm=(a,b)=>`<button type="button" class="sw-bt rm" id="${a}"${b?'':' hidden'}>ລຶບຮູບ</button>`;
 function body(){
- if(W.tab!=='basic')return `<div class="sw-wn">${W.tab==='font'?'ຟອນເວັບໄຊ':'ຈັດການປະກາດ'} — ຈະເພີ່ມໃນຂັ້ນຕອນຕໍ່ໄປ</div>`;
+ if(W.tab==='font'){const cur=W.font||SET.site_font||'Kanit';
+  return `<div class="sw-c"><div class="sw-ch">${IC.a}<h2>ຟອນເວັບໄຊ</h2></div><div class="sw-cb"><div class="sw-fl">${FN.map(f=>`<button type="button" class="sw-fc${f===cur?' on':''}" data-swf="${f}"><span class="sw-fs" style="font-family:${st(f)}">ສະບາຍດີ ABC 123</span><span class="sw-fn">${f}</span></button>`).join('')}</div>
+<p class="sw-fnote">ເລືອກຟອນແລ້ວກົດ "ບັນທຶກ" ດ້ານລຸ່ມ · ຟອນຈະປ່ຽນທຸກໜ້າຂອງຮ້ານ (ໜ້າແອດມິນບໍ່ປ່ຽນ) · ຟອນທີ່ບໍ່ມີຕົວລາວ (Kanit, Prompt, Sarabun ...) ຈະປ່ຽນສະເພາະຕົວເລກ/ອັງກິດ/ໄທ ສ່ວນຕົວລາວໃຊ້ Noto Sans Lao Looped · Noto Sans Lao ແລະ Noto Serif Lao ປ່ຽນຕົວລາວດ້ວຍ</p></div></div>`}
+ if(W.tab==='ann'){const tt=W.tt!=null?W.tt:(SET.top_text||''),at=W.at!=null?W.at:(SET.bar_text||''),ts=W.ts||+SET.top_speed||55,bs=W.bs||+SET.bar_speed||40,pc=v=>((v-10)/110*100)+'%';
+  const sl=(i,v,vi)=>`<div class="sw-rg b"><input type="range" id="${i}" min="10" max="120" step="1" value="${v}" style="--p:${pc(v)}"><span class="sw-rv" id="${vi}">${v}px/s</span></div>`;
+  return `<div class="sw-c"><div class="sw-ch">${IC.mega}<h2>ຂໍ້ຄວາມປະກາດ</h2></div><div class="sw-cb">
+<label class="sw-l" for="swtt">ຂໍ້ຄວາມເລື່ອນດ້ານເທິງສຸດ</label><textarea class="sw-ta" id="swtt" maxlength="200" placeholder="ຂໍ້ຄວາມທີ່ເລື່ອນວົນຢູ່ເທິງສຸດຂອງເວັບ...">${esc(tt)}</textarea>
+<hr class="sw-hr"><label class="sw-l">ຄວາມໄວການເລື່ອນ (ແຖບເທິງສຸດ)</label>${sl('swts',ts,'swtv')}
+<p class="sw-pt">ຕົວຢ່າງການເລື່ອນ (ຄວາມໄວຈິງ)</p><div class="sw-mb"><div class="sx-mq" id="swtm" data-t="ຕົວຢ່າງຂໍ້ຄວາມເລື່ອນ..." data-s="${ts}" data-d="1"></div></div>
+<hr class="sw-hr"><label class="sw-l" for="swat">ຂໍ້ຄວາມປະກາດ (ແຖບໃຕ້ແບນເນີ)</label><textarea class="sw-ta" id="swat" maxlength="200" placeholder="ຂໍ້ຄວາມໃນແຖບ ປະກາດ ໃຕ້ແບນເນີ...">${esc(at)}</textarea>
+<hr class="sw-hr"><label class="sw-l">ຄວາມໄວການເລື່ອນ (ແຖບປະກາດ)</label>${sl('swbs',bs,'swbv')}
+<p class="sw-pt">ຕົວຢ່າງການເລື່ອນ (ຄວາມໄວຈິງ)</p><div class="sw-mb"><div class="sx-mq" id="swbm" data-t="ຕົວຢ່າງຂໍ້ຄວາມເລື່ອນ..." data-s="${bs}" data-d="0"></div></div>
+</div></div>`}
+ if(W.tab==='bn'){const y=WY(),f=FS(),rs=+W.rs||+SET.recent_speed||40,re=rl();
+  const fl=(n,k)=>`<label class="sw-l" for="swy${n}${k}">ກາດທີ ${n} · ${k==='t'?'ຫົວຂໍ້':'ຂໍ້ຄວາມ'}</label>${k==='t'?`<input class="sw-i" id="swy${n}t" maxlength="60" autocomplete="off" value="${esc(y['t'+n]||'')}">`:`<textarea class="sw-ta" id="swy${n}x" maxlength="200">${esc(y['x'+n]||'')}</textarea>`}`;
+  const m2=+y.mode===2;
+  return `<div class="sw-c"><div class="sw-ch">${IC.shield}<h2>ເປັນຫຍັງຕ້ອງເລືອກເຮົາ</h2></div><div class="sw-cb">
+${fl(1,'t')}<hr class="sw-hr">${fl(1,'x')}<hr class="sw-hr">${fl(2,'t')}<hr class="sw-hr">${fl(2,'x')}<hr class="sw-hr">
+<label class="sw-l">ແບບດີໄຊນ໌</label><div class="sw-md"><button type="button" class="sw-mo${m2?'':' on'}" data-swm="1"><b>ແບບ 1 · ເບລີສະຫຼັບ</b><span>ກາດດຽວ ປ່ຽນຂໍ້ຄວາມວົນໄປເລື້ອຍໆ</span></button><button type="button" class="sw-mo${m2?' on':''}" data-swm="2"><b>ແບບ 2 · ກາດຊ້ອນ</b><span>ສະແດງ 2 ກາດພ້ອມກັນ ບໍ່ສະຫຼັບ</span></button></div>
+${m2?'':`<label class="sw-l">ຄວາມໄວການປ່ຽນຂໍ້ຄວາມ</label>${sld('swyh',+y.hold||5,'swyhv',2,20,1,(+y.hold||5)+'s','t')}<p class="sw-pt l">ຄ້າງໄວ້ຂໍ້ຄວາມລະຫວ່າງກາດ (ວິນາທີ)</p>
+<label class="sw-l" style="margin-top:26px">ຄວາມໄວເບລີ</label>${sld('swyb',+y.blur||.9,'swybv',.2,2,.1,(+y.blur||.9).toFixed(1)+'s','t')}<p class="sw-pt l">ເວລາເບລີ/ຈາງຕອນປ່ຽນ (ນ້ອຍ = ໄວ)</p>`}
+<p class="sw-pt l" style="margin:24px 0 12px">ຕົວຢ່າງກາດ (ຄວາມໄວຈິງ)</p><div id="swyp">${wyH(y,1)}</div></div></div>
+<div class="sw-c"><div class="sw-ch">${IC.bag}<h2>ສິນຄ້າທີ່ຊື້ລ່າສຸດ (ແຖບເລື່ອນໜ້າຫຼັກ)</h2></div><div class="sw-cb">
+<label class="sw-l">ຄວາມໄວການເລື່ອນ (ຊື້ລ່າສຸດ)</label>${sld('swrs',rs,'swrsv',10,120,1,rs+'px/s')}
+<p class="sw-pt">ຕົວຢ່າງການເລື່ອນ (ຄວາມໄວຈິງ)</p><div class="sw-mb l"><div class="sx-mq" id="swrm" data-t="ab**** ຊື້ ສິນຄ້າຕົວຢ່າງ · 5 ນາທີກ່ອນ" data-s="${rs}" data-d="0"></div></div>
+<p class="sw-big">ໜ້າຫຼັກຈະສະແດງຄົນທີ່ຊື້ສິນຄ້າລ່າສຸດແບບເລື່ອນວົນ (ຊື່ຜູ້ໃຊ້ຖືກປິດບາງສ່ວນ) · ຖ້າຍັງບໍ່ມີໃຜຊື້ ຈະບໍ່ສະແດງແຖບນີ້</p></div></div>
+<div class="sw-c"><div class="sw-ch">${IC.bars}<h2>ສະຖິຕິໜ້າຫຼັກ (ຕົວເລກຈຳລອງ)</h2></div><div class="sw-cb"><div class="sw-sg">${STL.map(([k,lb,un])=>`<label class="sw-st"><span class="sw-sw">${SH[k]}</span><span class="sw-si">${SH[k]}</span><span class="sw-sx"><small>${lb}</small><input class="sw-sn" id="swf_${k}" inputmode="numeric" maxlength="9" autocomplete="off" placeholder="${re[k]}" value="${f[k]!=null&&f[k]!==''?esc(String(f[k])):''}"></span><em>${un}</em></label>`).join('')}</div>
+<p class="sw-big">ກົດທີ່ຕົວເລກເພື່ອພິມຕົວເລກຈຳລອງ · ຕົວເລກສີຈາງ = ຕົວເລກຈິງ (ໃຊ້ຢູ່ຕອນນີ້) · ລົບໃຫ້ວ່າງ = ກັບໄປໃຊ້ຕົວເລກຈິງ</p></div></div>`}
+  if(W.tab==='th'){const c=W.tc!=null?W.tc:(SET.theme_color||thDef()),b=W.tb!=null?W.tb:(SET.theme_bg||'#000000'),m=W.tm||SET.theme_mode||'solid',f=FT();
+  const cr=(n,v,lb,hint)=>`<label class="sw-l" for="swc${n}t">${lb}</label><div class="sw-cr"><label class="sw-sc"><input type="color" id="swc${n}" value="${hx(v)?v.toLowerCase():'#000000'}"><span class="sw-sd" id="swd${n}" style="background:${hx(v)?v:'#000'}"></span></label><input class="sw-i" id="swc${n}t" maxlength="7" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(v)}"></div>${hint||''}`;
+  const tr=(k,t,d)=>`<div class="sw-tr"><div class="x"><b>${t}</b><span class="d">${d}</span></div><button type="button" class="sw-tg${f[k]?' on':''}" data-swg="${k}" role="switch" aria-checked="${f[k]?'true':'false'}" aria-label="${t}"></button></div>`;
+  return `<div class="sw-c"><div class="sw-ch">${IC.pal}<h2>ປັບແຕ່ງທິມ & ສີ</h2></div><div class="sw-cb">
+${cr(1,c,'ສີຫຼັກ (Theme Color)')}<hr class="sw-hr">${cr(2,b,'ສີພື້ນຫຼັງ','<p class="sw-pt l">ສີເຂັ້ມໃຊ້ກັບໂໝດມືດ · ສີສະຫວ່າງໃຊ້ກັບໂໝດສະຫວ່າງ (ລູກຄ້າຍັງສະຫຼັບສະຫວ່າງ/ມືດໄດ້ຕາມເດີມ)</p>')}<hr class="sw-hr">
+<label class="sw-l" for="swmd">ໂໝດທິມ</label><div class="sw-sel"><select class="sw-i" id="swmd">${Object.keys(THM).map(k=>`<option value="${k}"${k===m?' selected':''}>${THM[k][0]}</option>`).join('')}</select></div><p class="sw-pt l" id="swmh">${THM[m][1]}</p><hr class="sw-hr">
+<label class="sw-l">ຕົວຢ່າງ</label><div id="swthp">${thP(c,b,m)}</div></div></div>
+<div class="sw-c"><div class="sw-ch">${IC.fitI}<h2>ປັບຮູບພໍດີອັດຕະໂນມັດ</h2></div><div class="sw-cb">
+${tr('on','ເປີດໃຊ້ງານ','ປັບ “ຄວາມຍາວ” ຂອງກາດໃຫ້ພໍດີກັບຮູບອັດຕະໂນມັດ ບໍ່ຕັດຮູບ · ຄວາມກວ້າງຂອງກາດຄືເກົ່າ')}
+<div class="sw-fb${f.on?'':' off'}">${tr('prod','ສິນຄ້າ','ກາດສິນຄ້າ ຍາວຕາມສັດສ່ວນຮູບສິນຄ້າ')}${tr('cat','ໝວດໝູ່','ກາດໝວດໝູ່ ຍາວຕາມສັດສ່ວນຮູບໝວດໝູ່')}</div>
+<p class="sw-pt l" style="margin-top:20px">ປິດ = ໃຊ້ສັດສ່ວນກາດແບບເດີມ (ຮູບທີ່ບໍ່ເຂົ້າສັດສ່ວນຈະຖືກຕັດຂອບ) · ກົດ “ບັນທຶກ” ດ້ານລຸ່ມເພື່ອໃຊ້ງານ</p></div></div>`}
+ if(W.tab!=='basic')return `<div class="sw-wn">ຊ່ອງທາງຕິດຕໍ່ — ຈະເພີ່ມໃນຂັ້ນຕອນຕໍ່ໄປ</div>`;
  const ls=logoSrc(),bs=bnSrc();
  return `<div class="sw-c"><div class="sw-ch">${IC.card}<h2>ຂໍ້ມູນພື້ນຖານເວັບໄຊ</h2></div><div class="sw-cb">
 <label class="sw-l">ໂລໂກ້ຮ້ານ</label>
@@ -2778,18 +2891,18 @@ function body(){
 <p class="sw-pt">ຕົວຢ່າງແຖບເທິງຂອງເວັບ (ຂະໜາດຈິງ)</p>
 <div class="sw-pb"><span class="sw-pa" id="swpa"></span><span class="sw-pn" id="swpn"></span><i class="sw-pd r"></i><i class="sw-pd"></i></div>
 <p class="sw-ht">ອັບໂຫຼດໂລໂກ້ກ່ອນ ຈຶ່ງປັບຂະໜາດໄດ້ · ກົດ "ບັນທຶກ" ເພື່ອໃຊ້ຈິງ</p>
-<hr class="sw-hr"><label class="sw-l" for="swn">ຊື່ເວັບໄຊ (Site Name)</label><input class="sw-i" id="swn" maxlength="40" autocomplete="off" value="${esc(SET.shop_name||'')}">
+<hr class="sw-hr"><label class="sw-l" for="swn">ຊື່ເວັບໄຊ (Site Name)</label><input class="sw-i" id="swn" maxlength="40" autocomplete="off" value="${esc(W.n!=null?W.n:(SET.shop_name||''))}">
 <hr class="sw-hr"><label class="sw-l">ແບນເນີໜ້າທຳອິດ</label>
 <div class="sw-bn${bs?' has':''}" id="swbn" role="button" tabindex="0"><input type="file" id="swbf" accept="image/jpeg,image/png,image/webp" hidden><img alt=""${bs?` src="${esc(bs)}"`:''}><span class="sw-ic">${IC.cloud}</span><b>ຍັງບໍ່ໄດ້ອັບໂຫຼດແບນເນີ</b><small>ຂະໜາດແນະນຳ 1500 × 512 px · JPG, PNG, WEBP</small></div>
 <div class="sw-bnr"><button type="button" class="sw-bt" id="swbb">${IC.up}ອັບໂຫຼດຈາກເຄື່ອງ</button>${rm('swbr',bs)}</div>
-<hr class="sw-hr"><label class="sw-l" for="swd">ຄຳອະທິບາຍເວັບໄຊ</label><textarea class="sw-ta" id="swd" maxlength="300" placeholder="ຂຽນຄຳອະທິບາຍສັ້ນໆກ່ຽວກັບຮ້ານຂອງທ່ານ...">${esc(SET.site_desc||'')}</textarea>
+<hr class="sw-hr"><label class="sw-l" for="swd">ຄຳອະທິບາຍເວັບໄຊ</label><textarea class="sw-ta" id="swd" maxlength="300" placeholder="ຂຽນຄຳອະທິບາຍສັ້ນໆກ່ຽວກັບຮ້ານຂອງທ່ານ...">${esc(W.d!=null?W.d:(SET.site_desc||''))}</textarea>
 </div></div>`}
-views['admin-set']=()=>{W={logo:null,logoDel:false,bn:null,bnDel:false,size:+SET.logo_size||36,tab:'basic',busy:false};
+views['admin-set']=()=>{W={logo:null,logoDel:false,bn:null,bnDel:false,size:+SET.logo_size||36,tab:'basic',busy:false,n:null,d:null,font:null,tt:null,at:null,ts:null,bs:null,wy:null,fs:null,rs:null,tc:null,tb:null,tm:null,ft:null};
  const tb=(k,i,t)=>`<button type="button" class="sw-tb${k==='basic'?' on':''}" data-swt="${k}">${IC[i]}${t}</button>`;
  setTimeout(()=>{pv()},0);
  return `<div class="adx sw" data-nt><h1 class="sw-h">ການຕັ້ງຄ່າເວັບໄຊ (Website Customization)</h1>
 <p class="sw-sub">ຈັດການເນື້ອຫາຫຼັກ ແບນເນີ ສີ ທິມ ສະຖິຕິ ແລະ ຊ່ອງທາງຕິດຕໍ່ຂອງຮ້ານຄ້າ</p>
-<div class="sw-tabs">${tb('basic','card','ຂໍ້ມູນພື້ນຖານ')}${tb('font','a','ຟອນເວັບໄຊ')}${tb('ann','mega','ຈັດການປະກາດ')}</div>
+<div class="sw-tabs">${tb('basic','card','ຂໍ້ມູນພື້ນຖານ')}${tb('font','a','ຟອນເວັບໄຊ')}${tb('ann','mega','ຈັດການປະກາດ')}${tb('bn','list','ແບນເນີ & ເນື້ອຫາ')}${tb('th','pal','ສີ & ທິມ')}${tb('ct','phone','ຊ່ອງທາງຕິດຕໍ່')}</div>
 <div id="swb">${body()}</div>
 <button type="button" class="sw-sv" id="swsave">${IC.save}ບັນທຶກການຕັ້ງຄ່າ</button></div>`};
 function pv(){const a=$('#swpa'),n=$('#swpn');if(!a||!n)return;const s=+W.size||36,u=logoSrc();
@@ -2805,31 +2918,53 @@ function crop(f,w,h,type,q){return new Promise((ok,no)=>{const im=new Image(),u=
 function pick(f,kind){if(!f)return;if(!/^image\/(jpeg|png|webp)$/.test(f.type)||f.size>10*1048576)return toast('ໄຟລ໌ຮູບບໍ່ຖືກຕ້ອງ (JPG, PNG, WEBP ບໍ່ເກີນ 10MB)');
  (kind==='logo'?crop(f,256,256,'image/png'):crop(f,1500,512,'image/jpeg',.88)).then(b=>{const o=kind==='logo'?W.logo:W.bn;if(o)URL.revokeObjectURL(o.url);const v={blob:b,url:URL.createObjectURL(b)};
   if(kind==='logo'){W.logo=v;W.logoDel=false}else{W.bn=v;W.bnDel=false}draw()}).catch(()=>toast('ໄຟລ໌ຮູບບໍ່ຖືກຕ້ອງ'))}
-function draw(){const keep={n:$('#swn')?$('#swn').value:null,d:$('#swd')?$('#swd').value:null};const b=$('#swb');if(!b)return;b.innerHTML=body();
+function draw(){const keep={n:$('#swn')?$('#swn').value:null,d:$('#swd')?$('#swd').value:null};const b=$('#swb');if(!b)return;if(W.tab==='font')loadFonts(FN);b.innerHTML=body();
  if(keep.n!==null&&$('#swn'))$('#swn').value=keep.n;if(keep.d!==null&&$('#swd'))$('#swd').value=keep.d;pv()}
 async function up(blob,pre,ext,ct){const p=pre+'_'+Date.now()+'.'+ext,u=await sb.storage.from(BK).upload(p,blob,{contentType:ct});if(u.error)throw u.error;return sb.storage.from(BK).getPublicUrl(p).data.publicUrl}
 async function save(){const g=$('#swsave');if(!g||W.busy||!sb||!isAdm())return;
- if(W.tab!=='basic')return;
- const nm=($('#swn')||{}).value.trim();if(!nm)return toast('ກະລຸນາໃສ່ຊື່ເວັບໄຊ');
+ const nm=(W.n!=null?W.n:(SET.shop_name||'')).trim();if(!nm)return toast('ກະລຸນາໃສ່ຊື່ເວັບໄຊ');
  W.busy=true;g.disabled=true;g.lastChild.textContent='ກຳລັງບັນທຶກ...';
  try{let lg=SET.logo_url||null,bn=SET.banner_url||null;
   if(W.logoDel)lg=null;if(W.logo)lg=await up(W.logo.blob,'logo','png','image/png');
   if(W.bnDel)bn=null;if(W.bn)bn=await up(W.bn.blob,'banner','jpg','image/jpeg');
-  const row={shop_name:nm,logo_url:lg,banner_url:bn,logo_size:+W.size||36,site_desc:($('#swd').value.trim()||null),updated_at:new Date().toISOString()};
+  if(W.tc!=null&&!hx(W.tc))throw new Error('ລະຫັດສີຫຼັກບໍ່ຖືກຕ້ອງ (ເຊັ່ນ #ff0b16)');if(W.tb!=null&&!hx(W.tb))throw new Error('ລະຫັດສີພື້ນຫຼັງບໍ່ຖືກຕ້ອງ (ເຊັ່ນ #000000)');
+  const row={shop_name:nm,logo_url:lg,banner_url:bn,logo_size:+W.size||36,site_desc:((W.d!=null?W.d:(SET.site_desc||'')).trim()||null),updated_at:new Date().toISOString()};
+  if(W.font)row.site_font=W.font;
+  row.top_text=((W.tt!=null?W.tt:(SET.top_text||'')).trim()||null);row.top_speed=+(W.ts||SET.top_speed||55);row.bar_text=((W.at!=null?W.at:(SET.bar_text||'')).trim()||null);row.bar_speed=+(W.bs||SET.bar_speed||40);
+  {const y=W.wy,f=W.fs;row.why=y?{t1:String(y.t1||'').trim(),x1:String(y.x1||'').trim(),t2:String(y.t2||'').trim(),x2:String(y.x2||'').trim(),mode:+y.mode===2?2:1,hold:+y.hold||5,blur:+y.blur||.9}:(SET.why||null);
+   if(f){const o={};['u','p','o','s'].forEach(k=>{if(f[k]!=null&&f[k]!==''&&!isNaN(f[k]))o[k]=+f[k]});row.fake_stats=Object.keys(o).length?o:null}
+   row.recent_speed=+(W.rs||SET.recent_speed||40)}
+  if(W.tc!=null)row.theme_color=W.tc.toLowerCase();if(W.tb!=null)row.theme_bg=W.tb.toLowerCase();if(W.tm)row.theme_mode=W.tm;
+  row.fit=W.ft?{on:!!W.ft.on,prod:!!W.ft.prod,cat:!!W.ft.cat}:(SET.fit||null);
   const r=await sb.from('shop_settings').update(row).eq('id',1).select('id');
   if(r.error||!r.data||!r.data.length)throw r.error||new Error('no_permission');
   Object.assign(SET,row);W.logo=null;W.bn=null;W.logoDel=false;W.bnDel=false;brand(document);draw();okPop('ບັນທຶກສຳເລັດ')}
- catch(x){const m=x&&x.message||'';toast('ບັນທຶກບໍ່ສຳເລັດ'+(/logo_size|site_desc|column/i.test(m)?' — ຍັງບໍ່ໄດ້ຣັນ site_settings.sql ໃນ Supabase':(m?' ['+m+']':'')))}
+ catch(x){const m=x&&x.message||'';toast('ບັນທຶກບໍ່ສຳເລັດ'+(/logo_size|site_desc|site_font|top_text|bar_text|why|fake_stats|recent_speed|theme_|fit|column/i.test(m)?' — ຍັງບໍ່ໄດ້ຣັນ site_settings.sql ໃນ Supabase':(m?' ['+m+']':'')))}
  W.busy=false;g.disabled=false;g.lastChild.textContent='ບັນທຶກການຕັ້ງຄ່າ'}
 document.addEventListener('click',e=>{const t=e.target;if(!t.closest||!t.closest('.sw')||!isAdm())return;
+ const tg=t.closest('[data-swg]');if(tg){const k=tg.dataset.swg,f=FT();f[k]=!f[k];draw();return}
+ const mo=t.closest('[data-swm]');if(mo){WY().mode=+mo.dataset.swm;draw();return}
+ const fc=t.closest('[data-swf]');if(fc){W.font=fc.dataset.swf;draw();return}
  const tb=t.closest('[data-swt]');
- if(tb){W.tab=tb.dataset.swt;document.querySelectorAll('.sw-tb').forEach(x=>x.classList.toggle('on',x===tb));draw();return}
+ if(tb){W.tab=tb.dataset.swt;document.querySelectorAll('.sw-tb').forEach(x=>x.classList.toggle('on',x===tb));try{tb.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'})}catch(_){}draw();return}
  if(t.closest('#swlg')||t.closest('#swlb')){if(!t.closest('input'))$('#swlf').click()}
  else if(t.closest('#swbn')||t.closest('#swbb')){if(!t.closest('input'))$('#swbf').click()}
  else if(t.closest('#swlr')){if(W.logo)URL.revokeObjectURL(W.logo.url);W.logo=null;W.logoDel=true;draw()}
  else if(t.closest('#swbr')){if(W.bn)URL.revokeObjectURL(W.bn.url);W.bn=null;W.bnDel=true;draw()}
  else if(t.closest('#swsave'))save()});
 document.addEventListener('change',e=>{const t=e.target;if(t.id==='swlf'){pick(t.files[0],'logo');t.value=''}else if(t.id==='swbf'){pick(t.files[0],'bn');t.value=''}});
-document.addEventListener('input',e=>{const t=e.target;if(t.id==='swsz'){W.size=+t.value;$('#swsv').textContent=W.size+'px';pv()}else if(t.id==='swn')pv()});
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='swsz'){W.size=+t.value;$('#swsv').textContent=W.size+'px';pv()}else if(t.id==='swn'){W.n=t.value;pv()}else if(t.id==='swd')W.d=t.value;else if(t.id==='swtt')W.tt=t.value;else if(t.id==='swat')W.at=t.value;
+ else if(t.id==='swts'||t.id==='swbs'){const tp=t.id==='swts',v=+t.value;if(tp)W.ts=v;else W.bs=v;$(tp?'#swtv':'#swbv').textContent=v+'px/s';t.style.setProperty('--p',((v-10)/110*100)+'%');const m=$(tp?'#swtm':'#swbm');if(m){m.dataset.s=v;m._u&&m._u()}}
+ else if(/^swy[12][tx]$/.test(t.id)){WY()[t.id.slice(4)+t.id[3]]=t.value;wyR()}
+ else if(t.id==='swyh'){WY().hold=+t.value;$('#swyhv').textContent=t.value+'s';t.style.setProperty('--p',((t.value-2)/18*100)+'%');wyR()}
+ else if(t.id==='swyb'){WY().blur=+t.value;$('#swybv').textContent=(+t.value).toFixed(1)+'s';t.style.setProperty('--p',((t.value-.2)/1.8*100)+'%');wyR()}
+ else if(t.id==='swrs'){const v=+t.value;W.rs=v;$('#swrsv').textContent=v+'px/s';t.style.setProperty('--p',((v-10)/110*100)+'%');const m=$('#swrm');if(m){m.dataset.s=v;m._u&&m._u()}}
+ else if(t.id.indexOf('swf_')===0){const v=t.value.replace(/\D/g,'').slice(0,9);if(v!==t.value)t.value=v;FS()[t.id.slice(4)]=v}
+});
+document.addEventListener('input',e=>{const t=e.target;if(!t.closest||!t.closest('.sw'))return;
+ if(t.id==='swc1'||t.id==='swc2'){const n=t.id[3];W[n==='1'?'tc':'tb']=t.value;const x=$('#swc'+n+'t');if(x)x.value=t.value;const d=$('#swd'+n);if(d)d.style.background=t.value;thR()}
+ else if(t.id==='swc1t'||t.id==='swc2t'){let v=t.value.trim();if(v&&v[0]!=='#')v='#'+v;const n=t.id[3];W[n==='1'?'tc':'tb']=v;if(hx(v)){const c=$('#swc'+n);if(c)c.value=v.toLowerCase();const d=$('#swd'+n);if(d)d.style.background=v}thR()}
+ else if(t.id==='swmd'){W.tm=t.value;const h=$('#swmh');if(h)h.textContent=THM[t.value][1];thR()}});
+function wyR(){const e=$('#swyp');if(e)e.innerHTML=wyH(WY(),1)}
 document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&(e.target.id==='swlg'||e.target.id==='swbn')){e.preventDefault();e.target.click()}});
 })();

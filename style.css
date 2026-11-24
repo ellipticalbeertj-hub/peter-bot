@@ -1862,7 +1862,7 @@ body.adm-mode.adx-open .adx-dm>*{animation:adxIn .46s cubic-bezier(.2,.8,.2,1) b
 .sw-tabs::-webkit-scrollbar{display:none}
 .sw-tb{flex:none;display:flex;align-items:center;gap:10px;height:39px;padding:0 17px;border:1px solid #232323;border-radius:20px;background:#0a0a0a;color:#8d8d90;font:500 15px/1 'Noto Sans Lao','IBM Plex Sans Thai',system-ui,sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .sw-tb svg{width:19px;height:19px;fill:currentColor}
-.sw-tb.on{background:#d9302b;border-color:#d9302b;color:#fff;box-shadow:0 4px 18px rgba(217,48,43,.38)}
+.sw-tb.on{background:#e60f19;border-color:#e60f19;color:#fff;box-shadow:0 4px 18px rgba(230,15,25,.42)}
 .sw-c{margin-top:22px;background:#000;border:1px solid #3a1414;border-radius:24px;overflow:hidden}
 .sw-ch{display:flex;align-items:center;gap:14px;padding:19px 22px;border-bottom:1px solid #1f1f1f}
 .sw-ch svg{width:23px;height:23px;fill:#e0302b;flex:none}
@@ -1919,3 +1919,99 @@ body.adm-mode.adx-open .adx-dm>*{animation:adxIn .46s cubic-bezier(.2,.8,.2,1) b
 .sw-sv svg{width:22px;height:22px;fill:currentColor}
 .sw-sv:active{transform:scale(.985)}
 .sw-sv:disabled{opacity:.6}
+
+.sw-ch svg{width:26px;height:26px}
+.sw-fl{display:flex;flex-direction:column;gap:14px}
+.sw-fc{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;margin:0;padding:25px 10px 24px;border:1px solid #262626;border-radius:24px;background:#101010;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sw-fs{font-size:26px;line-height:34px;font-weight:400;color:#fff}
+.sw-fn{font:600 15px/20px system-ui,-apple-system,sans-serif;color:#5f5f63}
+.sw-fc.on{border-color:#ee1111;background:#1c0505;box-shadow:0 0 16px rgba(238,17,17,.28)}
+.sw-fc.on .sw-fn{color:#f01414}
+.sw-fnote{margin:20px 0 0;font-size:14px;line-height:20px;color:#5c5c5f}
+
+/* ແທັບ ຈັດການປະກາດ + ແຖບເລື່ອນສະແດງໜ້າເວັບ */
+.sw-rg.b input::-webkit-slider-runnable-track{height:7px;border-radius:4px;background:linear-gradient(90deg,#f0101a var(--p,40%),#dcdcdc var(--p,40%))}
+.sw-rg.b input::-webkit-slider-thumb{width:24px;height:24px;margin-top:-8.5px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+.sw-rg.b input::-moz-range-track{height:7px;border-radius:4px;background:#dcdcdc}
+.sw-rg.b input::-moz-range-progress{height:7px;border-radius:4px;background:#f0101a}
+.sw-rg.b input::-moz-range-thumb{width:24px;height:24px;background:#fff;border:0}
+.sw-rg.b .sw-rv{min-width:96px;font-size:20px;font-weight:500;color:#f0101a}
+.sw-mb{height:36px;border:1px solid #232323;border-radius:16px;background:#080808;overflow:hidden}
+.sw-mb .sx-mq{height:100%;color:#8a8a8d;font-size:16px}
+.sx-mq{position:relative;display:flex;align-items:center;width:100%;overflow:hidden;white-space:nowrap}
+.sx-mt{display:flex;flex:none;width:max-content;animation:sxmq linear infinite;will-change:transform}
+.sx-mg{display:flex;flex:none}
+.sx-mi{display:inline-flex;align-items:center;flex:none;white-space:nowrap}
+.sx-md{flex:none;width:8px;height:8px;margin:0 26px;border-radius:50%;background:#f0101a}
+.sx-mx{flex:none;width:90px}
+@keyframes sxmq{to{transform:translateX(-50%)}}
+.sx-top{max-width:1160px;margin:6px auto 0;padding:7px 14px;font-size:14px;color:var(--text)}
+.sx-top[hidden]{display:none}
+.sx-bar{margin:0 0 16px;padding:9px 14px;border:1px solid var(--border);border-radius:16px;background:var(--surface);font-size:14px;color:var(--text)}
+body.adm-mode #sxt,body.adm-mode .sx-top{display:none!important}
+@media (prefers-reduced-motion:reduce){.sx-mt{animation:none}}
+
+/* ແທັບ ແບນເນີ & ເນື້ອຫາ */
+.sw-rg.b .sw-rv{min-width:54px}
+.sw-rg.t .sw-rv{min-width:44px}
+.sw-ch svg.o{fill:none;stroke:#e0302b;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sw-pt.l{margin:14px 0 0;font-size:16px;line-height:23px}
+.sw-big{margin:16px 0 0;font-size:18px;line-height:26px;color:#f0f0f0}
+.sw-md{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px}
+.sw-mo{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin:0;padding:15px 15px 14px;text-align:left;border:1.5px solid #2a2a2a;border-radius:20px;background:#0b0b0b;color:#fff;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.sw-mo b{font-size:17px;line-height:24px;font-weight:700}
+.sw-mo span{font-size:15px;line-height:23px;color:#6f6f72}
+.sw-mo.on{border:2px solid #f01010;background:#1c0505;padding:14.5px 14.5px 13.5px}
+.sw-mb.l .sx-mq{color:#e6e6e8;font-size:17px}
+.sw-sg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sw-st{position:relative;display:flex;align-items:center;gap:14px;height:72px;padding:0 12px;border:1px solid #262626;border-radius:20px;background:linear-gradient(135deg,#171717,#0d0d0d);overflow:hidden;cursor:text}
+.sw-si{position:relative;flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:11px;background:#2a0d0d;border:1px solid #5a1717;color:#ff2a24}
+.sw-si svg{width:18px;height:18px;fill:currentColor}
+.sw-sw{position:absolute;right:-6px;bottom:-12px;width:62px;height:62px;color:#e0302b;opacity:.15;pointer-events:none}
+.sw-sw svg{width:100%;height:100%;fill:currentColor}
+.sw-sx{position:relative;display:flex;flex-direction:column;min-width:0;flex:1}
+.sw-sx small{font-size:14px;line-height:16px;color:#6b6b6e}
+.sw-sn{width:100%;margin:0;padding:0;border:0;background:transparent;outline:0;color:#fff;font:700 24px/30px 'Noto Sans Lao',system-ui,sans-serif;-webkit-appearance:none;appearance:none}
+.sw-sn::placeholder{color:#bdbdc0;opacity:1}
+.sw-st em{position:absolute;right:12px;bottom:8px;font-style:normal;font-size:14px;color:#6b6b6e}
+/* ກາດ "ເປັນຫຍັງຕ້ອງເລືອກເຮົາ" (ໜ້າເວັບ + ຕົວຢ່າງ) */
+.sx-wy{display:grid;gap:12px;margin:0 0 16px}
+.sx-wc{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--border,#262626);border-radius:20px;background:var(--surface,#0c0c0c);color:var(--text,#fff)}
+.sx-wi{flex:none;display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:13px;background:rgba(224,48,43,.14);background:color-mix(in srgb,var(--pri,#e0302b) 14%,transparent);border:1px solid rgba(224,48,43,.35);border-color:color-mix(in srgb,var(--pri,#e0302b) 35%,transparent);color:var(--pri,#e0302b)}
+.sx-wi svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sx-wc b{display:block;font-size:18px;line-height:26px;font-weight:700}
+.sx-wc p{margin:2px 0 0;font-size:15px;line-height:22px;color:var(--sub,#8a8a8a)}
+.sx-wy.m1>.sx-wc{grid-area:1/1;opacity:0;filter:blur(10px);pointer-events:none;transition:opacity var(--bt,.9s) ease,filter var(--bt,.9s) ease}
+.sx-wy.m1>.sx-wc.on{opacity:1;filter:none}
+.sw .sx-wc{--pri:#e0302b;--surface:#0c0c0c;--border:#262626;--sub:#7a7a7d;--text:#fff;border-radius:20px}
+.sw .sx-wi{background:#2a0d0d;border-color:#5a1717;color:#ff2a24}
+
+/* ແທັບ ສີ & ທິມ */
+.sw-cr{display:flex;align-items:center;gap:14px}
+.sw-cr .sw-i{flex:1;min-width:0;font-family:'IBM Plex Sans Thai','Noto Sans Lao',system-ui,sans-serif;font-size:19px}
+.sw-sc{position:relative;flex:none;display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin:0;border:1px solid #333;border-radius:16px;background:#000;cursor:pointer}
+.sw-sc input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;cursor:pointer}
+.sw-sd{width:32px;height:32px;border-radius:11px;border:1px solid rgba(255,255,255,.14)}
+.sw-sel{position:relative}
+.sw-sel select.sw-i{padding-right:48px;cursor:pointer;font-family:'IBM Plex Sans Thai','Noto Sans Lao',system-ui,sans-serif}
+.sw-sel:after{content:"";position:absolute;right:20px;top:50%;width:9px;height:9px;margin-top:-7px;border-right:2px solid #bdbdc0;border-bottom:2px solid #bdbdc0;transform:rotate(45deg);pointer-events:none}
+.sw-tp{padding:15px;border:1px solid #262626;border-radius:24px;color:var(--tx,#fff)}
+.sw-th{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sw-th b{font-size:22px;line-height:30px;font-weight:700;color:var(--tx,#fff);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sw-th span{flex:none;padding:5px 14px;border-radius:18px;font-size:16px;line-height:22px}
+.sw-tc{margin-top:14px;padding:15px 15px 16px;border:1px solid #262626;border-radius:22px;background:var(--cb,#121212)}
+.sw-tc b{display:block;font-size:20px;line-height:28px;font-weight:700;color:var(--tx,#fff)}
+.sw-tc strong{display:block;margin-top:8px;font-size:28px;line-height:34px;font-weight:700}
+.sw-tc p{margin:6px 0 0;font-size:17px;line-height:24px;color:var(--sb,#8d8d90)}
+.sw-tc i{display:block;margin-top:14px;height:38px;line-height:38px;border-radius:19px;text-align:center;font-style:normal;font-size:20px;font-weight:700;color:#fff}
+.sw-tr{display:flex;align-items:center;gap:16px}
+.sw-tr .x{flex:1;min-width:0}
+.sw-tr b{display:block;font-size:20px;line-height:28px;font-weight:500;color:#fff}
+.sw-tr .d{display:block;margin-top:4px;font-size:16px;line-height:23px;color:#6b6b6e}
+.sw-tg{position:relative;flex:none;width:50px;height:30px;margin:0;padding:0;border:1px solid #2a2a2a;border-radius:15px;background:#1a1a1a;cursor:pointer;transition:background .2s,border-color .2s;-webkit-tap-highlight-color:transparent}
+.sw-tg:after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw-tg.on{background:#e60f19;border-color:#e60f19}
+.sw-tg.on:after{transform:translateX(20px)}
+.sw-fb{margin:22px 0 0 16px;padding-left:16px;border-left:2px solid #1c1c1c;transition:opacity .2s}
+.sw-fb.off{opacity:.38;pointer-events:none}
+.sw-fb .sw-tr+.sw-tr{margin-top:16px;padding-top:16px;border-top:1px solid #1a1a1a}
