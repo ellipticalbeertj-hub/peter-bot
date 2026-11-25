@@ -1036,8 +1036,7 @@ const MENU=[
  ['g-prod','สินค้า & หมวดหมู่',MIC.box,[['admin-prod','จัดการสินค้า & หมวดหมู่',SIC.box],['admin-coupon','คูปอง & โค้ดฟรี',SIC.ticket],['admin-flash','Flash Sale',SIC.bolt],['admin-game','มินิเกม',SIC.pad]]],
  ['g-mem','สมาชิก & รายการ',MIC.users,[['admin-acc','จัดการสมาชิก',SIC.ucog],['admin-agent','ตัวแทนจำหน่าย',SIC.hand]]],
  ['g-pay','ระบบชำระเงิน',MIC.wallet,[['admin-topup','จัดการเติมเงิน',SIC.wallet],['admin-qr','QR ຊຳລະເງິນ',SIC.qr]]],
- ['g-api','เชื่อมต่อ API',MIC.plug,[['admin-webhook','Webhook Discord',SIC.disc]]],
- ['g-set','ตั้งค่าทั่วไป',MIC.sl,[['admin-set','ตั้งค่าเว็บไซต์',SIC.mon]]]
+ ['g-api','เชื่อมต่อ API',MIC.plug,[['admin-webhook','Webhook Discord',SIC.disc]]]
 ];
 const ACT={'admin-cat':'admin-prod','admin-sales':'admin-acc','admin-add':'admin-prod','admin-edit':'admin-prod','admin-stock':'admin-prod','admin-catf':'admin-cat','admin-accu':'admin-acc','admin-acclog':'admin-acc','admin-agu':'admin-agent','admin-agp':'admin-agent','admin-agkey':'admin-agent','admin-review':'admin-topup'};
 const $=s=>document.querySelector(s);
